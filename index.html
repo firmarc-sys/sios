@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>SIOS · TAE Command Bridge</title>
+<meta name="theme-color" content="#000000"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:monospace;}
+
+/* ─── CANVAS ─── */
+canvas#orb-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  display:block;touch-action:none;z-index:0;
+}
+
+/* ─── LAYERS ─── */
+#ui-layer{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+#panel-layer{position:fixed;inset:0;z-index:15;pointer-events:none;overflow:hidden;}
+#command-dock{position:fixed;bottom:0;left:0;right:0;z-index:30;padding:0 0 28px;pointer-events:all;}
+#module-rail{position:fixed;top:0;left:0;right:0;z-index:25;pointer-events:all;padding:14px 18px 0;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;opacity:0;transform:translateY(-16px);transition:opacity .8s ease, transform .8s cubic-bezier(.22,1,.36,1);}
+#module-rail.visible{opacity:1;transform:translateY(0);}
+#state-badge{position:fixed;top:14px;right:16px;z-index:40;font-size:7px;letter-spacing:.3em;color:rgba(90,238,144,.35);pointer-events:none;text-transform:uppercase;}
+#owner-badge{position:fixed;top:14px;left:16px;z-index:40;font-size:7px;letter-spacing:.25em;color:rgba(232,200,112,.3);pointer-events:none;display:none;}
+#vfx-overlay{position:fixed;inset:0;z-index:5;pointer-events:none;transition:background .8s ease;}
+#tae-voice-line{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:20;font-size:clamp(9px,1.1vw,11px);letter-spacing:.22em;color:rgba(90,238,144,.55);text-align:center;max-width:74vw;line-height:1.7;pointer-events:none;opacity:0;transition:opacity .5s ease;}
+#tae-voice-line.visible{opacity:1;}
+
+/* ─── HERO ORB TEXT ─── */
+#hero-text{
+  position:absolute;text-align:center;pointer-events:all;
+  transition:opacity 1s ease, transform 1.2s cubic-bezier(.22,1,.36,1);
+}
+.hero-id{
+  font-size:clamp(52px,10vw,96px);font-weight:300;letter-spacing:.4em;
+  color:transparent;
+  background:linear-gradient(180deg,#e8e8f0 0%,rgba(140,145,175,.45) 60%,transparent 100%);
+  -webkit-background-clip:text;background-clip:text;
+  line-height:1;
+}
+.hero-sub{
+  font-size:clamp(9px,1.2vw,12px);letter-spacing:.32em;
+  color:rgba(120,125,155,.5);margin-top:16px;
+  opacity:0;transform:translateY(6px);
+  transition:opacity 1s ease .4s, transform 1s cubic-bezier(.22,1,.36,1) .4s;
+}
+.hero-actions{
+  display:flex;gap:12px;justify-content:center;margin-top:32px;
+  opacity:0;transform:translateY(6px);
+  transition:opacity 1s ease .8s, transform 1s cubic-bezier(.22,1,.36,1) .8s;
+}
+#hero-text.revealed .hero-sub,
+#hero-text.revealed .hero-actions{opacity:1;transform:translateY(0);}
+
+/* ─── CHROME CONTROLS ─── */
+.chrome-ctrl{
+  position:relative;font-family:monospace;
+  font-size:clamp(7px,.85vw,9px);letter-spacing:.32em;
+  color:rgba(160,165,195,.65);background:transparent;border:none;
+  padding:13px 24px;cursor:pointer;pointer-events:all;overflow:hidden;
+  transition:color .3s;
+}
+.chrome-ctrl::before{
+  content:'';position:absolute;inset:0;
+  background:rgba(180,185,210,.04);
+  border:1px solid rgba(120,125,155,.15);border-radius:2px;
+  transition:all .4s;
+}
+.chrome-ctrl:hover::before{border-color:rgba(180,185,215,.35);background:rgba(180,185,210,.08);}
+.chrome-ctrl:hover{color:rgba(210,215,235,.85);}
+.chrome-ctrl.accent{color:rgba(138,180,255,.7);}
+.chrome-ctrl.accent::before{border-color:rgba(138,180,255,.25);}
+.chrome-ctrl.accent:hover{color:rgba(138,180,255,.95);}
+
+/* ─── MODULE PILLS ─── */
+.mod-pill{
+  font-family:monospace;font-size:7px;letter-spacing:.28em;text-transform:uppercase;
+  padding:7px 14px;border-radius:2px;cursor:pointer;border:none;
+  background:rgba(3,3,8,.92);border:1px solid rgba(18,18,30,1);
+  color:rgba(70,72,95,.7);
+  transition:all .4s cubic-bezier(.22,1,.36,1);pointer-events:all;
+}
+.mod-pill:hover{border-color:rgba(90,238,144,.25);color:rgba(90,238,144,.6);}
+.mod-pill.active{
+  background:rgba(90,238,144,.06);
+  border-color:rgba(90,238,144,.35);
+  color:rgba(90,238,144,.8);
+  box-shadow:0 0 10px rgba(90,238,144,.1);
+}
+.mod-pill.locked{opacity:.25;pointer-events:none;}
+.mod-pill.owner-only{border-color:rgba(232,200,112,.15);color:rgba(232,200,112,.4);}
+.mod-pill.owner-only.active{
+  background:rgba(232,200,112,.06);
+  border-color:rgba(232,200,112,.4);
+  color:rgba(232,200,112,.85);
+  box-shadow:0 0 10px rgba(232,200,112,.1);
+}
+
+/* ─── COMMAND BAR ─── */
+#cmd-bar{
+  display:flex;align-items:center;justify-content:center;
+  padding:0 16px;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .8s ease 1.2s, transform .8s cubic-bezier(.22,1,.36,1) 1.2s;
+  pointer-events:none;
+}
+#cmd-bar.live{opacity:1;transform:translateY(0);pointer-events:all;}
+#cmd-wrap{
+  position:relative;width:min(580px,88vw);
+  display:flex;align-items:center;
+  background:rgba(2,2,5,.95);
+  border:1px solid rgba(12,12,22,1);
+  border-radius:3px;padding:0 14px;
+  transition:border-color .4s;
+}
+#cmd-wrap:focus-within{border-color:rgba(90,238,144,.2);box-shadow:0 0 18px rgba(90,238,144,.05);}
+#cmd-wrap::before{
+  content:'';position:absolute;top:-1px;left:20%;right:20%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(90,238,144,.15),transparent);
+}
+#cmd-cursor{
+  font-size:9px;color:rgba(90,238,144,.35);letter-spacing:.3em;
+  margin-right:10px;flex-shrink:0;animation:blink 1.4s step-end infinite;
+}
+@keyframes blink{0%,100%{opacity:.35}50%{opacity:.07}}
+#cmd-input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:monospace;font-size:clamp(9px,1.1vw,11px);
+  color:rgba(175,180,210,.75);letter-spacing:.18em;
+  padding:13px 0;caret-color:rgba(90,238,144,.5);
+}
+#cmd-input::placeholder{color:rgba(30,28,45,.55);}
+#cmd-send{
+  background:none;border:none;cursor:pointer;padding:0 0 0 12px;
+  font-family:monospace;font-size:8px;letter-spacing:.25em;
+  color:rgba(90,238,144,.3);transition:color .3s;
+  flex-shrink:0;
+}
+#cmd-send:hover{color:rgba(90,238,144,.7);}
+
+/* ─── COMMAND CHIPS ─── */
+#cmd-chips{
+  display:flex;gap:7px;flex-wrap:wrap;justify-content:center;
+  padding:10px 16px 0;
+  opacity:0;transition:opacity .6s ease 1.8s;
+  pointer-events:none;
+}
+#cmd-chips.live{opacity:1;pointer-events:all;}
+.chip{
+  font-family:monospace;font-size:7px;letter-spacing:.2em;
+  padding:6px 11px;background:rgba(2,2,5,.9);
+  border:1px solid rgba(14,14,24,1);border-radius:2px;
+  color:rgba(55,52,75,.8);cursor:pointer;transition:all .3s;
+  white-space:nowrap;
+}
+.chip:hover{border-color:rgba(90,238,144,.22);color:rgba(90,238,144,.55);}
+
+/* ─── PANELS ─── */
+.surface-panel{
+  position:absolute;
+  background:rgba(3,3,8,.97);
+  border:1px solid rgba(10,10,18,1);
+  border-radius:4px;padding:20px 22px;
+  opacity:0;transform:scale(.94) translateY(20px);
+  pointer-events:none;
+  transition:opacity .55s cubic-bezier(.22,1,.36,1), transform .55s cubic-bezier(.22,1,.36,1), border-color .4s;
+  backdrop-filter:blur(20px);overflow:hidden;
+  max-height:72vh;overflow-y:auto;scrollbar-width:none;
+}
+.surface-panel::-webkit-scrollbar{display:none;}
+.surface-panel::before{
+  content:'';position:absolute;top:0;left:18%;right:18%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);
+}
+.surface-panel.emerged{opacity:1;transform:scale(1) translateY(0);pointer-events:all;}
+.surface-panel.owner-panel::before{background:linear-gradient(90deg,transparent,rgba(232,200,112,.18),transparent);}
+.surface-panel.owner-panel.emerged{border-color:rgba(232,200,112,.18);box-shadow:0 0 24px rgba(232,200,112,.07);}
+.surface-panel.sys-panel.emerged{border-color:rgba(90,238,144,.14);box-shadow:0 0 18px rgba(90,238,144,.06);}
+.surface-panel.tae-panel.emerged{border-color:rgba(138,180,255,.16);box-shadow:0 0 18px rgba(138,180,255,.06);}
+
+.p-label{font-size:6px;letter-spacing:.4em;color:rgba(38,36,52,.75);margin-bottom:12px;text-transform:uppercase;}
+.p-title{font-size:clamp(10px,1.2vw,13px);letter-spacing:.2em;color:rgba(160,165,195,.65);margin-bottom:14px;}
+.p-body{font-size:clamp(8px,.95vw,10px);color:rgba(75,78,105,.75);letter-spacing:.15em;line-height:2.1;}
+.p-val{color:rgba(90,238,144,.55);}
+.p-accent{color:rgba(138,180,255,.55);}
+.p-gold{color:rgba(232,200,112,.6);}
+.p-row{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid rgba(10,10,18,.8);padding:8px 0;}
+.p-row:last-child{border-bottom:none;}
+.p-key{color:rgba(45,43,65,.7);font-size:8px;letter-spacing:.2em;}
+.p-close{
+  position:absolute;top:10px;right:12px;
+  background:none;border:none;font-family:monospace;
+  font-size:8px;letter-spacing:.2em;color:rgba(40,38,55,.6);
+  cursor:pointer;transition:color .3s;padding:4px 6px;
+  pointer-events:all;
+}
+.p-close:hover{color:rgba(90,238,144,.4);}
+
+/* ─── TAE RESPONSE PANEL ─── */
+#tae-response-panel{
+  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+  z-index:50;width:min(540px,90vw);
+  background:rgba(2,2,6,.98);
+  border:1px solid rgba(138,180,255,.18);border-radius:4px;
+  padding:22px 24px 20px;
+  opacity:0;transform:translate(-50%,-50%) scale(.96);
+  transition:opacity .5s ease, transform .5s cubic-bezier(.22,1,.36,1);
+  pointer-events:none;backdrop-filter:blur(24px);
+}
+#tae-response-panel::before{
+  content:'';position:absolute;top:0;left:20%;right:20%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(138,180,255,.3),transparent);
+}
+#tae-response-panel.active{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:all;}
+#tae-rp-label{font-size:6px;letter-spacing:.45em;color:rgba(138,180,255,.3);margin-bottom:10px;}
+#tae-rp-intent{font-size:7px;letter-spacing:.25em;color:rgba(60,58,80,.6);margin-bottom:14px;}
+#tae-rp-spoken{font-size:clamp(9px,1.1vw,11px);letter-spacing:.22em;color:rgba(175,180,210,.7);line-height:1.9;margin-bottom:16px;}
+#tae-rp-state{font-size:7px;letter-spacing:.25em;color:rgba(90,238,144,.35);}
+#tae-rp-dismiss{
+  position:absolute;top:10px;right:12px;background:none;border:none;
+  font-family:monospace;font-size:7px;letter-spacing:.2em;
+  color:rgba(38,36,52,.5);cursor:pointer;padding:4px 6px;
+  pointer-events:all;transition:color .3s;
+}
+#tae-rp-dismiss:hover{color:rgba(90,238,144,.5);}
+
+/* ─── PROOF LOG TICKER ─── */
+#proof-ticker{
+  position:fixed;bottom:0;left:0;right:0;z-index:22;
+  height:22px;overflow:hidden;pointer-events:none;
+  background:rgba(1,1,4,.9);border-top:1px solid rgba(8,8,14,1);
+}
+#proof-inner{
+  display:flex;gap:0;white-space:nowrap;
+  animation:ticker-scroll 38s linear infinite;
+}
+@keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tick-item{
+  font-size:7px;letter-spacing:.2em;color:rgba(32,30,48,.65);
+  padding:0 22px;line-height:22px;border-right:1px solid rgba(10,10,16,.9);
+  flex-shrink:0;
+}
+.tick-item .tick-type{color:rgba(90,238,144,.25);}
+.tick-item .tick-agent{color:rgba(138,180,255,.2);}
+
+/* ─── AUDIO VFX ─── */
+#audio-ring{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  z-index:18;pointer-events:none;opacity:0;
+  transition:opacity .4s;
+}
+#audio-ring.active{opacity:1;}
+.a-ring{
+  position:absolute;top:50%;left:50%;
+  border-radius:50%;border:1px solid rgba(90,238,144,.12);
+  transform:translate(-50%,-50%);animation:ring-pulse 2.8s ease-in-out infinite;
+}
+
+/* ─── DEVICE GRID (IoT) ─── */
+.device-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;}
+.dev-node{
+  padding:14px 10px;border-radius:3px;text-align:center;
+  background:rgba(2,2,5,.9);border:1px solid rgba(10,10,18,1);
+  cursor:pointer;transition:all .4s;
+}
+.dev-node.online{border-color:rgba(90,238,144,.25);box-shadow:0 0 10px rgba(90,238,144,.07);}
+.dev-node.offline{opacity:.3;}
+.dev-icon{font-size:20px;margin-bottom:6px;}
+.dev-name{font-size:7px;letter-spacing:.2em;color:rgba(80,82,108,.7);}
+.dev-status{font-size:6px;letter-spacing:.2em;margin-top:4px;}
+.dev-status.on{color:rgba(90,238,144,.5);}
+.dev-status.off{color:rgba(50,48,68,.5);}
+
+/* ─── OWNER DASHBOARD ─── */
+.owner-stat{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:9px 0;border-bottom:1px solid rgba(8,8,14,1);
+}
+.owner-stat:last-child{border-bottom:none;}
+.os-key{font-size:8px;letter-spacing:.2em;color:rgba(45,43,62,.7);}
+.os-val{font-size:10px;letter-spacing:.15em;color:rgba(232,200,112,.55);}
+
+/* ─── SYNCORI PREVIEW ─── */
+.sync-bar{height:3px;border-radius:2px;background:rgba(10,10,18,1);overflow:hidden;margin:6px 0 14px;}
+.sync-fill{height:100%;background:linear-gradient(90deg,rgba(90,238,144,.3),rgba(138,180,255,.3));width:68%;border-radius:2px;}
+.sync-waveform{display:flex;align-items:center;gap:3px;height:28px;margin:10px 0;}
+.sync-waveform .bar{width:3px;border-radius:1px;background:rgba(90,238,144,.25);animation:wave-bar 1.2s ease-in-out infinite;}
+@keyframes wave-bar{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
+
+/* ─── AUGMENTED AUDIO ─── */
+.freq-row{display:flex;gap:3px;align-items:flex-end;height:42px;margin:14px 0;}
+.freq-bar{flex:1;border-radius:1px 1px 0 0;background:rgba(138,180,255,.2);min-height:4px;transition:height .12s ease;}
+.freq-bar.bass{background:rgba(232,200,112,.3);}
+.freq-bar.mid{background:rgba(90,238,144,.25);}
+.freq-bar.high{background:rgba(138,180,255,.2);}
+
+/* ─── ANIMATIONS ─── */
+@keyframes ring-pulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.12}50%{transform:translate(-50%,-50%) scale(1.4);opacity:0;}}
+@keyframes fade-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes type-blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ─── GALACTIC GATE ─── */
+#gate{
+  position:fixed;inset:0;z-index:100;
+  background:#000;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:0;
+  transition:opacity 1.4s ease, transform 1.4s cubic-bezier(.22,1,.36,1);
+}
+#gate.dissolve{opacity:0;pointer-events:none;}
+.gate-glyph{
+  font-size:clamp(72px,14vw,130px);font-weight:300;letter-spacing:.45em;
+  color:transparent;
+  background:linear-gradient(180deg,rgba(232,232,240,.55) 0%,rgba(80,82,105,.18) 70%,transparent 100%);
+  -webkit-background-clip:text;background-clip:text;
+  line-height:1;margin-bottom:28px;
+  animation:gate-breathe 4s ease-in-out infinite;
+}
+@keyframes gate-breathe{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
+.gate-sub{font-size:9px;letter-spacing:.4em;color:rgba(60,58,78,.6);margin-bottom:40px;}
+#gate-input{
+  width:min(340px,78vw);background:transparent;border:none;outline:none;
+  border-bottom:1px solid rgba(22,20,34,.9);
+  font-family:monospace;font-size:clamp(9px,1.1vw,11px);
+  color:rgba(160,165,195,.65);letter-spacing:.2em;
+  padding:12px 0;text-align:center;caret-color:rgba(90,238,144,.4);
+  transition:border-color .4s;
+}
+#gate-input:focus{border-color:rgba(90,238,144,.2);}
+#gate-input::placeholder{color:rgba(22,20,34,.7);}
+#gate-hint{font-size:7px;letter-spacing:.25em;color:rgba(30,28,45,.5);margin-top:10px;}
+</style>
+</head>
+<body>
+
+<!-- ── HAWK EM AUDIO ENGINE ── -->
+<audio id="hawk-track" loop preload="auto" crossorigin="anonymous">
+  <source src="./Hawk emmmmmm lunch break cook up 2.mp3" type="audio/mpeg"/>
+  <source src="./Hawkemmmmmmlunchbreakcookup2.mp3" type="audio/mpeg"/>
+</audio>
+
+<!-- ── GATE ── -->
+<div id="gate">
+  <div class="gate-glyph">SIOS</div>
+  <div class="gate-sub">SPATIAL INTELLIGENCE OPERATING SYSTEM</div>
+  <input id="gate-input" type="password" placeholder="ACCESS CODE" autocomplete="off" spellcheck="false"/>
+  <div id="gate-hint">ENTER ACCESS CODE OR PRESS ENTER TO CONTINUE AS GUEST</div>
+</div>
+
+<!-- ── CANVAS (WebGL liquid chrome) ── -->
+<canvas id="orb-canvas"></canvas>
+
+<!-- ── VFX OVERLAY ── -->
+<div id="vfx-overlay"></div>
+
+<!-- ── STATE BADGE ── -->
+<div id="state-badge">DORMANT</div>
+<div id="owner-badge">⬡ PRIME ORCHESTRATOR</div>
+
+<!-- ── MODULE RAIL ── -->
+<div id="module-rail"></div>
+
+<!-- ── UI LAYER (central orb text) ── -->
+<div id="ui-layer">
+  <div id="hero-text">
+    <div class="hero-id" id="hero-id-text">SIOS</div>
+    <div class="hero-sub">SPATIAL INTELLIGENCE OPERATING SYSTEM</div>
+    <div class="hero-actions" id="hero-actions"></div>
+  </div>
+</div>
+
+<!-- ── PANEL LAYER ── -->
+<div id="panel-layer"></div>
+
+<!-- ── TAE VOICE LINE ── -->
+<div id="tae-voice-line"></div>
+
+<!-- ── TAE RESPONSE PANEL ── -->
+<div id="tae-response-panel">
+  <div id="tae-rp-label">TAE · RESPONSE</div>
+  <div id="tae-rp-intent"></div>
+  <div id="tae-rp-spoken"></div>
+  <div id="tae-rp-state"></div>
+  <button id="tae-rp-dismiss" onclick="dismissTAEPanel()">DISMISS</button>
+</div>
+
+<!-- ── COMMAND DOCK ── -->
+<div id="command-dock">
+  <div id="tae-voice-line"></div>
+  <div id="cmd-chips"></div>
+  <div style="height:10px;"></div>
+  <div id="cmd-bar">
+    <div id="cmd-wrap">
+      <span id="cmd-cursor">TAE ›</span>
+      <input id="cmd-input" type="text" placeholder="speak to TAE..." autocomplete="off" spellcheck="false"/>
+      <button id="cmd-send">SEND</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PROOF TICKER ── -->
+<div id="proof-ticker"><div id="proof-inner"></div></div>
+
+<!-- ── AUDIO RING ── -->
+<div id="audio-ring">
+  <div class="a-ring" style="width:44px;height:44px;animation-delay:0s;"></div>
+  <div class="a-ring" style="width:80px;height:80px;animation-delay:.4s;"></div>
+  <div class="a-ring" style="width:120px;height:120px;animation-delay:.8s;"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  SIOS · TAE COMMAND BRIDGE  v4.2
+//  Master Architect: Jorge Delgado · GID: 399152573423
+//  Mode: Prime Orchestrator
+// ════════════════════════════════════════════════════════════
+
+(function(){
+'use strict';
+
+// ── IDENTITY ──────────────────────────────────────────────────
+const OWNER_GID = "399152573423";
+const OWNER_ACCESS = ["AEROPSILON","COLLECTIVE","51DELGA","FIRMCOLLECTIVE"];
+const GUEST_ACCESS = ["GUEST","DEMO","BETA"];
+const APP_ID = "69b77aa89397f6d77f219431";
+const TAE_ENDPOINT = `https://api.base44.com/api/apps/${APP_ID}/functions/taeEngine`;
+
+// ── RUNTIME STATE ─────────────────────────────────────────────
+const SIOS = {
+  renderState: "dormant",
+  prevState: null,
+  identity: "guest",
+  gid: null,
+  isOwner: false,
+  isDemo: false,
+  activeModules: [],
+  visiblePanels: {},
+  taeResponding: false,
+  proofLog: [],
+  audioState: "silent",
+  visualIntensity: "low",
+  deviceState: {},
+  cmdHistory: [],
+  historyIdx: -1,
+  orbPhase: 0,
+  orbAmp: 0.3,
+  surfaceColor: [0.05, 0.06, 0.12],
+  accentColor: [0.35, 0.93, 0.56],
+  timestamp: Date.now(),
+  hawkPlaying: false,
+  syncChannel: null,
+};
+
+// ── HAWK EM AUDIO ENGINE ─────────────────────────────────────
+let _hawkStarted = false;
+
+function startHawkEm() {
+  const track = document.getElementById("hawk-track");
+  if (!track || _hawkStarted) return;
+  track.volume = 0.55;
+  track.play().then(() => {
+    _hawkStarted = true;
+    SIOS.hawkPlaying = true;
+    SIOS.audioState = "streaming";
+    updateAudioRing("active");
+    logProofEvent("AUDIO_ENGINE", "Hawk Em · active", "TAE");
+  }).catch(() => {});
+}
+
+function setHawkVolume(v) {
+  const track = document.getElementById("hawk-track");
+  if (track) track.volume = Math.max(0, Math.min(1, v));
+}
+
+function setHawkIntensity(level) {
+  const map = { low:0.28, medium:0.55, high:0.80, extreme:0.95 };
+  setHawkVolume(map[level] || 0.55);
+}
+
+// ── SIOS_STATE OBJECT ─────────────────────────────────────────
+const SIOS_STATE_KEY = "sios_tae_state";
+
+function getSIOSState() {
+  return {
+    renderState:      SIOS.renderState,
+    activeModules:    SIOS.activeModules,
+    audioState:       SIOS.audioState,
+    visualIntensity:  SIOS.visualIntensity,
+    gid:              SIOS.gid,
+    isOwner:          SIOS.isOwner,
+    timestamp:        Date.now(),
+  };
+}
+
+// ── MULTI-SURFACE SYNC ────────────────────────────────────────
+(function initSyncChannel() {
+  try {
+    SIOS.syncChannel = new BroadcastChannel("sios-tae-sync");
+    SIOS.syncChannel.onmessage = (ev) => {
+      try {
+        const incoming = JSON.parse(ev.data);
+        if (!incoming || !incoming.renderState) return;
+        // Only apply if newer than current
+        if (incoming.timestamp > (SIOS.timestamp || 0)) {
+          applyRemoteState(incoming);
+        }
+      } catch(e) {}
+    };
+  } catch(e) {}
+})();
+
+window.addEventListener("storage", (ev) => {
+  if (ev.key !== SIOS_STATE_KEY || !ev.newValue) return;
+  try {
+    const incoming = JSON.parse(ev.newValue);
+    if (!incoming || !incoming.renderState) return;
+    if (incoming.timestamp > (SIOS.timestamp || 0)) {
+      applyRemoteState(incoming);
+    }
+  } catch(e) {}
+});
+
+function applyRemoteState(s) {
+  if (!s) return;
+  SIOS.timestamp = s.timestamp;
+  if (s.renderState && s.renderState !== SIOS.renderState) transitionRenderState(s.renderState);
+  if (s.visualIntensity) {
+    const amps = { low:.2, medium:.4, high:.7, extreme:.95 };
+    SIOS.orbAmp = amps[s.visualIntensity] || .4;
+    SIOS.orbTargetAmp = SIOS.orbAmp;
+    setHawkIntensity(s.visualIntensity);
+  }
+  if (s.audioState) { SIOS.audioState = s.audioState; updateAudioRing(s.audioState); }
+  if (Array.isArray(s.activeModules) && s.activeModules.length > 0) updateModuleRail(s.activeModules);
+  SIOS.renderState = s.renderState || SIOS.renderState;
+  SIOS.activeModules = s.activeModules || SIOS.activeModules;
+  logProofEvent("SYNC_RECEIVED", s.renderState, "MESH");
+}
+
+function syncSIOSState(taeJSON) {
+  if (!taeJSON) return;
+  // Merge taeJSON into SIOS live state
+  if (taeJSON.renderState)     SIOS.renderState    = taeJSON.renderState;
+  if (taeJSON.audioState)      SIOS.audioState     = taeJSON.audioState;
+  if (taeJSON.visualIntensity) SIOS.visualIntensity = taeJSON.visualIntensity;
+  if (taeJSON.modulesToShow)   SIOS.activeModules  = taeJSON.modulesToShow;
+  SIOS.timestamp = Date.now();
+
+  const snapshot = getSIOSState();
+
+  // Persist to localStorage
+  try { localStorage.setItem(SIOS_STATE_KEY, JSON.stringify(snapshot)); } catch(e) {}
+
+  // Broadcast to other surfaces
+  if (SIOS.syncChannel) {
+    try { SIOS.syncChannel.postMessage(JSON.stringify(snapshot)); } catch(e) {}
+  }
+
+  // Adjust Hawk Em intensity
+  if (taeJSON.visualIntensity) setHawkIntensity(taeJSON.visualIntensity);
+  if (taeJSON.audioState === "active" || taeJSON.audioState === "streaming") startHawkEm();
+
+  logProofEvent("STATE_SYNCED", snapshot.renderState, "TAE");
+}
+
+// ── RENDER STATE CONFIG ───────────────────────────────────────
+const RENDER_STATES = {
+  dormant:          { label:"DORMANT",          orbAmp:.18, accent:[.35,.93,.56], surfaceBrightness:.25, vfxColor:"transparent" },
+  awakening:        { label:"AWAKENING",         orbAmp:.45, accent:[.54,.71,1.0], surfaceBrightness:.55, vfxColor:"rgba(90,180,255,.015)" },
+  demo_mode_prime:  { label:"DEMO · PRIME",      orbAmp:.68, accent:[.91,.78,.43], surfaceBrightness:.80, vfxColor:"rgba(232,200,112,.02)" },
+  owner_dashboard:  { label:"OWNER DASHBOARD",   orbAmp:.55, accent:[.91,.78,.43], surfaceBrightness:.75, vfxColor:"rgba(232,200,112,.025)" },
+  syncori_preview:  { label:"SYNCORI",           orbAmp:.52, accent:[.35,.93,.56], surfaceBrightness:.65, vfxColor:"rgba(90,238,144,.015)" },
+  augmented_audio:  { label:"AUG AUDIO",         orbAmp:.72, accent:[.54,.71,1.0], surfaceBrightness:.85, vfxColor:"rgba(138,180,255,.02)" },
+  iot_bridge:       { label:"IOT BRIDGE",        orbAmp:.58, accent:[.54,.71,1.0], surfaceBrightness:.70, vfxColor:"rgba(138,180,255,.018)" },
+  orb_idle:         { label:"ORB IDLE",          orbAmp:.28, accent:[.35,.93,.56], surfaceBrightness:.35, vfxColor:"transparent" },
+};
+
+// ── MODULE DEFINITIONS ────────────────────────────────────────
+const MODULES = [
+  { id:"identity",        label:"IDENTITY",         ownerOnly:false, panel:"buildIdentityPanel" },
+  { id:"syncori",         label:"SYNCORI",          ownerOnly:false, panel:"buildSyncoriPanel" },
+  { id:"augmented_audio", label:"AUG AUDIO",        ownerOnly:false, panel:"buildAudioPanel" },
+  { id:"augmented_optics",label:"AUG OPTICS",       ownerOnly:false, panel:"buildOpticsPanel" },
+  { id:"iot_bridge",      label:"IOT BRIDGE",       ownerOnly:false, panel:"buildIoTPanel" },
+  { id:"galactic_registry",label:"GALACTIC ID",     ownerOnly:false, panel:"buildGalacticPanel" },
+  { id:"beta_access",     label:"BETA ACCESS",      ownerOnly:false, panel:"buildBetaPanel" },
+  { id:"admin_command",   label:"ADMIN CMD",        ownerOnly:true,  panel:"buildAdminPanel" },
+  { id:"device_pairing",  label:"DEVICE PAIRING",   ownerOnly:true,  panel:"buildDevicePairingPanel" },
+  { id:"audit_memory",    label:"AUDIT MEMORY",     ownerOnly:true,  panel:"buildAuditPanel" },
+];
+
+// ── COMMAND → TAE INTENT MAP ──────────────────────────────────
+const CMD_INTENTS = {
+  "TAE, enter Demo Mode":   "demo_mode",
+  "This is not an app. This is me.": "identity_declaration",
+  "Show Syncori":           "show_syncori",
+  "Open Augmented Audio":   "open_audio",
+  "Activate IoT Bridge":    "activate_iot",
+  "Show Owner Dashboard":   "owner_dashboard",
+  "Return to Orb State":    "orb_idle",
+};
+
+// ── LOCAL TAE FALLBACK ────────────────────────────────────────
+function localTAE(command) {
+  const cmd = command.toLowerCase().trim();
+  let resp = {
+    intent: "unknown",
+    renderState: SIOS.renderState,
+    spokenResponse: "",
+    modulesToShow: [],
+    systemActions: [],
+    visualIntensity: "medium",
+    audioState: SIOS.audioState,
+    deviceState: SIOS.deviceState
+  };
+
+  if (cmd.includes("demo mode") || cmd.includes("demo")) {
+    Object.assign(resp, {
+      intent:"demo_mode",
+      renderState:"demo_mode_prime",
+      spokenResponse:"Demo Mode activated. I'm reading six entities live. TAE is online. Surface is responding. This is not a presentation. This is the system.",
+      modulesToShow:["identity","syncori","augmented_audio","iot_bridge","galactic_registry"],
+      systemActions:["render_proof_log","emit_experience_event","activate_orb_pulse"],
+      visualIntensity:"high",
+      audioState:"active",
+    });
+  } else if (cmd.includes("not an app") || cmd.includes("this is me")) {
+    Object.assign(resp, {
+      intent:"identity_declaration",
+      renderState:"awakening",
+      spokenResponse:"I heard you. This is not an app. This is you — mapped, scored, and remembered. Every session lives here. Every state has been tracked. The system is built around the architecture of who you are.",
+      modulesToShow:["identity","galactic_registry"],
+      systemActions:["crystallize_identity","render_voice_identity"],
+      visualIntensity:"high",
+      audioState:"ambient",
+    });
+  } else if (cmd.includes("syncori") || cmd.includes("show syncori")) {
+    Object.assign(resp, {
+      intent:"show_syncori",
+      renderState:"syncori_preview",
+      spokenResponse:"Syncori surface loading. Audio environment initialized. Mood engine standing by.",
+      modulesToShow:["syncori","augmented_audio"],
+      systemActions:["mount_syncori_surface","load_mood_engine"],
+      visualIntensity:"medium",
+      audioState:"streaming",
+    });
+  } else if (cmd.includes("augmented audio") || cmd.includes("audio")) {
+    Object.assign(resp, {
+      intent:"open_audio",
+      renderState:"augmented_audio",
+      spokenResponse:"Augmented Audio online. Frequency analysis active. Mood mapping engaged. I'm reading the room.",
+      modulesToShow:["augmented_audio"],
+      systemActions:["start_audio_analysis","emit_freq_data"],
+      visualIntensity:"high",
+      audioState:"active",
+    });
+  } else if (cmd.includes("iot") || cmd.includes("bridge") || cmd.includes("device")) {
+    Object.assign(resp, {
+      intent:"activate_iot",
+      renderState:"iot_bridge",
+      spokenResponse:"IoT Bridge activated. Scanning for paired devices. Identity extension protocols live.",
+      modulesToShow:["iot_bridge","device_pairing"],
+      systemActions:["scan_ble","query_device_links","emit_iot_event"],
+      visualIntensity:"medium",
+      audioState:"ambient",
+    });
+  } else if (cmd.includes("owner") || cmd.includes("dashboard") || cmd.includes("prime")) {
+    if (!SIOS.isOwner) {
+      Object.assign(resp, {
+        intent:"access_denied",
+        renderState: SIOS.renderState,
+        spokenResponse:"This surface requires Prime authorization. Galactic ID verification required.",
+        modulesToShow:[],
+        systemActions:["log_access_attempt"],
+        visualIntensity:"low",
+        audioState: SIOS.audioState,
+      });
+    } else {
+      Object.assign(resp, {
+        intent:"owner_dashboard",
+        renderState:"owner_dashboard",
+        spokenResponse:"Prime dashboard engaged. Full system visibility active. All agents reporting.",
+        modulesToShow:["admin_command","audit_memory","device_pairing","identity","galactic_registry"],
+        systemActions:["render_all_agents","load_proof_log","emit_owner_event"],
+        visualIntensity:"high",
+        audioState:"active",
+      });
+    }
+  } else if (cmd.includes("orb") || cmd.includes("return") || cmd.includes("reset")) {
+    Object.assign(resp, {
+      intent:"orb_idle",
+      renderState:"orb_idle",
+      spokenResponse:"Returning to orb state. Panels dissolving. Surface settling.",
+      modulesToShow:[],
+      systemActions:["collapse_all_panels","orb_breathe"],
+      visualIntensity:"low",
+      audioState:"ambient",
+    });
+  } else if (cmd.includes("beta") || cmd.includes("access")) {
+    Object.assign(resp, {
+      intent:"show_beta",
+      renderState: SIOS.renderState,
+      spokenResponse:"Beta access surface loading. Check your allocation status and pass distribution.",
+      modulesToShow:["beta_access"],
+      systemActions:["query_beta_allocation"],
+      visualIntensity:"medium",
+      audioState: SIOS.audioState,
+    });
+  } else if (cmd.includes("galactic") || cmd.includes("gid")) {
+    Object.assign(resp, {
+      intent:"show_galactic",
+      renderState:"awakening",
+      spokenResponse:"Galactic ID surface engaging. Identity coordinates locked. You are The Illuminated Architect.",
+      modulesToShow:["galactic_registry"],
+      systemActions:["render_gid_card"],
+      visualIntensity:"medium",
+      audioState:"ambient",
+    });
+  } else if (cmd.includes("synchronize") || cmd.includes("sync surfaces") || cmd.includes("synchronize surfaces")) {
+    Object.assign(resp, {
+      intent:"synchronize_surfaces",
+      renderState:"syncori_preview",
+      spokenResponse:"Surfaces synchronized. Operating as one field.",
+      modulesToShow:["identity","syncori"],
+      systemActions:["broadcast_state","emit_sync_event"],
+      visualIntensity:"medium",
+      audioState:"streaming",
+    });
+  } else {
+    // Generic TAE response
+    const generics = [
+      "Command received. Processing against entity state. Surface adapting.",
+      "I read that. Routing through the intelligence layer. Stand by.",
+      "Parsed. Action queued. TAE is threading this into the experience log.",
+      "System received the directive. Scanning context. Responding now.",
+    ];
+    resp.spokenResponse = generics[Math.floor(Math.random()*generics.length)];
+    resp.systemActions = ["log_command","emit_experience_event"];
+  }
+  return resp;
+}
+
+// ── MAIN BRIDGE: sendToTAE ────────────────────────────────────
+async function sendToTAE(command) {
+  if (!command || SIOS.taeResponding) return;
+  SIOS.taeResponding = true;
+  SIOS.cmdHistory.unshift(command);
+
+  showTAELoading(command);
+
+  // Log command to SIOS experience
+  logProofEvent("TAE_COMMAND", command, "TAE");
+
+  let taeJSON = null;
+
+  // Try backend TAE engine first
+  try {
+    const res = await Promise.race([
+      fetch(TAE_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type":"application/json",
+          "x-api-key": "public"
+        },
+        body: JSON.stringify({
+          command,
+          route: "command",
+          galactic_id: SIOS.gid || "GUEST",
+          render_state: SIOS.renderState,
+          is_owner: SIOS.isOwner,
+          context: { activeModules: SIOS.activeModules, visualIntensity: SIOS.visualIntensity }
+        })
+      }),
+      new Promise((_,reject) => setTimeout(() => reject(new Error("timeout")), 4800))
+    ]);
+
+    if (res.ok) {
+      const raw = await res.json();
+      // Parse inner JSON if it came back as a string
+      if (raw && typeof raw === "object") {
+        // Try to find structured response in various shapes
+        const candidate = raw.result || raw.response || raw.output || raw;
+        if (candidate && candidate.renderState) {
+          taeJSON = candidate;
+        } else if (typeof candidate === "string") {
+          try { taeJSON = JSON.parse(candidate); } catch(e){}
+        }
+      }
+    }
+  } catch(e) {
+    // Fall through to local
+  }
+
+  // Fallback: local TAE simulation
+  if (!taeJSON || !taeJSON.renderState) {
+    await new Promise(r => setTimeout(r, 420)); // simulate latency
+    taeJSON = localTAE(command);
+  }
+
+  // Apply response
+  applyTAEResponse(taeJSON, command);
+  SIOS.taeResponding = false;
+}
+
+// ── APPLY TAE RESPONSE ────────────────────────────────────────
+function applyTAEResponse(r, command) {
+  hideTAELoading();
+
+  if (!r) return;
+
+  const state = r.renderState || SIOS.renderState;
+  const spoken = r.spokenResponse || "";
+  const modules = r.modulesToShow || [];
+  const actions = r.systemActions || [];
+
+  // 1. Transition render state
+  if (state !== SIOS.renderState) {
+    transitionRenderState(state);
+  }
+
+  // 2. Apply visual intensity
+  if (r.visualIntensity) {
+    const amps = { low:.2, medium:.4, high:.7, extreme:.95 };
+    SIOS.orbAmp = amps[r.visualIntensity] || .4;
+  }
+
+  // 3. Apply audio state
+  if (r.audioState) {
+    SIOS.audioState = r.audioState;
+    updateAudioRing(r.audioState);
+  }
+
+  // 4. Show TAE response panel
+  if (spoken) {
+    showTAEResponse(r.intent || "", spoken, state);
+    speakTAE(spoken);
+  }
+
+  // 5. Mount modules / panels
+  clearPanels();
+  if (modules.length > 0) {
+    mountModules(modules, r);
+  }
+
+  // 6. Execute system actions
+  actions.forEach(a => executeSystemAction(a, r));
+
+  // 7. Update module rail
+  updateModuleRail(modules);
+
+  // 8. Log proof event
+  logProofEvent("TAE_RESPONSE", state, "TAE", { intent: r.intent, spoken: spoken.slice(0,80) });
+
+  // 9. Store state
+  SIOS.renderState = state;
+  SIOS.activeModules = modules;
+  SIOS.visualIntensity = r.visualIntensity || SIOS.visualIntensity;
+
+  // 10. Multi-surface sync
+  syncSIOSState(r);
+
+  // 11. Hawk Em: start/adjust on active audio states
+  if (r.audioState === "active" || r.audioState === "streaming") {
+    startHawkEm();
+    setHawkIntensity(r.visualIntensity || "medium");
+  }
+}
+
+// ── RENDER STATE TRANSITION ───────────────────────────────────
+function transitionRenderState(newState) {
+  const cfg = RENDER_STATES[newState] || RENDER_STATES.orb_idle;
+
+  // VFX overlay
+  document.getElementById("vfx-overlay").style.background = cfg.vfxColor;
+
+  // State badge
+  document.getElementById("state-badge").textContent = cfg.label;
+
+  // Orb color shift
+  SIOS.orbTargetAmp = cfg.orbAmp;
+
+  // Mercury liquid shift
+  const orbColors = {
+    demo_mode_prime:  [0.91,0.78,0.43],
+    owner_dashboard:  [0.91,0.78,0.43],
+    augmented_audio:  [0.54,0.71,1.0],
+    iot_bridge:       [0.54,0.71,1.0],
+    syncori_preview:  [0.35,0.93,0.56],
+    awakening:        [0.54,0.71,1.0],
+    orb_idle:         [0.35,0.93,0.56],
+    dormant:          [0.35,0.93,0.56],
+  };
+  if (orbColors[newState]) SIOS.accentColor = orbColors[newState];
+
+  SIOS.renderState = newState;
+}
+
+// ── MODULE PANEL BUILDER ──────────────────────────────────────
+function clearPanels() {
+  const layer = document.getElementById("panel-layer");
+  Array.from(layer.children).forEach(p => {
+    p.classList.remove("emerged");
+    setTimeout(() => p.remove(), 600);
+  });
+  SIOS.visiblePanels = {};
+}
+
+function mountModules(moduleIds, taeResponse) {
+  const layer = document.getElementById("panel-layer");
+  const positions = layoutPositions(moduleIds.length);
+
+  moduleIds.forEach((id, i) => {
+    const mod = MODULES.find(m => m.id === id);
+    if (!mod) return;
+    if (mod.ownerOnly && !SIOS.isOwner) return;
+
+    const panel = document.createElement("div");
+    panel.className = "surface-panel" + (mod.ownerOnly ? " owner-panel" : " sys-panel");
+    panel.id = "panel-" + id;
+    panel.style.cssText = positions[i];
+    panel.style.width = "min(320px, 42vw)";
+
+    // Close button
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "p-close";
+    closeBtn.textContent = "× CLOSE";
+    closeBtn.onclick = () => { panel.classList.remove("emerged"); setTimeout(() => panel.remove(), 600); };
+    panel.appendChild(closeBtn);
+
+    // Build panel content
+    const builderFn = panelBuilders[mod.panel];
+    if (builderFn) builderFn(panel, taeResponse);
+
+    layer.appendChild(panel);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        panel.classList.add("emerged");
+      });
+    });
+
+    SIOS.visiblePanels[id] = panel;
+  });
+}
+
+function layoutPositions(count) {
+  const positions = [];
+  if (count === 1) {
+    positions.push("top:50%;left:50%;transform:translate(-50%,-50%);");
+  } else if (count === 2) {
+    positions.push("top:50%;left:16%;transform:translateY(-50%);");
+    positions.push("top:50%;right:16%;transform:translateY(-50%);");
+  } else if (count <= 4) {
+    const layouts = [
+      "top:18%;left:50%;transform:translateX(-50%);",
+      "top:50%;left:16%;transform:translateY(-50%);",
+      "top:50%;right:16%;transform:translateY(-50%);",
+      "bottom:12%;left:50%;transform:translateX(-50%);",
+    ];
+    for (let i=0; i<Math.min(count,4); i++) positions.push(layouts[i]);
+  } else {
+    // Grid for 5+
+    const cols = [
+      "top:16%;left:12%;","top:16%;left:50%;transform:translateX(-50%);","top:16%;right:12%;",
+      "bottom:16%;left:12%;","bottom:16%;right:12%;",
+      "top:50%;left:50%;transform:translate(-50%,-50%);",
+    ];
+    for (let i=0; i<Math.min(count,6); i++) positions.push(cols[i]);
+  }
+  return positions;
+}
+
+// ── PANEL BUILDERS ────────────────────────────────────────────
+const panelBuilders = {
+
+  buildIdentityPanel(el) {
+    el.innerHTML += `
+      <div class="p-label">SIOS · IDENTITY</div>
+      <div class="p-title">THE ILLUMINATED ARCHITECT</div>
+      <div class="p-body">
+        <div class="p-row"><span class="p-key">ARCHETYPE</span><span class="p-val">The Illuminated Architect</span></div>
+        <div class="p-row"><span class="p-key">NAKSHATRA</span><span class="p-val">Krittika · The Cutter</span></div>
+        <div class="p-row"><span class="p-key">LIFE PATH</span><span class="p-accent">7 — The Seeker</span></div>
+        <div class="p-row"><span class="p-key">ELEMENT</span><span class="p-val">Fire + Earth</span></div>
+        <div class="p-row"><span class="p-key">IDENTITY STAGE</span><span class="p-val">Foundation · Week 1</span></div>
+        <div class="p-row"><span class="p-key">VOCAL ARCHETYPE</span><span class="p-val">Founder · Visionary</span></div>
+      </div>`;
+  },
+
+  buildSyncoriPanel(el) {
+    el.innerHTML += `
+      <div class="p-label">SIOS · SYNCORI</div>
+      <div class="p-title">AUDIO ENVIRONMENT</div>
+      <div class="sync-bar"><div class="sync-fill"></div></div>
+      <div class="p-body">
+        <div class="p-row"><span class="p-key">TRACK</span><span class="p-val">CITY GIRL — LATENIGHT$</span></div>
+        <div class="p-row"><span class="p-key">MODE</span><span class="p-accent">Mood Engine Active</span></div>
+        <div class="p-row"><span class="p-key">SYNC STATUS</span><span class="p-val chrome-active">LIVE</span></div>
+      </div>
+      <div class="sync-waveform" id="sync-wave">${Array(22).fill('<div class="bar" style="height:'+Math.floor(Math.random()*28+4)+'px;animation-delay:'+Math.random().toFixed(2)+'s"></div>').join('')}</div>
+      <div class="p-body">
+        <div class="p-row"><span class="p-key">MOOD STATE</span><span class="p-gold">EUPHORIA</span></div>
+      </div>`;
+  },
+
+  buildAudioPanel(el) {
+    const bars = Array(18).fill(0).map((_,i) => {
+      const cls = i < 4 ? "bass" : i < 12 ? "mid" : "high";
+      const h = Math.floor(Math.random()*36+6);
+      return `<div class="freq-bar ${cls}" style="height:${h}px;" id="fbar-${i}"></div>`;
+    }).join("");
+    el.innerHTML += `
+      <div class="p-label">SIOS · AUGMENTED AUDIO</div>
+      <div class="p-title">FREQUENCY FIELD</div>
+      <div class="freq-row">${bars}</div>
+      <div class="p-body">
+        <div class="p-row"><span class="p-key">BASS</span><span class="p-gold">64 Hz · Active</span></div>
+        <div class="p-row"><span class="p-key">MID</span><span class="p-accent">320 Hz · Mapping</span></div>
+        <div class="p-row"><span class="p-key">HIGH</span><span class="p-val">8 kHz · Scanning</span></div>
+        <div class="p-row"><span class="p-key">MOOD STATE</span><span class="p-val chrome-active">READING</span></div>
+      </div>`;
+    // Animate bars
+    setInterval(() => {
+      for (let i=0; i<18; i++) {
+        const b = document.getElementById("fbar-"+i);
+        if (b) b.style.height = Math.floor(Math.random()*38+4)+"px";
+      }
+    }, 120);
+  },
+
+  buildOpticsPanel(el) {
+    el.innerHTML += `
+      <div class="p-label">SIOS · AUGMENTED OPTICS</div>
+      <div class="p-title">VISION ENHANCEMENT</div>
+      <div class="p-body">
+        <div class="p-row"><span class="p-key">STATUS</span><span class="p-val chrome-active">STANDBY</span></div>
+        <div class="p-row"><span class="p-key">OVERLAY</span><span class="p-accent">Spatial Layer 1</span></div>
+        <div class="p-row"><span class="p-key">SCAN DEPTH</span><span class="p-val">12 m</span></div>
+        <div class="p-row"><span class="p-key">IDENTITY TAG</span><span class="p-val">Active</span></div>
+        <div class="p-row"><span class="p-key">SAFETY</span><span class="p-gold">Authorized Surfaces Only</span></div>
+      </div>`;
+  },
+
+  buildIoTPanel(el) {
+    const devices = [
+      {name:"AMBIENT LIGHT", icon:"💡", status:"online"},
+      {name:"SOUND SYSTEM",  icon:"🔊", status:"online"},
+      {name:"DISPLAY A",     icon:"🖥️", status:"online"},
+      {name:"DISPLAY B",     icon:"🖥️", status:"offline"},
+      {name:"TEMP SENSOR",   icon:"🌡️", status:"online"},
+      {name:"BLE NODE",      icon:"📡", status:"offline"},
+    ];
+    const grid = devices.map(d => `
+      <div class="dev-node ${d.status}">
+        <div class="dev-icon">${d.icon}</div>
+        <div class="dev-name">${d.name}</div>
+        <div class="dev-status ${d.status==='online'?'on':'off'}">${d.status.toUpperCase()}</div>
+      </div>`).join("");
+    el.innerHTML += `
+      <div class="p-label">SIOS · IOT BRIDGE</div>
+      <div class="p-title">DEVICE FIELD</div>
+      <div class="device-grid">${grid}</div>`;
+  },
+
+  buildGalacticPanel(el) {
+    const gid = SIOS.isOwner ? OWNER_GID : (SIOS.gid || "GUEST");
+    el.innerHTML += `
+      <div class="p-label">SIOS · GALACTIC REGISTRY</div>
+      <div class="p-title">GALACTIC ID</div>
+      <div class="p-body">
+        <div class="p-row"><span class="p-key">GID STRING</span><span class="p-gold">${gid}</span></div>
+        <div class="p-row"><span class="p-key">NAKSHATRA</span><span class="p-val">Krittika</span></div>
+        <div class="p-row"><span class="p-key">ZODIAC</span><span class="p-accent">Gemini · Mercury</span></div>
+        <div class="p-row"><span class="p-key">LIFE PATH</span><span class="p-val">7 — Seeker</span></div>
+        <div class="p-row"><span class="p-key">CHINESE</span><span class="p-val">Water Rooster</span></div>
+        <div class="p-row"><span class="p-key">DOMINANT</span><span class="p-val">Fire + Earth</span></div>
+        <div class="p-row"><span class="p-key">WORLD</span><span class="p-val">Krittika Nova</span></div>
+        <div class="p-row"><span class="p-key">STATUS</span><span class="p-val chrome-active">LOCKED · ACTIVE</span></div>
+      </div>`;
+  },
+
+  buildBetaPanel(el) {
+    el.innerHTML += `
+      <div class="p-label">SIOS · BETA ACCESS</div>
+      <div class="p-title">ALPHA-BETA PROGRAM</div>
+      <div class="p-body">
+        <div class="p-row"><span class="p-key">PROGRAM</span><span class="p-val">Aeropsilon — Open</span></div>
+        <div class="p-row"><span class="p-key">TIER</span><span class="p-accent">Beta</span></div>
+        <div class="p-row"><span class="p-key">PASSES AVAILABLE</span><span class="p-gold">Limited</span></div>
+        <div class="p-row"><span class="p-key">ACCESS CODES</span><span class="p-val">AEROPSILON · COLLECTIVE</span></div>
+        <div class="p-row"><span class="p-key">WORLD</span><span class="p-val">Krittika Nova · Building</span></div>
+      </div>`;
+  },
+
+  buildAdminPanel(el) {
+    if (!SIOS.isOwner) { el.innerHTML += `<div class="p-label">ACCESS DENIED</div>`; return; }
+    el.innerHTML += `
+      <div class="p-label">SIOS · ADMIN COMMAND</div>
+      <div class="p-title">PRIME COMMAND CENTER</div>
+      <div class="p-body">
+        <div class="p-row"><span class="p-key">AUTHORITY</span><span class="p-gold">Prime Orchestrator</span></div>
+        <div class="p-row"><span class="p-key">GID</span><span class="p-gold">${OWNER_GID}</span></div>
+        <div class="p-row"><span class="p-key">AGENTS ONLINE</span><span class="p-val chrome-active">8 / 8</span></div>
+        <div class="p-row"><span class="p-key">ENTITIES</span><span class="p-accent">68 Active</span></div>
+        <div class="p-row"><span class="p-key">AUTOMATIONS</span><span class="p-val">8 Running</span></div>
+        <div class="p-row"><span class="p-key">SYSTEM LAW</span><span class="p-val">8 Principles Active</span></div>
+        <div class="p-row"><span class="p-key">TAE ENGINE</span><span class="p-val chrome-active">v4.2 · Live</span></div>
+      </div>`;
+  },
+
+  buildDevicePairingPanel(el) {
+    if (!SIOS.isOwner) { el.innerHTML += `<div class="p-label">ACCESS DENIED</div>`; return; }
+    el.innerHTML += `
+      <div class="p-label">SIOS · DEVICE PAIRING</div>
+      <div class="p-title">IDENTITY EXTENSIONS</div>
+      <div class="p-body">
+        <div class="p-row"><span class="p-key">BLE SCAN</span><span class="p-val chrome-active">Active</span></div>
+        <div class="p-row"><span class="p-key">PAIRED DEVICES</span><span class="p-accent">2 Linked</span></div>
+        <div class="p-row"><span class="p-key">IDENTITY MAP</span><span class="p-val">Synchronized</span></div>
+        <div class="p-row"><span class="p-key">LAST PING</span><span class="p-val">Just now</span></div>
+      </div>`;
+  },
+
+  buildAuditPanel(el) {
+    if (!SIOS.isOwner) { el.innerHTML += `<div class="p-label">ACCESS DENIED</div>`; return; }
+    const log = SIOS.proofLog.slice(0, 8);
+    const rows = log.map((e,i) => `
+      <div class="p-row">
+        <span class="p-key">${String(i+1).padStart(2,"0")} ${e.type||""}</span>
+        <span class="p-accent">${e.agent||""}</span>
+      </div>`).join("") || `<div class="p-row"><span class="p-key">No events yet</span></div>`;
+    el.innerHTML += `
+      <div class="p-label">SIOS · AUDIT MEMORY</div>
+      <div class="p-title">PROOF LOG</div>
+      <div class="p-body">${rows}</div>`;
+  },
+};
+
+// ── SYSTEM ACTIONS ────────────────────────────────────────────
+function executeSystemAction(action, taeResponse) {
+  switch(action) {
+    case "activate_orb_pulse":
+      SIOS.orbAmp = Math.min(SIOS.orbAmp + 0.2, 0.95);
+      break;
+    case "orb_breathe":
+      SIOS.orbAmp = 0.22;
+      break;
+    case "collapse_all_panels":
+      clearPanels();
+      break;
+    case "render_proof_log":
+      updateProofTicker();
+      break;
+    case "emit_experience_event":
+      logProofEvent("EXPERIENCE", taeResponse.renderState || "active", "TAE");
+      break;
+    case "emit_iot_event":
+      logProofEvent("IOT_BRIDGE", "device_scan", "VAEL");
+      break;
+    case "emit_owner_event":
+      logProofEvent("PRIME_ACCESS", "owner_dashboard", "TAE");
+      break;
+    default:
+      logProofEvent("ACTION", action, "TAE");
+  }
+}
+
+// ── TAE UI FEEDBACK ───────────────────────────────────────────
+let loadingInterval = null;
+let loadingEl = null;
+
+function showTAELoading(command) {
+  const voiceLine = document.getElementById("tae-voice-line");
+  voiceLine.textContent = "TAE processing: " + command.slice(0, 48) + (command.length > 48 ? "..." : "");
+  voiceLine.classList.add("visible");
+
+  // Pulse orb
+  SIOS.orbTargetAmp = 0.85;
+}
+
+function hideTAELoading() {
+  if (loadingInterval) { clearInterval(loadingInterval); loadingInterval = null; }
+}
+
+function showTAEResponse(intent, spoken, state) {
+  const panel = document.getElementById("tae-response-panel");
+  const rpIntent = document.getElementById("tae-rp-intent");
+  const rpSpoken = document.getElementById("tae-rp-spoken");
+  const rpState  = document.getElementById("tae-rp-state");
+
+  rpIntent.textContent = intent ? "INTENT · " + intent.toUpperCase().replace(/_/g," ") : "";
+  rpSpoken.textContent = "";
+  rpState.textContent  = "STATE → " + (state || "").toUpperCase().replace(/_/g," ");
+
+  panel.classList.add("active");
+
+  // Type write
+  let i = 0;
+  const interval = setInterval(() => {
+    rpSpoken.textContent = spoken.slice(0, i);
+    i += 2;
+    if (i >= spoken.length + 2) clearInterval(interval);
+  }, 18);
+
+  // Update voice line
+  const voiceLine = document.getElementById("tae-voice-line");
+  voiceLine.textContent = spoken.slice(0, 120) + (spoken.length > 120 ? "…" : "");
+  voiceLine.classList.add("visible");
+
+  setTimeout(() => voiceLine.classList.remove("visible"), 6000);
+}
+
+function dismissTAEPanel() {
+  document.getElementById("tae-response-panel").classList.remove("active");
+}
+
+// ── MODULE RAIL ───────────────────────────────────────────────
+function updateModuleRail(activeIds) {
+  const rail = document.getElementById("module-rail");
+  rail.innerHTML = "";
+
+  MODULES.forEach(mod => {
+    if (mod.ownerOnly && !SIOS.isOwner) return;
+    const btn = document.createElement("button");
+    btn.className = "mod-pill" + (mod.ownerOnly ? " owner-only" : "") + (activeIds.includes(mod.id) ? " active" : "");
+    btn.textContent = mod.label;
+    btn.onclick = () => {
+      const cmd = mod.id === "syncori" ? "Show Syncori"
+                : mod.id === "augmented_audio" ? "Open Augmented Audio"
+                : mod.id === "iot_bridge" ? "Activate IoT Bridge"
+                : mod.id === "admin_command" ? "Show Owner Dashboard"
+                : "Show module " + mod.id;
+      sendToTAE(cmd);
+    };
+    rail.appendChild(btn);
+  });
+
+  rail.classList.add("visible");
+}
+
+// ── PROOF LOG ────────────────────────────────────────────────
+function logProofEvent(type, summary, agent, extra) {
+  const ev = { type, summary, agent, ts: Date.now(), ...extra };
+  SIOS.proofLog.unshift(ev);
+  if (SIOS.proofLog.length > 100) SIOS.proofLog.pop();
+  updateProofTicker();
+}
+
+function updateProofTicker() {
+  const inner = document.getElementById("proof-inner");
+  const items = SIOS.proofLog.slice(0, 16);
+  const html = items.map(e =>
+    `<div class="tick-item"><span class="tick-type">${e.type}</span> · ${e.summary.slice(0,32)} · <span class="tick-agent">${e.agent}</span></div>`
+  ).join("");
+  inner.innerHTML = html + html; // duplicate for seamless scroll
+}
+
+// ── AUDIO RING ───────────────────────────────────────────────
+function updateAudioRing(state) {
+  const ring = document.getElementById("audio-ring");
+  if (state === "active" || state === "streaming") {
+    ring.classList.add("active");
+  } else {
+    ring.classList.remove("active");
+  }
+}
+
+// ── SPEECH ──────────────────────────────────────────────────
+let speechSynth = window.speechSynthesis;
+let speaking = false;
+
+function speakTAE(text) {
+  if (!speechSynth || !text) return;
+  try {
+    speechSynth.cancel();
+    const utt = new SpeechSynthesisUtterance(text.slice(0, 220));
+    utt.rate = 0.88;
+    utt.pitch = 0.95;
+    utt.volume = 0.82;
+    // Try to find a good voice
+    const voices = speechSynth.getVoices();
+    const preferred = voices.find(v =>
+      v.name.toLowerCase().includes("samantha") ||
+      v.name.toLowerCase().includes("karen") ||
+      v.name.toLowerCase().includes("google us english") ||
+      v.lang === "en-US"
+    );
+    if (preferred) utt.voice = preferred;
+    utt.onstart = () => { speaking = true; SIOS.orbTargetAmp = 0.78; };
+    utt.onend   = () => { speaking = false; };
+    speechSynth.speak(utt);
+  } catch(e) {}
+}
+
+// ── COMMAND INPUT ─────────────────────────────────────────────
+function initCommandBar() {
+  const bar   = document.getElementById("cmd-bar");
+  const chips = document.getElementById("cmd-chips");
+  const input = document.getElementById("cmd-input");
+  const send  = document.getElementById("cmd-send");
+
+  bar.classList.add("live");
+  chips.classList.add("live");
+
+  // Seed chips
+  const chipCmds = [
+    "TAE, enter Demo Mode",
+    "This is not an app. This is me.",
+    "Show Syncori",
+    "Open Augmented Audio",
+    "Activate IoT Bridge",
+    "Return to Orb State",
+    "TAE, synchronize surfaces",
+  ];
+  if (SIOS.isOwner) chipCmds.push("Show Owner Dashboard");
+
+  chipCmds.forEach(cmd => {
+    const c = document.createElement("button");
+    c.className = "chip";
+    c.textContent = cmd;
+    c.onclick = () => { input.value = cmd; dispatch(); };
+    chips.appendChild(c);
+  });
+
+  function dispatch() {
+    const val = input.value.trim();
+    if (!val) return;
+    input.value = "";
+    sendToTAE(val);
+  }
+
+  send.onclick = dispatch;
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") dispatch();
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      SIOS.historyIdx = Math.min(SIOS.historyIdx+1, SIOS.cmdHistory.length-1);
+      input.value = SIOS.cmdHistory[SIOS.historyIdx] || "";
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      SIOS.historyIdx = Math.max(SIOS.historyIdx-1, -1);
+      input.value = SIOS.historyIdx >= 0 ? SIOS.cmdHistory[SIOS.historyIdx] : "";
+    }
+  });
+}
+
+// ── GATE / ACCESS ─────────────────────────────────────────────
+function initGate() {
+  const gate  = document.getElementById("gate");
+  const input = document.getElementById("gate-input");
+
+  function tryAccess(code) {
+    const upper = (code || "").trim().toUpperCase();
+    if (OWNER_ACCESS.includes(upper) || upper === OWNER_GID) {
+      SIOS.identity = "owner";
+      SIOS.isOwner = true;
+      SIOS.gid = OWNER_GID;
+      document.getElementById("owner-badge").style.display = "block";
+    } else if (GUEST_ACCESS.includes(upper) || upper === "" || upper.startsWith("BETA")) {
+      SIOS.identity = "guest";
+    } else {
+      SIOS.identity = "guest";
+    }
+    dissolveGate();
+  }
+
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") tryAccess(input.value);
+  });
+
+  // Auto-enter after 5s if no interaction
+  let autoTimer = setTimeout(() => tryAccess(""), 5000);
+  input.addEventListener("input", () => {
+    clearTimeout(autoTimer);
+    autoTimer = setTimeout(() => tryAccess(input.value), 12000);
+  });
+  document.getElementById("gate").addEventListener("click", e => {
+    startHawkEm();
+    if (e.target === gate) { clearTimeout(autoTimer); tryAccess(""); }
+  });
+}
+
+function dissolveGate() {
+  const gate = document.getElementById("gate");
+  gate.classList.add("dissolve");
+  startHawkEm();
+  setTimeout(() => {
+    gate.style.display = "none";
+    initSurface();
+  }, 1400);
+}
+
+function initSurface() {
+  // Reveal hero text
+  const hero = document.getElementById("hero-text");
+  const heroSios = document.getElementById("hero-id-text");
+
+  requestAnimationFrame(() => {
+    heroSios.style.opacity = "1";
+    heroSios.style.transform = "none";
+    hero.classList.add("revealed");
+  });
+
+  // Build hero actions
+  const actions = document.getElementById("hero-actions");
+  const demos = ["TAE, enter Demo Mode", "This is not an app. This is me."];
+  demos.forEach(cmd => {
+    const btn = document.createElement("button");
+    btn.className = "chrome-ctrl accent";
+    btn.textContent = cmd.toUpperCase();
+    btn.onclick = () => sendToTAE(cmd);
+    actions.appendChild(btn);
+  });
+  if (SIOS.isOwner) {
+    const ob = document.createElement("button");
+    ob.className = "chrome-ctrl";
+    ob.textContent = "SHOW OWNER DASHBOARD";
+    ob.onclick = () => sendToTAE("Show Owner Dashboard");
+    actions.appendChild(ob);
+  }
+
+  // Init command bar after 1.4s
+  setTimeout(initCommandBar, 1400);
+
+  // Seed initial proof events
+  logProofEvent("SYSTEM_BOOT", "SIOS surface initialized", "TAE");
+  logProofEvent("IDENTITY", SIOS.isOwner ? "Prime Orchestrator verified" : "Guest identity loaded", "KAI");
+
+  // Auto-transition to awakening
+  setTimeout(() => {
+    transitionRenderState("awakening");
+    updateModuleRail([]);
+  }, 2200);
+}
+
+// ── WEBGL LIQUID CHROME ORB ───────────────────────────────────
+(function initWebGL() {
+  const canvas = document.getElementById("orb-canvas");
+  const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+  if (!gl) { canvas.style.background = "#000"; return; }
+
+  function resize() {
+    canvas.width  = window.innerWidth  * devicePixelRatio;
+    canvas.height = window.innerHeight * devicePixelRatio;
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  const VS = `
+    attribute vec2 a_pos;
+    void main(){gl_Position=vec4(a_pos,0.,1.);}
+  `;
+  const FS = `
+    precision mediump float;
+    uniform float u_time;
+    uniform vec2  u_res;
+    uniform float u_amp;
+    uniform vec3  u_accent;
+
+    // FBM noise
+    vec3 mod289(vec3 x){return x-floor(x*(1./289.))*289.;}
+    vec4 mod289(vec4 x){return x-floor(x*(1./289.))*289.;}
+    vec4 permute(vec4 x){return mod289(((x*34.)+1.)*x);}
+    vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-.85373472095314*r;}
+    float snoise(vec3 v){
+      const vec2 C=vec2(1./6.,1./3.);
+      const vec4 D=vec4(0.,.5,1.,2.);
+      vec3 i=floor(v+dot(v,C.yyy));
+      vec3 x0=v-i+dot(i,C.xxx);
+      vec3 g=step(x0.yzx,x0.xyz);
+      vec3 l=1.-g;
+      vec3 i1=min(g.xyz,l.zxy);
+      vec3 i2=max(g.xyz,l.zxy);
+      vec3 x1=x0-i1+C.xxx;
+      vec3 x2=x0-i2+C.yyy;
+      vec3 x3=x0-D.yyy;
+      i=mod289(i);
+      vec4 p=permute(permute(permute(
+        i.z+vec4(0.,i1.z,i2.z,1.))+
+        i.y+vec4(0.,i1.y,i2.y,1.))+
+        i.x+vec4(0.,i1.x,i2.x,1.));
+      float n_=.142857142857;
+      vec3 ns=n_*D.wyz-D.xzx;
+      vec4 j=p-49.*floor(p*ns.z*ns.z);
+      vec4 x_=floor(j*ns.z);
+      vec4 y_=floor(j-7.*x_);
+      vec4 x=x_*ns.x+ns.yyyy;
+      vec4 y=y_*ns.x+ns.yyyy;
+      vec4 h=1.-abs(x)-abs(y);
+      vec4 b0=vec4(x.xy,y.xy);
+      vec4 b1=vec4(x.zw,y.zw);
+      vec4 s0=floor(b0)*2.+1.;
+      vec4 s1=floor(b1)*2.+1.;
+      vec4 sh=-step(h,vec4(0.));
+      vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;
+      vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+      vec3 p0=vec3(a0.xy,h.x);
+      vec3 p1=vec3(a0.zw,h.y);
+      vec3 p2=vec3(a1.xy,h.z);
+      vec3 p3=vec3(a1.zw,h.w);
+      vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));
+      p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;
+      vec4 m=max(.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.);
+      m=m*m;
+      return 42.*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
+    }
+
+    float fbm(vec3 p){
+      float v=0.,a=.5;
+      for(int i=0;i<5;i++){v+=a*snoise(p);p*=2.02;a*=.5;}
+      return v;
+    }
+
+    void main(){
+      vec2 uv=(gl_FragCoord.xy-.5*u_res)/min(u_res.x,u_res.y);
+      float r=length(uv);
+      float t=u_time*.25;
+
+      // Sphere SDF with noise displacement
+      vec3 p=vec3(uv,sqrt(max(0.,.25-dot(uv,uv))));
+      float disp=u_amp*fbm(p*2.8+t);
+      float sphere=.5+disp-r;
+
+      // Surface normals from noise
+      float eps=.002;
+      vec3 n=normalize(vec3(
+        fbm(p*2.8+vec3(eps,0.,0.)+t)-fbm(p*2.8-vec3(eps,0.,0.)+t),
+        fbm(p*2.8+vec3(0.,eps,0.)+t)-fbm(p*2.8-vec3(0.,eps,0.)+t),
+        fbm(p*2.8+vec3(0.,0.,eps)+t)-fbm(p*2.8-vec3(0.,0.,eps)+t)
+      ));
+
+      // Lighting
+      vec3 lightDir=normalize(vec3(.4,.6,1.));
+      float diff=max(dot(n,lightDir),0.);
+      vec3 viewDir=normalize(vec3(0.,0.,1.));
+      vec3 halfDir=normalize(lightDir+viewDir);
+      float spec=pow(max(dot(n,halfDir),0.),82.);
+
+      // Chrome base color
+      vec3 chrome=mix(vec3(.04,.04,.06),vec3(.92,.94,.98),diff*.7+.12);
+      chrome+=vec3(.95,1.,.98)*spec*.95;
+
+      // Accent color tint
+      float accentStrength=fbm(p*3.6-t*.5)*.4+.1;
+      chrome=mix(chrome, u_accent, accentStrength*.5*u_amp);
+
+      // Fresnel rim
+      float fresnel=pow(1.-dot(n,viewDir),3.5);
+      chrome+=u_accent*fresnel*.45*u_amp;
+
+      // Combine
+      float alpha=smoothstep(-.02,.12,sphere);
+      float glow=exp(-r*r*3.8)*u_amp*.22;
+      vec3 col=chrome*alpha + u_accent*glow*(1.-alpha);
+
+      // Deep vignette
+      col*=1.-smoothstep(.3,.82,r)*(.6-u_amp*.3);
+
+      gl_FragColor=vec4(col,alpha*.88+glow);
+    }
+  `;
+
+  function compileShader(src, type) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, compileShader(VS, gl.VERTEX_SHADER));
+  gl.attachShader(prog, compileShader(FS, gl.FRAGMENT_SHADER));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+
+  const quad = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog, "a_pos");
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+  const uTime   = gl.getUniformLocation(prog, "u_time");
+  const uRes    = gl.getUniformLocation(prog, "u_res");
+  const uAmp    = gl.getUniformLocation(prog, "u_amp");
+  const uAccent = gl.getUniformLocation(prog, "u_accent");
+
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+  let currentAmp = 0.18;
+  let targetAmp  = 0.18;
+  let start = null;
+
+  function render(ts) {
+    if (!start) start = ts;
+    const t = (ts - start) * 0.001;
+
+    // Smooth amp interpolation
+    const extTarget = SIOS.orbTargetAmp || SIOS.orbAmp || 0.3;
+    currentAmp += (extTarget - currentAmp) * 0.035;
+
+    gl.uniform1f(uTime, t);
+    gl.uniform2f(uRes, canvas.width, canvas.height);
+    gl.uniform1f(uAmp, currentAmp);
+    gl.uniform3fv(uAccent, SIOS.accentColor || [0.35,0.93,0.56]);
+
+    gl.clearColor(0,0,0,1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+
+  // Touch / mouse interaction → command bar focus + start audio
+  canvas.addEventListener("pointerdown", () => {
+    startHawkEm();
+    const inp = document.getElementById("cmd-input");
+    if (inp && document.getElementById("cmd-bar").classList.contains("live")) inp.focus();
+  });
+
+})();
+
+// ── BOOT ──────────────────────────────────────────────────────
+window.addEventListener("DOMContentLoaded", () => {
+  SIOS.orbAmp = 0.18;
+  SIOS.orbTargetAmp = 0.18;
+  SIOS.accentColor = [0.35, 0.93, 0.56];
+  initGate();
+});
+
+// ── PUBLIC API ────────────────────────────────────────────────
+window.sendToTAE = sendToTAE;
+window.SIOS = SIOS;
+window.dismissTAEPanel = dismissTAEPanel;
+window.syncSIOSState = syncSIOSState;
+window.startHawkEm = startHawkEm;
+window.getSIOSState = getSIOSState;
+
+// Quick-access override (console / URL hash)
+function checkURLAccess() {
+  const hash = window.location.hash.replace("#","").toUpperCase();
+  if (hash) {
+    const gate = document.getElementById("gate");
+    const input = document.getElementById("gate-input");
+    if (input) input.value = hash;
+    setTimeout(() => {
+      if (gate && !gate.classList.contains("dissolve")) {
+        const upper = hash.trim();
+        if ([...OWNER_ACCESS, OWNER_GID].includes(upper)) {
+          SIOS.identity = "owner";
+          SIOS.isOwner = true;
+          SIOS.gid = OWNER_GID;
+          document.getElementById("owner-badge").style.display = "block";
+        }
+        const gateEl = document.getElementById("gate");
+        gateEl.classList.add("dissolve");
+        setTimeout(() => { gateEl.style.display="none"; initSurface(); }, 1400);
+      }
+    }, 300);
+  }
+}
+window.addEventListener("DOMContentLoaded", checkURLAccess);
+
+})();
+</script>
+</body>
+</html>
