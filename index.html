@@ -200,6 +200,9 @@ body{-webkit-font-smoothing:antialiased}
 <!-- Hidden video texture source -->
 <video id="textureSrc" src="assets/texture.mp4" autoplay loop muted playsinline crossorigin="anonymous"></video>
 
+<!-- Ambient audio -->
+<audio id="ambientAudio" src="assets/ambient.mp3" loop preload="auto"></audio>
+
 <!-- Three.js orb canvas -->
 <canvas id="orbCanvas"></canvas>
 
@@ -1180,14 +1183,84 @@ body{-webkit-font-smoothing:antialiased}
      BOOT SEQUENCE
      ═══════════════════════════════════════════════════════════ */
 
+  /* ── Ambient Audio ─────────────────────────────────────────── */
+  const ambientAudio = $('ambientAudio');
+  ambientAudio.volume = 0;
+
+  function fadeInAudio(targetVolume = 0.35, duration = 3000) {
+    const steps = 60;
+    const stepTime = duration / steps;
+    let step = 0;
+    const interval = setInterval(() => {
+      step++;
+      ambientAudio.volume = Math.min(targetVolume, (step / steps) * targetVolume);
+      if (step >= steps) clearInterval(interval);
+    }, stepTime);
+  }
+
+  function startAmbientAudio() {
+    if (ambientAudio._started) return;
+    ambientAudio._started = true;
+    ambientAudio.play().then(() => {
+      fadeInAudio(0.35, 3000);
+    }).catch(() => {
+      // Autoplay blocked — retry on first interaction
+      ambientAudio._started = false;
+    });
+  }
+
+  /* ── API calls on load ──────────────────────────────────────── */
+  async function fireAPIsOnLoad() {
+    // Hit all API endpoints immediately
+    const endpoints = ['/api/render-state', '/api/tae', '/api/identity', '/api/syncori', '/api/iot'];
+    const fetches = endpoints.map(ep => {
+      const url = (ep.startsWith('/') ? '' : '/') + ep;
+      return fetch(url).then(r => r.json()).catch(() => null);
+    });
+    const results = await Promise.allSettled(fetches);
+
+    // Apply render-state
+    const renderState = results[0]?.value;
+    if (renderState && renderState.state) {
+      $('statusLabel').textContent = '● ' + (renderState.state === 'active' ? 'LIVE' : renderState.state.toUpperCase());
+    }
+
+    // Apply TAE state
+    const taeState = results[1]?.value;
+    if (taeState && taeState.status === 'live') {
+      $('statusLabel').textContent = '● LIVE';
+      $('statusLabel').style.color = '#5bb0ff';
+    }
+
+    // Apply identity
+    const identity = results[2]?.value;
+    if (identity && identity.gid) {
+      $('gidLabel').textContent = identity.gid;
+      $('laneLabel').textContent = identity.role || 'DEMO';
+    }
+
+    // Also fire backend APIs if backend is connected
+    if (backendAvailable()) {
+      fetchBalance();
+      fetchAlerts();
+    }
+  }
+
   async function boot() {
-    await checkBackendConnection();
+    // Fire APIs and backend check simultaneously
+    const [_conn] = await Promise.allSettled([
+      checkBackendConnection(),
+      fireAPIsOnLoad(),
+    ]);
     await checkAuthOnLoad();
     updateAccountUI();
     handleCheckoutResult();
 
     // Fade in
     requestAnimationFrame(() => fade.classList.add('off'));
+
+    // Start ambient audio immediately
+    startAmbientAudio();
 
     // Show HUD
     setTimeout(() => hud.classList.add('on'), 600);
@@ -1198,9 +1271,20 @@ body{-webkit-font-smoothing:antialiased}
       signupBtn.classList.add('on');
     }, 1800);
 
-    // Set initial state
-    $('gidLabel').textContent = '—';
-    $('statusLabel').textContent = '● IDLE';
+    // Set initial state if APIs didn't populate
+    if ($('gidLabel').textContent === '—') {
+      $('gidLabel').textContent = '—';
+      $('statusLabel').textContent = '● IDLE';
+    }
+
+    // Fallback: start audio on first user interaction if autoplay was blocked
+    const startOnInteraction = () => {
+      startAmbientAudio();
+      document.removeEventListener('click', startOnInteraction);
+      document.removeEventListener('touchstart', startOnInteraction);
+    };
+    document.addEventListener('click', startOnInteraction, { once: false });
+    document.addEventListener('touchstart', startOnInteraction, { once: false });
   }
 
   boot();
