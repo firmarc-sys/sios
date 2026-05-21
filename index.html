@@ -481,41 +481,84 @@ body{-webkit-font-smoothing:antialiased}
       // View direction & fresnel
       vec3 viewDir = normalize(vViewPos);
       vec3 normal = normalize(vNormal);
-      float fresnel = pow(1.0 - abs(dot(normal, viewDir)), 3.0);
+      float fresnel = pow(1.0 - abs(dot(normal, viewDir)), 4.0);
+      float fresnelSoft = pow(1.0 - abs(dot(normal, viewDir)), 2.0);
 
-      // Mercury chrome base — dark silver to bright chrome
-      vec3 darkChrome = vec3(0.08, 0.09, 0.11);
-      vec3 brightChrome = vec3(0.78, 0.82, 0.88);
-      vec3 chrome = mix(darkChrome, brightChrome, fresnel);
+      // Mercury chrome base — polished liquid metal
+      vec3 darkChrome = vec3(0.12, 0.13, 0.16);
+      vec3 midChrome = vec3(0.55, 0.58, 0.65);
+      vec3 brightChrome = vec3(0.92, 0.94, 0.97);
+      vec3 chrome = mix(darkChrome, midChrome, fresnelSoft);
+      chrome = mix(chrome, brightChrome, fresnel);
 
-      // Blue edge glow
-      vec3 edgeGlow = vec3(0.0, 0.47, 1.0) * fresnel * 0.6 * uIntensity;
+      // Fake environment reflection — shifting gradient based on normal
+      vec3 reflectDir = reflect(-viewDir, normal);
+      float envU = reflectDir.x * 0.5 + 0.5;
+      float envV = reflectDir.y * 0.5 + 0.5;
+      vec3 envColor = mix(
+        vec3(0.05, 0.07, 0.12),
+        vec3(0.6, 0.65, 0.75),
+        smoothstep(0.2, 0.8, envV)
+      );
+      // Add subtle warm caustic from below
+      envColor += vec3(0.08, 0.04, 0.0) * smoothstep(0.6, 0.0, envV);
+      chrome = mix(chrome, envColor, 0.35);
 
-      // Blend video/texture into chrome surface
-      float blendAmt = 0.35 + fresnel * 0.25;
-      vec3 surface = mix(chrome, texColor * 1.1, blendAmt * uChrome);
+      // Blue edge glow — subtle, metallic
+      vec3 edgeGlow = vec3(0.0, 0.35, 0.9) * fresnel * 0.4 * uIntensity;
 
-      // Specular highlights
-      vec3 lightDir = normalize(vec3(0.5, 1.0, 0.8));
-      vec3 halfDir = normalize(lightDir + viewDir);
-      float spec = pow(max(dot(normal, halfDir), 0.0), 64.0);
-      vec3 specColor = vec3(0.9, 0.92, 0.95) * spec * 0.7;
+      // Blend video/texture into chrome — subtle, chrome dominates
+      float blendAmt = 0.18 + fresnel * 0.12;
+      vec3 surface = mix(chrome, texColor * 0.7 + chrome * 0.3, blendAmt * uChrome);
 
-      // Rim light — soft upper light
-      float rim = pow(max(dot(normal, vec3(0.0, 1.0, 0.0)), 0.0), 2.0) * 0.15;
+      // Multi-light specular for metallic look
+      // Key light — top right
+      vec3 light1 = normalize(vec3(0.6, 1.0, 0.8));
+      vec3 half1 = normalize(light1 + viewDir);
+      float spec1 = pow(max(dot(normal, half1), 0.0), 128.0);
 
-      // Upward luminance flow — brighter at top
-      float upFlow = smoothstep(-1.0, 1.0, normal.y) * 0.08 * uIntensity;
+      // Fill light — left
+      vec3 light2 = normalize(vec3(-0.8, 0.3, 0.5));
+      vec3 half2 = normalize(light2 + viewDir);
+      float spec2 = pow(max(dot(normal, half2), 0.0), 96.0);
+
+      // Rim light — behind
+      vec3 light3 = normalize(vec3(0.0, 0.2, -1.0));
+      vec3 half3 = normalize(light3 + viewDir);
+      float spec3 = pow(max(dot(normal, half3), 0.0), 64.0);
+
+      // Moving highlight — slow orbit
+      vec3 light4 = normalize(vec3(sin(uTime * 0.4) * 0.8, cos(uTime * 0.3) * 0.6, 0.7));
+      vec3 half4 = normalize(light4 + viewDir);
+      float spec4 = pow(max(dot(normal, half4), 0.0), 200.0);
+
+      vec3 specTotal = vec3(0.95, 0.96, 0.98) * spec1 * 1.0
+                     + vec3(0.7, 0.75, 0.85) * spec2 * 0.5
+                     + vec3(0.5, 0.6, 0.8) * spec3 * 0.35
+                     + vec3(1.0, 0.98, 0.95) * spec4 * 0.8;
+
+      // Anisotropic-like stretched highlight for liquid metal feel
+      float aniso = pow(max(dot(normal, normalize(vec3(viewDir.x, 0.0, viewDir.z))), 0.0), 8.0);
+      specTotal += vec3(0.3, 0.32, 0.38) * aniso * 0.2;
+
+      // Rim light — crisp metallic edge
+      float rim = pow(fresnel, 1.5) * 0.25;
+
+      // Upward luminance flow
+      float upFlow = smoothstep(-1.0, 1.0, normal.y) * 0.06 * uIntensity;
 
       // Combine
-      vec3 finalColor = surface + edgeGlow + specColor + rim + upFlow;
+      vec3 finalColor = surface + edgeGlow + specTotal + rim + upFlow;
 
-      // Subtle ambient occlusion at bottom
+      // Ambient occlusion at bottom
       float ao = smoothstep(-0.5, 0.3, normal.y);
-      finalColor *= mix(0.6, 1.0, ao);
+      finalColor *= mix(0.5, 1.0, ao);
 
-      // Tonemap
-      finalColor = finalColor / (finalColor + vec3(1.0));
+      // Metallic contrast boost
+      finalColor = pow(finalColor, vec3(0.95));
+
+      // Filmic tonemap (ACES-like)
+      finalColor = (finalColor * (2.51 * finalColor + 0.03)) / (finalColor * (2.43 * finalColor + 0.59) + 0.14);
 
       gl_FragColor = vec4(finalColor, 1.0);
     }
@@ -550,7 +593,7 @@ body{-webkit-font-smoothing:antialiased}
   }
   particleGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
   const particleMat = new THREE.PointsMaterial({
-    size: 0.015, color: 0x087bff, transparent: true, opacity: 0.3,
+    size: 0.012, color: 0x4488cc, transparent: true, opacity: 0.15,
     blending: THREE.AdditiveBlending, depthWrite: false,
   });
   const particles = new THREE.Points(particleGeo, particleMat);
