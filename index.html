@@ -237,6 +237,97 @@ body.past-hero .toast{opacity:0!important}
 @media(max-width:380px){
   .sys-verticals{grid-template-columns:repeat(2,1fr)}
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ARAGiP AUTH / BILLING / ERROR STATE STYLES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Auth Modal ───────────────────────────────────────────────── */
+.auth-backdrop{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .6s ease}
+.auth-backdrop.on{opacity:1;pointer-events:auto}
+.auth-modal{position:absolute;left:50%;top:50%;width:min(88vw,400px);transform:translate(-50%,-50%) scale(.92);opacity:0;pointer-events:none;border-radius:36px;border:1px solid rgba(220,240,255,.22);background:radial-gradient(circle at 50% -10%,rgba(0,120,255,.22),transparent 52%),rgba(0,0,0,.88);box-shadow:inset 0 0 52px rgba(255,255,255,.04),0 0 65px rgba(0,120,255,.2);padding:32px 28px;transition:.7s cubic-bezier(.16,1,.24,1)}
+.auth-backdrop.on .auth-modal{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.auth-title{text-align:center;font-size:22px;font-weight:300;letter-spacing:.1em;margin:0 0 6px;text-shadow:0 0 14px rgba(255,255,255,.3)}
+.auth-sub{text-align:center;font-size:12px;color:rgba(180,215,255,.5);letter-spacing:.06em;margin:0 0 22px}
+.auth-tabs{display:flex;gap:0;margin-bottom:22px;border-radius:999px;border:1px solid rgba(220,240,255,.12);overflow:hidden}
+.auth-tab{flex:1;padding:10px;text-align:center;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(180,215,255,.5);background:transparent;border:0;cursor:pointer;transition:all .3s}
+.auth-tab.active{color:#fff;background:rgba(0,120,255,.2);text-shadow:0 0 10px rgba(0,120,255,.5)}
+.auth-field{display:block;width:100%;margin-bottom:14px;padding:12px 16px;border-radius:18px;border:1px solid rgba(220,240,255,.15);background:rgba(255,255,255,.04);color:#fff;font-size:14px;letter-spacing:.04em;outline:0;transition:border-color .3s,box-shadow .3s}
+.auth-field::placeholder{color:rgba(180,215,255,.35)}
+.auth-field:focus{border-color:rgba(0,120,255,.45);box-shadow:0 0 20px rgba(0,120,255,.15)}
+.auth-submit{display:block;width:100%;padding:14px;border-radius:999px;border:1px solid rgba(0,120,255,.35);background:linear-gradient(180deg,rgba(8,123,255,.25),rgba(0,0,0,.7));color:#fff;font-size:15px;letter-spacing:.06em;cursor:pointer;box-shadow:0 0 30px rgba(0,120,255,.2);transition:all .4s}
+.auth-submit:hover{border-color:rgba(0,120,255,.6);box-shadow:0 0 50px rgba(0,120,255,.35)}
+.auth-submit:disabled{opacity:.4;cursor:not-allowed}
+.auth-error{text-align:center;font-size:12px;color:#ff6666;margin:10px 0;min-height:16px;letter-spacing:.04em}
+.auth-guest{display:block;width:100%;text-align:center;margin-top:12px;font-size:12px;color:rgba(180,215,255,.4);background:transparent;border:0;cursor:pointer;letter-spacing:.06em;transition:color .3s}
+.auth-guest:hover{color:rgba(180,215,255,.7)}
+.auth-close{position:absolute;right:18px;top:18px;font-size:18px;color:rgba(180,215,255,.4);background:transparent;border:0;cursor:pointer;transition:color .3s}
+.auth-close:hover{color:#fff}
+.auth-name-field{display:none}
+.auth-name-field.show{display:block}
+
+/* ── Account button (HUD) ─────────────────────────────────────── */
+.acct-btn{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.08em;color:rgba(180,215,255,.7);cursor:pointer;transition:color .4s;text-transform:uppercase;pointer-events:auto;position:relative}
+.acct-btn:hover{color:#fff}
+.acct-btn .acct-icon{font-size:14px}
+.acct-btn .acct-label{max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── Account dropdown ─────────────────────────────────────────── */
+.acct-menu{position:absolute;right:0;top:calc(100% + 8px);width:200px;border-radius:18px;border:1px solid rgba(220,240,255,.18);background:rgba(0,0,0,.88);box-shadow:0 0 30px rgba(0,120,255,.15);padding:8px;opacity:0;pointer-events:none;transform:translateY(-6px);transition:all .3s ease}
+.acct-menu.on{opacity:1;pointer-events:auto;transform:none}
+.acct-menu-item{display:block;width:100%;padding:10px 14px;border:0;background:transparent;color:rgba(230,245,255,.7);font-size:12px;letter-spacing:.06em;text-align:left;cursor:pointer;border-radius:12px;transition:all .2s}
+.acct-menu-item:hover{background:rgba(0,120,255,.12);color:#fff}
+.acct-menu-item.danger{color:rgba(255,120,120,.6)}
+.acct-menu-item.danger:hover{background:rgba(255,50,50,.12);color:#ff6666}
+.acct-menu-sep{height:1px;background:rgba(255,255,255,.06);margin:4px 8px}
+
+/* ── Plans panel ──────────────────────────────────────────────── */
+.plans-panel{position:absolute;left:50%;top:50%;width:min(92vw,540px);transform:translate(-50%,-50%) scale(.94);opacity:0;pointer-events:none;border-radius:36px;border:1px solid rgba(220,240,255,.18);background:radial-gradient(circle at 50% -5%,rgba(0,120,255,.18),transparent 50%),rgba(0,0,0,.88);box-shadow:inset 0 0 52px rgba(255,255,255,.04),0 0 65px rgba(0,120,255,.18);padding:28px 22px;transition:.7s cubic-bezier(.16,1,.24,1);z-index:115}
+.plans-panel.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.plans-panel h2{text-align:center;font-weight:300;letter-spacing:.12em;margin:0 0 6px;font-size:20px}
+.plans-panel .plans-sub{text-align:center;font-size:12px;color:rgba(180,215,255,.45);margin:0 0 22px;letter-spacing:.06em}
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.plan-card{border-radius:22px;border:1px solid rgba(220,240,255,.12);background:rgba(255,255,255,.03);padding:20px 16px;text-align:center;cursor:pointer;transition:all .4s ease;position:relative}
+.plan-card:hover{border-color:rgba(0,120,255,.35);background:rgba(0,120,255,.06);box-shadow:0 0 30px rgba(0,120,255,.12)}
+.plan-card.current{border-color:rgba(0,120,255,.4);box-shadow:inset 0 0 20px rgba(0,120,255,.08)}
+.plan-card .pc-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#5bb0ff;margin-bottom:8px}
+.plan-card .pc-price{font-size:28px;font-weight:200;margin-bottom:4px}
+.plan-card .pc-price .pc-mo{font-size:12px;color:rgba(180,215,255,.4)}
+.plan-card .pc-tokens{font-size:11px;color:rgba(180,215,255,.55);letter-spacing:.06em;margin-bottom:12px}
+.plan-card .pc-btn{display:inline-block;padding:8px 20px;border-radius:999px;border:1px solid rgba(220,240,255,.2);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.6));color:#fff;font-size:11px;letter-spacing:.08em;cursor:pointer;transition:all .3s}
+.plan-card .pc-btn:hover{border-color:rgba(0,120,255,.5);box-shadow:0 0 20px rgba(0,120,255,.2)}
+.plan-card.current .pc-btn{border-color:rgba(0,120,255,.3);color:#5bb0ff;cursor:default}
+.plans-close{display:block;margin:16px auto 0;padding:10px 22px;border-radius:999px;border:1px solid rgba(220,240,255,.18);background:rgba(0,0,0,.5);color:white;cursor:pointer;font-size:12px;letter-spacing:.06em}
+
+/* ── Payment failed overlay ───────────────────────────────────── */
+.pay-failed-overlay{position:absolute;left:50%;top:50%;width:min(86vw,420px);transform:translate(-50%,-50%) scale(.94);opacity:0;pointer-events:none;text-align:center;border-radius:36px;border:1px solid rgba(255,140,0,.3);background:radial-gradient(circle at 50% 0,rgba(255,120,0,.1),transparent 46%),rgba(0,0,0,.85);box-shadow:inset 0 0 42px rgba(255,140,0,.04),0 0 55px rgba(255,140,0,.1);padding:28px 22px;transition:.9s cubic-bezier(.16,1,.24,1);z-index:112}
+.pay-failed-overlay.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.pay-failed-overlay h2{font-weight:300;letter-spacing:.12em;margin:0 0 8px;color:#ffb347}
+.pay-failed-overlay p{color:rgba(235,245,255,.6);line-height:1.45}
+.pay-failed-overlay .big{font-size:17px;letter-spacing:.06em;color:#ff8c00;text-shadow:0 0 10px rgba(255,140,0,.3);margin:12px 0}
+
+/* ── Backend unavailable indicator ────────────────────────────── */
+.conn-status{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);z-index:130;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,120,120,.6);border:1px solid rgba(255,80,80,.2);border-radius:14px;padding:6px 14px;background:rgba(0,0,0,.75);opacity:0;pointer-events:none;transition:all .6s ease}
+.conn-status.on{opacity:1;transform:translateX(-50%);pointer-events:auto}
+.conn-status.ok{color:rgba(100,255,100,.5);border-color:rgba(100,255,100,.15)}
+
+/* ── TAE conversation display ─────────────────────────────────── */
+.tae-conv{position:absolute;left:50%;bottom:max(180px,calc(env(safe-area-inset-bottom) + 170px));width:min(86vw,520px);max-height:260px;transform:translateX(-50%);overflow-y:auto;display:flex;flex-direction:column;gap:8px;opacity:0;pointer-events:none;transition:opacity .6s ease;z-index:105;scrollbar-width:thin;scrollbar-color:rgba(0,120,255,.2) transparent}
+.tae-conv.on{opacity:1;pointer-events:auto}
+.tae-msg{border-radius:18px;padding:12px 16px;font-size:13px;line-height:1.55;letter-spacing:.02em;animation:msgIn .5s cubic-bezier(.16,1,.24,1)}
+.tae-msg.user{align-self:flex-end;max-width:78%;background:rgba(0,80,200,.2);border:1px solid rgba(0,120,255,.2);color:rgba(235,245,255,.85)}
+.tae-msg.tae{align-self:flex-start;max-width:85%;background:rgba(255,255,255,.04);border:1px solid rgba(220,240,255,.1);color:rgba(235,245,255,.78)}
+.tae-msg.tae .msg-label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#5bb0ff;margin-bottom:4px}
+.tae-msg.system{align-self:center;text-align:center;font-size:11px;color:rgba(180,215,255,.45);border:0;background:transparent;padding:6px 12px}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+body.past-hero .tae-conv{opacity:0!important;pointer-events:none!important}
+
+/* ── Responsive additions ─────────────────────────────────────── */
+@media(max-width:520px){
+  .acct-btn .acct-label{display:none}
+  .plans-grid{grid-template-columns:1fr 1fr}
+  .auth-modal{width:min(94vw,400px);padding:24px 20px}
+}
 </style>
 </head>
 <body>
@@ -263,6 +354,20 @@ body.past-hero .toast{opacity:0!important}
         <span class="bal" id="balIndicator" title="TAE allocation">
           <span class="bal-bar"><span class="bal-fill" id="balFill" style="width:100%"></span></span>
           <span class="bal-pct" id="balPct">—</span>
+        </span>
+        <!-- Account button -->
+        <span class="acct-btn" id="acctBtn">
+          <span class="acct-icon">◉</span>
+          <span class="acct-label" id="acctLabel">Guest</span>
+          <div class="acct-menu" id="acctMenu">
+            <button class="acct-menu-item" id="menuLogin">Log In / Register</button>
+            <button class="acct-menu-item" id="menuSubscribe">Subscribe</button>
+            <button class="acct-menu-item" id="menuBilling">Manage Billing</button>
+            <div class="acct-menu-sep"></div>
+            <button class="acct-menu-item" id="menuAllocation">View Allocation</button>
+            <div class="acct-menu-sep" id="menuLogoutSep"></div>
+            <button class="acct-menu-item danger" id="menuLogout">Log Out</button>
+          </div>
         </span>
       </div>
     </div>
@@ -298,7 +403,9 @@ body.past-hero .toast{opacity:0!important}
       <h2>TAE Allocation</h2>
       <div class="alloc-bar"><div class="alloc-bar-fill" id="allocBarFill" style="width:0%"></div></div>
       <div id="allocRows"></div>
-      <button class="alloc-close" id="allocClose">Close</button>
+      <button class="cta-upgrade" id="allocSubscribe" style="margin-top:14px">Upgrade Plan</button>
+      <button class="alloc-close" id="allocManage" style="margin-left:8px">Manage Billing</button>
+      <button class="alloc-close" id="allocClose" style="margin-left:8px">Close</button>
     </div>
 
     <!-- TAE Paused overlay (balance exhausted) -->
@@ -311,7 +418,51 @@ body.past-hero .toast{opacity:0!important}
       <button class="close" id="pausedClose" style="margin-left:8px">Dismiss</button>
     </div>
 
+    <!-- TAE conversation display -->
+    <div class="tae-conv" id="taeConv"></div>
+
+    <!-- Plans panel -->
+    <div class="plans-panel" id="plansPanel">
+      <h2>TAE Allocation Plans</h2>
+      <p class="plans-sub">Unlock intelligence. Choose your TAE communication tier.</p>
+      <div class="plans-grid" id="plansGrid">
+        <!-- Filled dynamically -->
+      </div>
+      <button class="plans-close" id="plansClose">Close</button>
+    </div>
+
+    <!-- Payment failed overlay -->
+    <div class="pay-failed-overlay" id="payFailed">
+      <h2>Payment Failed</h2>
+      <p id="payFailedMsg">Your subscription payment could not be processed.</p>
+      <div class="big">Update your payment method to continue.</div>
+      <p>Your TAE allocation is paused until payment is resolved.</p>
+      <button class="cta-upgrade" id="payFailedBilling">Manage Billing</button>
+      <button class="close" id="payFailedClose" style="margin-left:8px">Dismiss</button>
+    </div>
+
     <div class="debug" id="debug"></div>
+  </div>
+
+  <!-- Auth modal -->
+  <div class="auth-backdrop" id="authBackdrop">
+    <div class="auth-modal" id="authModal">
+      <button class="auth-close" id="authClose">&times;</button>
+      <h2 class="auth-title">Enter SIOS</h2>
+      <p class="auth-sub">Authenticate to access your TAE allocation</p>
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="tabLogin">Log In</button>
+        <button type="button" class="auth-tab" id="tabRegister">Register</button>
+      </div>
+      <form id="authForm">
+        <input class="auth-field auth-name-field" id="authName" type="text" placeholder="Display name" autocomplete="name"/>
+        <input class="auth-field" id="authEmail" type="email" placeholder="Email" autocomplete="email" required/>
+        <input class="auth-field" id="authPass" type="password" placeholder="Password" autocomplete="current-password" required/>
+        <div class="auth-error" id="authError"></div>
+        <button class="auth-submit" type="submit" id="authSubmit">Log In</button>
+      </form>
+      <button class="auth-guest" id="authGuest">Continue as Guest</button>
+    </div>
   </div>
 
   <!-- Demo fallback badge -->
@@ -480,7 +631,8 @@ body.past-hero .toast{opacity:0!important}
       <p class="sys-cta-sub">SpatialOS is live. Experience the intelligence layer&nbsp;&mdash; or request enterprise access.</p>
       <div class="sys-cta-buttons">
         <button class="sys-cta-btn primary" id="ctaDemo">Activate Demo Mode</button>
-        <a class="sys-cta-btn" href="mailto:enterprise@spatialos.co">Request Enterprise Access</a>
+        <button class="sys-cta-btn" id="ctaSubscribe">Subscribe to TAE</button>
+        <a class="sys-cta-btn" href="mailto:enterprise@spatialos.co">Enterprise Access</a>
       </div>
     </section>
 
@@ -493,6 +645,9 @@ body.past-hero .toast{opacity:0!important}
   <!-- ═══ BOOT FADE ═════════════════════════════════════════════ -->
   <div class="fadeBlack" id="fade"></div>
 </div>
+
+<!-- Backend connection status -->
+<div class="conn-status" id="connStatus">Backend offline · Demo mode</div>
 
 <!-- Back-to-top -->
 <button class="backToTop" id="backToTop">&uarr;</button>
@@ -511,7 +666,11 @@ body.past-hero .toast{opacity:0!important}
     pollBalanceMs: 30000,
     pollAlertsMs: 15000,
     maxNotices: 5,
+    maxConvMsgs: 20,
   };
+
+  /* ── Auth mode tracking ────────────────────────────────────── */
+  let authMode = 'login'; // 'login' or 'register'
 
   /* ── Assets & Lanes (unchanged) ────────────────────────────── */
   const ASSETS = {
@@ -583,7 +742,10 @@ body.past-hero .toast{opacity:0!important}
         panel=$('panel'), fade=$('fade'), debug=$('debug'), scrollCue=$('scrollCue'),
         backToTop=$('backToTop'), demoBadge=$('demoBadge'),
         balIndicator=$('balIndicator'), balFill=$('balFill'), balPct=$('balPct'),
-        taeNotices=$('taeNotices'), taePaused=$('taePaused'), allocPanel=$('allocPanel');
+        taeNotices=$('taeNotices'), taePaused=$('taePaused'), allocPanel=$('allocPanel'),
+        taeConv=$('taeConv'), authBackdrop=$('authBackdrop'), plansPanel=$('plansPanel'),
+        payFailed=$('payFailed'), connStatus=$('connStatus'),
+        acctBtn=$('acctBtn'), acctMenu=$('acctMenu'), acctLabel=$('acctLabel');
 
   /* ── Utilities ─────────────────────────────────────────────── */
   function deepMerge(a, b) {
@@ -910,6 +1072,12 @@ body.past-hero .toast{opacity:0!important}
     alertState.alerts = data.alerts || [];
     alertState.unread_count = data.unread_count || 0;
 
+    // Check for payment failed alerts
+    const payAlert = alertState.alerts.find(a => a.type === 'payment_failed' || a.type === 'past_due');
+    if (payAlert && !platformState.paused) {
+      handlePaymentFailed(payAlert.message);
+    }
+
     renderAlertNotices();
   }
 
@@ -958,6 +1126,296 @@ body.past-hero .toast{opacity:0!important}
     return d.innerHTML;
   }
 
+  /* ═══ AUTH MODAL ════════════════════════════════════════════════ */
+
+  function openAuthModal(mode) {
+    authMode = mode || 'login';
+    updateAuthTabs();
+    $('authError').textContent = '';
+    $('authEmail').value = '';
+    $('authPass').value = '';
+    $('authName').value = '';
+    authBackdrop.classList.add('on');
+  }
+
+  function closeAuthModal() {
+    authBackdrop.classList.remove('on');
+  }
+
+  function updateAuthTabs() {
+    $('tabLogin').classList.toggle('active', authMode === 'login');
+    $('tabRegister').classList.toggle('active', authMode === 'register');
+    $('authSubmit').textContent = authMode === 'login' ? 'Log In' : 'Create Account';
+    const nameField = $('authName');
+    nameField.classList.toggle('show', authMode === 'register');
+    $('authPass').autocomplete = authMode === 'login' ? 'current-password' : 'new-password';
+  }
+
+  $('tabLogin').onclick = () => { authMode = 'login'; updateAuthTabs(); };
+  $('tabRegister').onclick = () => { authMode = 'register'; updateAuthTabs(); };
+  $('authClose').onclick = closeAuthModal;
+  $('authGuest').onclick = () => { closeAuthModal(); };
+  authBackdrop.onclick = (e) => { if (e.target === authBackdrop) closeAuthModal(); };
+
+  $('authForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const email = $('authEmail').value.trim();
+    const pass = $('authPass').value;
+    const name = $('authName').value.trim();
+    const err = $('authError');
+    const btn = $('authSubmit');
+
+    if (!email || !pass) { err.textContent = 'Email and password required.'; return; }
+    if (authMode === 'register' && pass.length < 8) { err.textContent = 'Password must be at least 8 characters.'; return; }
+
+    btn.disabled = true;
+    btn.textContent = authMode === 'login' ? 'Logging in…' : 'Creating account…';
+    err.textContent = '';
+
+    try {
+      let ok;
+      if (authMode === 'login') {
+        ok = await login(email, pass);
+      } else {
+        ok = await register(email, pass, name || undefined);
+      }
+      if (ok) {
+        closeAuthModal();
+        updateAccountUI();
+        showToast(authMode === 'login' ? 'Authenticated. TAE is yours.' : 'Account created. Welcome to SIOS.');
+        addConvMsg('system', authMode === 'login' ? 'Identity authenticated.' : 'Identity created. Welcome to the runtime.');
+      } else {
+        err.textContent = authMode === 'login' ? 'Invalid credentials.' : 'Registration failed. Try a different email.';
+      }
+    } catch (ex) {
+      err.textContent = 'Connection error. Try again.';
+    }
+    btn.disabled = false;
+    btn.textContent = authMode === 'login' ? 'Log In' : 'Create Account';
+  };
+
+  /* ═══ ACCOUNT MENU ═══════════════════════════════════════════ */
+
+  function updateAccountUI() {
+    if (authState.authenticated && !authState.is_demo && authState.user) {
+      acctLabel.textContent = authState.user.display_name || authState.user.email?.split('@')[0] || 'User';
+      $('menuLogin').style.display = 'none';
+      $('menuLogout').style.display = '';
+      $('menuLogoutSep').style.display = '';
+      $('menuBilling').style.display = '';
+    } else {
+      acctLabel.textContent = authState.is_demo ? 'Demo' : 'Guest';
+      $('menuLogin').style.display = '';
+      $('menuLogout').style.display = authState.is_demo ? '' : 'none';
+      $('menuLogoutSep').style.display = authState.is_demo ? '' : 'none';
+      $('menuBilling').style.display = 'none';
+    }
+  }
+
+  acctBtn.onclick = (e) => {
+    e.stopPropagation();
+    acctMenu.classList.toggle('on');
+  };
+  document.addEventListener('click', () => acctMenu.classList.remove('on'));
+  acctMenu.onclick = (e) => e.stopPropagation();
+
+  $('menuLogin').onclick = () => { acctMenu.classList.remove('on'); openAuthModal('login'); };
+  $('menuSubscribe').onclick = () => { acctMenu.classList.remove('on'); openPlansPanel(); };
+  $('menuBilling').onclick = () => { acctMenu.classList.remove('on'); openBillingPortal(); };
+  $('menuAllocation').onclick = () => { acctMenu.classList.remove('on'); showAllocationPanel(); };
+  $('menuLogout').onclick = async () => {
+    acctMenu.classList.remove('on');
+    await logout();
+    updateAccountUI();
+    showToast('Logged out. Demo session active.');
+  };
+
+  /* ═══ PLANS / SUBSCRIBE ══════════════════════════════════════ */
+
+  async function openPlansPanel() {
+    const grid = $('plansGrid');
+    grid.innerHTML = '<p style="color:rgba(180,215,255,.4);text-align:center;grid-column:1/-1">Loading plans…</p>';
+    plansPanel.classList.add('on');
+
+    if (!backendAvailable()) {
+      grid.innerHTML = renderFallbackPlans();
+      return;
+    }
+
+    const data = await taeApi('/api/billing/plans');
+    if (!data) {
+      grid.innerHTML = renderFallbackPlans();
+      return;
+    }
+
+    const allPlans = [data.free_tier, ...(data.plans || [])];
+    const currentTier = balanceState.plan || 'demo';
+
+    grid.innerHTML = allPlans.map(p => {
+      const isCurrent = p.tier === currentTier;
+      const priceText = p.cost_usd === 0 ? 'Free' : `$${p.cost_usd}<span class="pc-mo">/mo</span>`;
+      const btnText = isCurrent ? 'Current' : (p.cost_usd === 0 ? 'Active' : 'Subscribe');
+      return `<div class="plan-card${isCurrent ? ' current' : ''}" data-price="${p.price_id || ''}" data-tier="${p.tier}">
+        <div class="pc-tier">${p.label || p.tier}</div>
+        <div class="pc-price">${priceText}</div>
+        <div class="pc-tokens">${(p.tokens || 0).toLocaleString()} tokens/mo</div>
+        <button class="pc-btn" ${isCurrent || p.cost_usd === 0 ? 'disabled' : ''}>${btnText}</button>
+      </div>`;
+    }).join('');
+
+    // Attach subscribe handlers
+    grid.querySelectorAll('.plan-card:not(.current)').forEach(card => {
+      const btn = card.querySelector('.pc-btn');
+      const priceId = card.dataset.price;
+      if (priceId && !btn.disabled) {
+        btn.onclick = () => startCheckout(priceId);
+      }
+    });
+  }
+
+  function renderFallbackPlans() {
+    const plans = [
+      { tier: 'Free', tokens: '5,000', price: 'Free' },
+      { tier: 'Starter', tokens: '50,000', price: '$9.99/mo' },
+      { tier: 'Pro', tokens: '500,000', price: '$29.99/mo' },
+      { tier: 'Enterprise', tokens: 'Custom', price: '$99.99/mo' },
+    ];
+    return plans.map(p => `<div class="plan-card">
+      <div class="pc-tier">${p.tier}</div>
+      <div class="pc-price">${p.price}</div>
+      <div class="pc-tokens">${p.tokens} tokens/mo</div>
+      <button class="pc-btn" disabled>Connect backend</button>
+    </div>`).join('');
+  }
+
+  async function startCheckout(priceId) {
+    if (!authState.authenticated || authState.is_demo) {
+      plansPanel.classList.remove('on');
+      openAuthModal('register');
+      showToast('Create an account to subscribe.');
+      return;
+    }
+
+    const data = await taeApi('/api/billing/create-checkout-session', {
+      method: 'POST',
+      body: JSON.stringify({ price_id: priceId }),
+    });
+    if (data?.checkout_url) {
+      window.location.href = data.checkout_url;
+    } else {
+      showToast('Checkout unavailable. Try again later.');
+    }
+  }
+
+  async function openBillingPortal() {
+    if (!authState.authenticated || authState.is_demo) {
+      openAuthModal('login');
+      return;
+    }
+    const data = await taeApi('/api/billing/create-portal-session', {
+      method: 'POST',
+    });
+    if (data?.portal_url) {
+      window.location.href = data.portal_url;
+    } else {
+      showToast('Billing portal unavailable.');
+    }
+  }
+
+  $('plansClose').onclick = () => plansPanel.classList.remove('on');
+
+  /* ═══ PAYMENT FAILED HANDLER ═════════════════════════════════ */
+
+  function handlePaymentFailed(msg) {
+    platformState.paused = true;
+    platformState.pause_reason = 'payment_failed';
+    $('payFailedMsg').textContent = msg || 'Your subscription payment could not be processed.';
+    payFailed.classList.add('on');
+  }
+
+  $('payFailedBilling').onclick = () => { payFailed.classList.remove('on'); openBillingPortal(); };
+  $('payFailedClose').onclick = () => payFailed.classList.remove('on');
+
+  /* ═══ BACKEND CONNECTION CHECK ═══════════════════════════════ */
+
+  let backendOnline = false;
+
+  async function checkBackendConnection() {
+    if (!backendAvailable()) {
+      connStatus.textContent = 'No backend configured · Demo mode';
+      connStatus.className = 'conn-status on';
+      connStatus.classList.remove('ok');
+      backendOnline = false;
+      return;
+    }
+    try {
+      const resp = await fetch(TAE_CONFIG.backendUrl + '/health', { cache: 'no-store' });
+      if (resp.ok) {
+        const data = await resp.json();
+        backendOnline = true;
+        if (data.database === 'connected') {
+          connStatus.textContent = 'TAE online';
+          connStatus.className = 'conn-status on ok';
+          setTimeout(() => connStatus.classList.remove('on'), 3000);
+        } else {
+          connStatus.textContent = 'TAE online · DB error';
+          connStatus.className = 'conn-status on';
+        }
+      } else {
+        throw new Error('bad response');
+      }
+    } catch {
+      backendOnline = false;
+      connStatus.textContent = 'Backend offline · Demo mode';
+      connStatus.className = 'conn-status on';
+    }
+  }
+
+  /* ═══ TAE CONVERSATION DISPLAY ═══════════════════════════════ */
+
+  function addConvMsg(role, text) {
+    if (!text) return;
+    const div = document.createElement('div');
+    if (role === 'system') {
+      div.className = 'tae-msg system';
+      div.textContent = text;
+    } else if (role === 'user') {
+      div.className = 'tae-msg user';
+      div.textContent = text;
+    } else {
+      div.className = 'tae-msg tae';
+      div.innerHTML = '<div class="msg-label">TAE</div>' + esc(text);
+    }
+    taeConv.appendChild(div);
+    // Trim old messages
+    while (taeConv.children.length > TAE_CONFIG.maxConvMsgs) taeConv.removeChild(taeConv.firstChild);
+    taeConv.scrollTop = taeConv.scrollHeight;
+    taeConv.classList.add('on');
+  }
+
+  function clearConv() {
+    taeConv.innerHTML = '';
+    taeConv.classList.remove('on');
+  }
+
+  /* ═══ CHECKOUT RESULT HANDLER ════════════════════════════════ */
+
+  function handleCheckoutResult() {
+    const url = new URL(location.href);
+    const result = url.pathname;
+    if (result === '/billing/success' || url.searchParams.get('checkout') === 'success') {
+      showToast('Subscription activated! TAE allocation locked.');
+      addConvMsg('system', 'Subscription confirmed. Your TAE allocation is now active.');
+      // Clean URL
+      history.replaceState(null, '', '/');
+      // Refresh balance
+      setTimeout(fetchBalance, 2000);
+    } else if (result === '/billing/cancel' || url.searchParams.get('checkout') === 'canceled') {
+      showToast('Checkout canceled.');
+      history.replaceState(null, '', '/');
+    }
+  }
+
   /* ═══ ALLOCATION PANEL ═════════════════════════════════════════ */
 
   async function showAllocationPanel() {
@@ -990,6 +1448,8 @@ body.past-hero .toast{opacity:0!important}
   }
 
   $('allocClose').onclick = () => allocPanel.classList.remove('on');
+  $('allocSubscribe').onclick = () => { allocPanel.classList.remove('on'); openPlansPanel(); };
+  $('allocManage').onclick = () => { allocPanel.classList.remove('on'); openBillingPortal(); };
   balIndicator.onclick = () => showAllocationPanel();
 
   /* ═══ POLLING ══════════════════════════════════════════════════ */
@@ -1172,12 +1632,36 @@ body.past-hero .toast{opacity:0!important}
     panel.classList.add('on');
   }
 
-  gidForm.onsubmit = e => { e.preventDefault(); const v=(gidInput.value||'').trim(); if(v==='399152573423'||/tae.*demo/i.test(v)||v===''){scrollToHero();acceptIdentity();}else{toast.textContent='GID not recognized. Enter 399152573423 or TAE, enter Demo Mode.';toast.classList.add('on');} };
-  signupBtn.onclick = () => { scrollToHero(); signup(); };
+  gidForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const v = (gidInput.value || '').trim();
+    if (!v) return;
+    if (v === '399152573423' || /tae.*demo/i.test(v)) {
+      scrollToHero();
+      acceptIdentity();
+    } else if (authState.authenticated && appState.state === 'gidAccepted') {
+      // Send as TAE message
+      gidInput.value = '';
+      addConvMsg('user', v);
+      const result = await sendTaeMessage(v);
+      if (result && result.response) {
+        addConvMsg('tae', result.response);
+        showToast(result.response.slice(0, 80));
+      } else if (result === null && platformState.paused) {
+        // Already handled
+      } else {
+        addConvMsg('system', 'No response from TAE. Demo mode active.');
+      }
+    } else {
+      toast.textContent = 'Enter "TAE, enter Demo Mode" or type a GID.';
+      toast.classList.add('on');
+    }
+  };
+  signupBtn.onclick = () => { scrollToHero(); openAuthModal('register'); };
   $('closePanel').onclick = () => panel.classList.remove('on');
 
   /* ═══ PAUSED OVERLAY HANDLERS ══════════════════════════════════ */
-  $('pausedUpgrade').onclick = () => window.open('mailto:enterprise@spatialos.co', '_blank');
+  $('pausedUpgrade').onclick = () => { taePaused.classList.remove('on'); openPlansPanel(); };
   $('pausedClose').onclick = () => taePaused.classList.remove('on');
 
   /* ═══ SCROLL MANAGEMENT (unchanged) ════════════════════════════ */
@@ -1192,8 +1676,9 @@ body.past-hero .toast{opacity:0!important}
 
   backToTop.onclick = () => { scrollToHero(); openPage('landing','Home'); };
 
-  /* CTA demo button */
+  /* CTA buttons */
   $('ctaDemo').onclick = () => { scrollToHero(); setTimeout(() => { openPage('landing','Home'); setTimeout(() => { gidInput.value = '399152573423'; acceptIdentity(); }, 800); }, 400); };
+  $('ctaSubscribe').onclick = () => { scrollToHero(); openPlansPanel(); };
 
   /* ═══ SECTION SCROLL ANIMATIONS (unchanged) ════════════════════ */
   const sectionObs = new IntersectionObserver((entries) => {
@@ -1236,14 +1721,17 @@ body.past-hero .toast{opacity:0!important}
   }
   animate(0);
 
-  /* ═══ BOOT SEQUENCE (updated with auth check) ═════════════════ */
+  /* ═══ BOOT SEQUENCE (ARAGiP — auth, billing, backend check) ═══ */
   async function boot() {
     buildNav();
     render(appState);
     requestAnimationFrame(() => fade.classList.add('off'));
 
-    // Check auth & start polling
+    // Check backend, auth & handle checkout results
+    await checkBackendConnection();
     await checkAuthOnLoad();
+    updateAccountUI();
+    handleCheckoutResult();
 
     setTimeout(() => setStateFromJson({
       state:'forming', activePage:'landing', message:'TAE, enter Demo Mode',
@@ -1266,7 +1754,7 @@ body.past-hero .toast{opacity:0!important}
   Object.values(ASSETS).forEach(src => { const img = new Image(); img.src = src; });
 
   /* ═══ EXPOSE FOR DEBUGGING ═════════════════════════════════════ */
-  window.SIOS = { authState, balanceState, platformState, register, login, logout, sendTaeMessage, fetchBalance, fetchAlerts };
+  window.SIOS = { authState, balanceState, platformState, register, login, logout, sendTaeMessage, fetchBalance, fetchAlerts, openAuthModal, openPlansPanel, openBillingPortal, addConvMsg, TAE_CONFIG };
 })();
 </script>
 
