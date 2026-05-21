@@ -42,6 +42,17 @@ body.past-hero .hud{opacity:.7;border-color:rgba(220,240,255,.12);box-shadow:non
 .meta b{font-weight:500;color:white}
 .status{color:#5bb0ff;text-shadow:0 0 12px #087bff}
 
+/* ── Balance indicator (in HUD) ───────────────────────────────── */
+.bal{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.06em;color:rgba(180,215,255,.7);cursor:pointer;transition:color .4s}
+.bal:hover{color:#fff}
+.bal-bar{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden;position:relative}
+.bal-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#087bff,#5bb0ff);transition:width .8s cubic-bezier(.16,1,.24,1);box-shadow:0 0 6px rgba(0,120,255,.5)}
+.bal-fill.warn{background:linear-gradient(90deg,#ff8c00,#ffb347)}
+.bal-fill.crit{background:linear-gradient(90deg,#ff3333,#ff6666);animation:balPulse 1.5s ease infinite}
+.bal-fill.dead{background:#444;width:100%!important}
+@keyframes balPulse{0%,100%{opacity:1}50%{opacity:.5}}
+.bal-pct{min-width:28px;text-align:right}
+
 /* ── Prompt / Signup / Lane bar ───────────────────────────────── */
 .prompt{position:absolute;left:50%;bottom:max(120px,calc(env(safe-area-inset-bottom) + 112px));width:min(86vw,520px);transform:translateX(-50%) translateY(22px);opacity:0;border-radius:999px;padding:14px 18px;border:1px solid rgba(220,240,255,.24);background:radial-gradient(circle at 80% 0,rgba(28,120,255,.25),transparent 38%),linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.72));box-shadow:inset 0 0 24px rgba(255,255,255,.09),0 0 36px rgba(0,120,255,.22);transition:1s cubic-bezier(.16,1,.24,1);pointer-events:auto}
 .prompt.on{opacity:1;transform:translateX(-50%)}
@@ -66,6 +77,50 @@ body.past-hero .toast{opacity:0!important}
 .toast{position:absolute;left:50%;top:78px;transform:translateX(-50%) translateY(-10px);opacity:0;max-width:86vw;text-align:center;padding:10px 16px;border-radius:18px;border:1px solid rgba(220,240,255,.2);background:rgba(0,0,0,.62);box-shadow:0 0 22px rgba(0,120,255,.2);font-size:12px;letter-spacing:.08em;color:rgba(235,245,255,.82);transition:.7s;pointer-events:none}
 .toast.on{opacity:1;transform:translateX(-50%)}
 
+/* ── TAE Notices (orb-native alert rendering) ─────────────────── */
+.tae-notices{position:absolute;left:50%;top:138px;transform:translateX(-50%);width:min(86vw,440px);display:flex;flex-direction:column;gap:8px;z-index:110;pointer-events:auto}
+.tae-notice{border-radius:18px;padding:12px 16px;font-size:12px;letter-spacing:.06em;line-height:1.5;opacity:0;transform:translateY(-12px) scale(.96);transition:all .6s cubic-bezier(.16,1,.24,1);cursor:pointer;position:relative;overflow:hidden}
+.tae-notice.show{opacity:1;transform:none}
+.tae-notice .tn-title{font-weight:500;margin-bottom:3px;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.tae-notice .tn-msg{color:rgba(235,245,255,.78)}
+.tae-notice .tn-dismiss{position:absolute;right:12px;top:10px;font-size:14px;opacity:.5;cursor:pointer}
+.tae-notice .tn-dismiss:hover{opacity:1}
+/* Info — soft blue pulse */
+.tae-notice.tn-info{border:1px solid rgba(0,120,255,.25);background:rgba(0,40,100,.45);box-shadow:0 0 20px rgba(0,120,255,.15)}
+.tae-notice.tn-info .tn-title{color:#5bb0ff}
+/* Warning — chrome ripple */
+.tae-notice.tn-warning{border:1px solid rgba(255,160,0,.35);background:rgba(80,50,0,.45);box-shadow:0 0 24px rgba(255,140,0,.18);animation:warnRipple 3s ease infinite}
+.tae-notice.tn-warning .tn-title{color:#ffb347}
+@keyframes warnRipple{0%,100%{box-shadow:0 0 24px rgba(255,140,0,.18)}50%{box-shadow:0 0 36px rgba(255,140,0,.3),0 0 60px rgba(255,140,0,.08)}}
+/* Critical — red fracture pulse */
+.tae-notice.tn-critical{border:1px solid rgba(255,50,50,.4);background:rgba(100,15,15,.5);box-shadow:0 0 28px rgba(255,0,0,.2);animation:critPulse 1.8s ease infinite}
+.tae-notice.tn-critical .tn-title{color:#ff6666}
+@keyframes critPulse{0%,100%{box-shadow:0 0 28px rgba(255,0,0,.2);border-color:rgba(255,50,50,.4)}50%{box-shadow:0 0 45px rgba(255,0,0,.35),0 0 80px rgba(255,0,0,.1);border-color:rgba(255,80,80,.6)}}
+
+/* ── TAE Paused overlay ───────────────────────────────────────── */
+.tae-paused-overlay{position:absolute;left:50%;top:50%;width:min(86vw,420px);transform:translate(-50%,-50%) scale(.94);opacity:0;pointer-events:none;text-align:center;border-radius:36px;border:1px solid rgba(255,50,50,.25);background:radial-gradient(circle at 50% 0,rgba(255,30,0,.12),transparent 46%),rgba(0,0,0,.82);box-shadow:inset 0 0 42px rgba(255,50,50,.06),0 0 55px rgba(255,0,0,.12);padding:28px 22px;transition:.9s cubic-bezier(.16,1,.24,1)}
+.tae-paused-overlay.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.tae-paused-overlay h2{font-weight:300;letter-spacing:.12em;margin:0 0 8px;color:#ff6666}
+.tae-paused-overlay p{color:rgba(235,245,255,.6);line-height:1.45}
+.tae-paused-overlay .big{font-size:18px;letter-spacing:.08em;color:#ff8888;text-shadow:0 0 12px rgba(255,50,50,.4);margin:12px 0}
+.tae-paused-overlay .cta-upgrade{display:inline-block;margin-top:14px;padding:11px 28px;border-radius:999px;border:1px solid rgba(0,120,255,.35);background:linear-gradient(180deg,rgba(8,123,255,.2),rgba(0,0,0,.7));color:#5bb0ff;cursor:pointer;font-size:14px;letter-spacing:.06em;box-shadow:0 0 24px rgba(0,120,255,.15);transition:all .4s}
+.tae-paused-overlay .cta-upgrade:hover{border-color:rgba(0,120,255,.6);box-shadow:0 0 40px rgba(0,120,255,.3)}
+
+/* ── Allocation detail panel ──────────────────────────────────── */
+.alloc-panel{position:absolute;left:50%;top:50%;width:min(86vw,420px);transform:translate(-50%,-50%) scale(.94);opacity:0;pointer-events:none;text-align:center;border-radius:36px;border:1px solid rgba(220,240,255,.22);background:radial-gradient(circle at 50% 0,rgba(0,120,255,.18),transparent 46%),rgba(0,0,0,.78);box-shadow:inset 0 0 42px rgba(255,255,255,.05),0 0 55px rgba(0,120,255,.2);padding:28px 22px;transition:.9s cubic-bezier(.16,1,.24,1)}
+.alloc-panel.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.alloc-panel h2{font-weight:300;letter-spacing:.12em;margin:0 0 12px;font-size:18px}
+.alloc-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}
+.alloc-row .ak{color:rgba(180,215,255,.55);text-transform:uppercase;letter-spacing:.1em;font-size:10px}
+.alloc-row .av{color:rgba(235,245,255,.9);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.alloc-bar{width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.08);margin:16px 0 8px;overflow:hidden}
+.alloc-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#087bff,#5bb0ff);transition:width 1s cubic-bezier(.16,1,.24,1);box-shadow:0 0 8px rgba(0,120,255,.4)}
+.alloc-close{margin-top:14px;padding:11px 22px;border-radius:999px;border:1px solid rgba(220,240,255,.24);background:rgba(0,0,0,.55);color:white;cursor:pointer}
+
+/* ── Demo fallback badge ──────────────────────────────────────── */
+.demo-badge{position:fixed;top:max(72px,calc(env(safe-area-inset-top) + 60px));right:max(16px,env(safe-area-inset-right));z-index:120;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,180,0,.6);border:1px solid rgba(255,180,0,.2);border-radius:12px;padding:4px 10px;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .6s}
+.demo-badge.on{opacity:1}
+
 /* ── Identity panel ───────────────────────────────────────────── */
 .identityPanel{position:absolute;left:50%;top:50%;width:min(86vw,420px);transform:translate(-50%,-50%) scale(.94);opacity:0;pointer-events:none;text-align:center;border-radius:36px;border:1px solid rgba(220,240,255,.22);background:radial-gradient(circle at 50% 0,rgba(0,120,255,.24),transparent 46%),rgba(0,0,0,.72);box-shadow:inset 0 0 42px rgba(255,255,255,.07),0 0 55px rgba(0,120,255,.3);padding:28px 22px;transition:.9s cubic-bezier(.16,1,.24,1)}
 .identityPanel.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
@@ -73,6 +128,11 @@ body.past-hero .toast{opacity:0!important}
 .identityPanel p{color:rgba(235,245,255,.76);line-height:1.45}
 .identityPanel .big{font-size:20px;letter-spacing:.08em;color:#fff;text-shadow:0 0 16px white}
 .close{margin-top:14px;padding:11px 22px;border-radius:999px;border:1px solid rgba(220,240,255,.24);background:rgba(0,0,0,.55);color:white;cursor:pointer}
+/* Balance display inside identity panel */
+.id-balance{margin-top:16px;padding:12px 0;border-top:1px solid rgba(255,255,255,.08)}
+.id-balance .ib-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0}
+.id-balance .ib-key{color:rgba(180,215,255,.5);text-transform:uppercase;letter-spacing:.1em;font-size:9px}
+.id-balance .ib-val{color:rgba(235,245,255,.85);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 
 /* ── Scroll cue ───────────────────────────────────────────────── */
 .scrollCue{position:absolute;bottom:max(92px,calc(env(safe-area-inset-bottom) + 84px));left:50%;transform:translateX(-50%);z-index:101;text-align:center;opacity:0;transition:opacity 1.2s ease;pointer-events:none}
@@ -172,6 +232,7 @@ body.past-hero .toast{opacity:0!important}
   .glyph{font-size:17px}
   .sys-verticals{grid-template-columns:repeat(3,1fr)}
   .sys-stats{gap:20px}
+  .bal{display:none}
 }
 @media(max-width:380px){
   .sys-verticals{grid-template-columns:repeat(2,1fr)}
@@ -198,24 +259,63 @@ body.past-hero .toast{opacity:0!important}
         <span>GID <b id="gidTxt">&mdash;</b></span>
         <span>ROLE <b id="roleTxt">Prime Orchestrator</b></span>
         <span class="status" id="statusTxt">OPTIMAL</span>
+        <!-- Balance indicator -->
+        <span class="bal" id="balIndicator" title="TAE allocation">
+          <span class="bal-bar"><span class="bal-fill" id="balFill" style="width:100%"></span></span>
+          <span class="bal-pct" id="balPct">—</span>
+        </span>
       </div>
     </div>
     <div class="toast" id="toast">Living liquid intelligence.</div>
+
+    <!-- TAE alert notices -->
+    <div class="tae-notices" id="taeNotices"></div>
+
     <form class="prompt" id="gidForm">
-      <input id="gidInput" placeholder="TAE, enter Demo Mode" autocomplete="off" inputmode="numeric"/>
+      <input id="gidInput" placeholder="TAE, enter Demo Mode" autocomplete="off"/>
       <button class="go" type="submit">&uarr;</button>
     </form>
     <button class="signup" id="signupBtn">Sign Up</button>
     <div class="laneBar" id="laneBar"></div>
+
+    <!-- Identity panel (with balance) -->
     <div class="identityPanel" id="panel">
       <h2 id="panelTitle">Identity Accepted</h2>
       <p id="panelMsg">This is not an app. This is me.</p>
       <div class="big" id="panelGid">399152573423</div>
       <p id="panelRole">Prime Orchestrator</p>
+      <div class="id-balance" id="idBalance">
+        <div class="ib-row"><span class="ib-key">Balance</span><span class="ib-val" id="ibTokens">—</span></div>
+        <div class="ib-row"><span class="ib-key">Cost</span><span class="ib-val" id="ibCost">—</span></div>
+        <div class="ib-row"><span class="ib-key">Plan</span><span class="ib-val" id="ibPlan">—</span></div>
+        <div class="ib-row"><span class="ib-key">Renewal</span><span class="ib-val" id="ibRenewal">—</span></div>
+      </div>
       <button class="close" id="closePanel">Return</button>
     </div>
+
+    <!-- Allocation detail panel (opened from HUD balance click) -->
+    <div class="alloc-panel" id="allocPanel">
+      <h2>TAE Allocation</h2>
+      <div class="alloc-bar"><div class="alloc-bar-fill" id="allocBarFill" style="width:0%"></div></div>
+      <div id="allocRows"></div>
+      <button class="alloc-close" id="allocClose">Close</button>
+    </div>
+
+    <!-- TAE Paused overlay (balance exhausted) -->
+    <div class="tae-paused-overlay" id="taePaused">
+      <h2>TAE Paused</h2>
+      <p id="pausedMsg">Your monthly TAE communication allocation has been used.</p>
+      <div class="big" id="pausedBalance">Balance: 0 tokens</div>
+      <p>Upgrade your plan or wait for renewal to continue.</p>
+      <button class="cta-upgrade" id="pausedUpgrade">Upgrade Plan</button>
+      <button class="close" id="pausedClose" style="margin-left:8px">Dismiss</button>
+    </div>
+
     <div class="debug" id="debug"></div>
   </div>
+
+  <!-- Demo fallback badge -->
+  <div class="demo-badge" id="demoBadge">DEMO FALLBACK</div>
 
   <!-- ═══ SCROLL CUE ════════════════════════════════════════════ -->
   <div class="scrollCue" id="scrollCue">
@@ -399,7 +499,21 @@ body.past-hero .toast{opacity:0!important}
 
 <script>
 (() => {
-  /* ── Assets & Config ──────────────────────────────────────── */
+  /* ═══════════════════════════════════════════════════════════
+     TAE RUNTIME CLIENT — SIOS ↔ TAE Backend Wiring
+     v0.4.0 — Auth, allocation, balance, alerts, demo fallback
+     ═══════════════════════════════════════════════════════════ */
+
+  /* ── Configuration ─────────────────────────────────────────── */
+  const TAE_CONFIG = {
+    backendUrl: window.SIOS_BACKEND_URL || (location.hostname === 'localhost' ? 'http://localhost:3100' : ''),
+    gid: '399152573423',
+    pollBalanceMs: 30000,
+    pollAlertsMs: 15000,
+    maxNotices: 5,
+  };
+
+  /* ── Assets & Lanes (unchanged) ────────────────────────────── */
   const ASSETS = {
     idle:'assets/idle.webp', landing:'assets/landing.webp', pages:'assets/pages.webp',
     market:'assets/market.webp', finance:'assets/finance.webp', retail:'assets/retail.webp',
@@ -413,6 +527,8 @@ body.past-hero .toast{opacity:0!important}
     ['enterprise','⬡','Enterprise'],['business','◈','Business'],['creator','◌','Creator'],
     ['personal','✶','Personal']
   ];
+
+  /* ── Mock fallback data ────────────────────────────────────── */
   const MOCK = {
     '/api/render-state':{system:'SIOS',state:'idle',phase:'liquid-origin',activePage:'idle',mode:'Prime Orchestrator',gid:null,message:'Living liquid intelligence.',ui:{showChrome:false,showGidInput:false,showSignup:false,showPageNav:false},orb:{motion:'breathing',intensity:.36}},
     '/api/tae':{wakePhrase:'TAE, enter Demo Mode',response:'This is not an app. This is me.',ambientAudio:true,mode:'Prime Orchestrator'},
@@ -421,27 +537,553 @@ body.past-hero .toast{opacity:0!important}
     '/api/syncori':{flow:'live',throughput:'2.4 TB/s',latency:'4.2 ms'}
   };
 
-  /* ── State ────────────────────────────────────────────────── */
+  /* ── Auth State ────────────────────────────────────────────── */
+  let authState = {
+    authenticated: false,
+    is_demo: false,
+    access_token: null,
+    refresh_token: null,
+    user: null,        // { id, email, gid, role, display_name }
+    demo_session: null,
+    expires_at: null,
+  };
+
+  /* ── Balance / Alert State ─────────────────────────────────── */
+  let balanceState = {
+    remaining_tokens: 0,
+    total_tokens: 0,
+    usage_percent: 0,
+    remaining_cost_usd: 0,
+    plan: null,
+    renewal_date: null,
+    status: 'unknown',  // active, exhausted, unknown
+  };
+
+  let alertState = {
+    alerts: [],
+    unread_count: 0,
+  };
+
+  let platformState = {
+    safety_status: 'safe',    // safe, elevated, critical, shutoff
+    emergency_shutoff: false,
+    paused: false,            // true when exhausted or emergency
+    pause_reason: null,
+  };
+
+  /* ── Polling timers ────────────────────────────────────────── */
+  let balancePollTimer = null;
+  let alertPollTimer = null;
+
+  /* ── App State ─────────────────────────────────────────────── */
   let appState = {...MOCK['/api/render-state']}, currentAsset = null;
   const $ = id => document.getElementById(id);
   const stage=$('stage'), hud=$('hud'), toast=$('toast'), gidForm=$('gidForm'),
         gidInput=$('gidInput'), signupBtn=$('signupBtn'), laneBar=$('laneBar'),
         panel=$('panel'), fade=$('fade'), debug=$('debug'), scrollCue=$('scrollCue'),
-        backToTop=$('backToTop');
+        backToTop=$('backToTop'), demoBadge=$('demoBadge'),
+        balIndicator=$('balIndicator'), balFill=$('balFill'), balPct=$('balPct'),
+        taeNotices=$('taeNotices'), taePaused=$('taePaused'), allocPanel=$('allocPanel');
 
-  /* ── Utilities ────────────────────────────────────────────── */
+  /* ── Utilities ─────────────────────────────────────────────── */
   function deepMerge(a, b) {
     const o = {...a};
     for (const k in b) o[k] = (b[k] && typeof b[k]==='object' && !Array.isArray(b[k])) ? deepMerge(o[k]||{}, b[k]) : b[k];
     return o;
   }
-  async function api(endpoint) {
-    if (!window.SIOS_USE_REAL_BACKEND) return structuredClone(MOCK[endpoint]||{});
-    try { const r = await fetch(endpoint, {cache:'no-store'}); if (!r.ok) throw 0; return await r.json(); }
-    catch(e) { return structuredClone(MOCK[endpoint]||{}); }
+
+  /* ── Backend API helper ────────────────────────────────────── */
+  function backendAvailable() {
+    return !!TAE_CONFIG.backendUrl;
   }
 
-  /* ── Asset renderer ───────────────────────────────────────── */
+  async function taeApi(path, options = {}) {
+    if (!backendAvailable()) return null;
+
+    const url = TAE_CONFIG.backendUrl + path;
+    const headers = { 'Content-Type': 'application/json' };
+
+    // Attach auth token
+    if (authState.access_token) {
+      headers['Authorization'] = `Bearer ${authState.access_token}`;
+    }
+
+    try {
+      const resp = await fetch(url, {
+        ...options,
+        headers: { ...headers, ...(options.headers || {}) },
+      });
+
+      // Auth expired
+      if (resp.status === 401 && authState.authenticated) {
+        const refreshed = await tryRefreshToken();
+        if (refreshed) {
+          headers['Authorization'] = `Bearer ${authState.access_token}`;
+          const retry = await fetch(url, { ...options, headers });
+          if (retry.ok) return await retry.json();
+        }
+        handleAuthExpiry();
+        return null;
+      }
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        console.warn(`[TAE] ${path} → ${resp.status}`, err);
+        return null;
+      }
+      return await resp.json();
+    } catch (e) {
+      console.warn(`[TAE] ${path} fetch error:`, e);
+      return null;
+    }
+  }
+
+  /* ── Legacy api() with demo fallback ───────────────────────── */
+  async function api(endpoint) {
+    if (backendAvailable() && authState.authenticated) {
+      const data = await taeApi(endpoint, { cache: 'no-store' });
+      if (data) return data;
+    }
+    // Fallback to mock
+    return structuredClone(MOCK[endpoint] || {});
+  }
+
+  /* ═══ AUTH MODULE ══════════════════════════════════════════════ */
+
+  function saveAuth() {
+    try {
+      sessionStorage.setItem('tae_auth', JSON.stringify({
+        access_token: authState.access_token,
+        refresh_token: authState.refresh_token,
+        is_demo: authState.is_demo,
+        expires_at: authState.expires_at,
+      }));
+    } catch {}
+  }
+
+  function loadAuth() {
+    try {
+      const stored = sessionStorage.getItem('tae_auth');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        authState.access_token = parsed.access_token;
+        authState.refresh_token = parsed.refresh_token;
+        authState.is_demo = parsed.is_demo;
+        authState.expires_at = parsed.expires_at;
+        return true;
+      }
+    } catch {}
+    return false;
+  }
+
+  function clearAuth() {
+    authState = {
+      authenticated: false, is_demo: false, access_token: null,
+      refresh_token: null, user: null, demo_session: null, expires_at: null,
+    };
+    sessionStorage.removeItem('tae_auth');
+    stopPolling();
+    updateBalanceUI();
+    demoBadge.classList.remove('on');
+  }
+
+  async function tryRefreshToken() {
+    if (!authState.refresh_token || authState.is_demo) return false;
+    try {
+      const resp = await fetch(TAE_CONFIG.backendUrl + '/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: authState.refresh_token }),
+      });
+      if (!resp.ok) return false;
+      const data = await resp.json();
+      authState.access_token = data.tokens.access_token;
+      authState.refresh_token = data.tokens.refresh_token;
+      authState.expires_at = Date.now() + data.tokens.expires_in * 1000;
+      saveAuth();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function handleAuthExpiry() {
+    clearAuth();
+    platformState.paused = true;
+    platformState.pause_reason = 'auth_expired';
+    showToast('Session expired. Log in to continue.');
+    showPausedOverlay('Session Expired', 'Your authentication session has expired. Log in again to continue using TAE.', 'Session expired');
+  }
+
+  async function checkAuthOnLoad() {
+    if (!backendAvailable()) {
+      demoBadge.classList.add('on');
+      return;
+    }
+
+    if (loadAuth() && authState.access_token) {
+      const me = await taeApi('/api/auth/me');
+      if (me && me.authenticated) {
+        authState.authenticated = true;
+        authState.is_demo = me.is_demo;
+        authState.user = me.user || null;
+        authState.demo_session = me.demo_session || null;
+        if (me.is_demo) demoBadge.classList.add('on');
+        startPolling();
+        return;
+      }
+    }
+    // No valid auth — start demo session automatically
+    await startDemoSession();
+  }
+
+  async function startDemoSession() {
+    if (!backendAvailable()) {
+      demoBadge.classList.add('on');
+      return;
+    }
+    try {
+      const resp = await fetch(TAE_CONFIG.backendUrl + '/api/auth/demo-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!resp.ok) { demoBadge.classList.add('on'); return; }
+      const data = await resp.json();
+      authState.authenticated = true;
+      authState.is_demo = true;
+      authState.access_token = data.tokens.access_token;
+      authState.refresh_token = null;
+      authState.demo_session = data.demo_session;
+      authState.expires_at = Date.now() + data.tokens.expires_in * 1000;
+      saveAuth();
+      demoBadge.classList.add('on');
+      startPolling();
+    } catch {
+      demoBadge.classList.add('on');
+    }
+  }
+
+  async function register(email, password, displayName) {
+    const data = await taeApi('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, display_name: displayName }),
+    });
+    if (!data) return false;
+    authState.authenticated = true;
+    authState.is_demo = false;
+    authState.access_token = data.tokens.access_token;
+    authState.refresh_token = data.tokens.refresh_token;
+    authState.user = data.user;
+    authState.expires_at = Date.now() + data.tokens.expires_in * 1000;
+    saveAuth();
+    demoBadge.classList.remove('on');
+    platformState.paused = false;
+    taePaused.classList.remove('on');
+    startPolling();
+    fetchBalance();
+    return true;
+  }
+
+  async function login(email, password) {
+    const resp = await fetch(TAE_CONFIG.backendUrl + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!resp.ok) return false;
+    const data = await resp.json();
+    authState.authenticated = true;
+    authState.is_demo = false;
+    authState.access_token = data.tokens.access_token;
+    authState.refresh_token = data.tokens.refresh_token;
+    authState.user = data.user;
+    authState.expires_at = Date.now() + data.tokens.expires_in * 1000;
+    saveAuth();
+    demoBadge.classList.remove('on');
+    platformState.paused = false;
+    taePaused.classList.remove('on');
+    startPolling();
+    fetchBalance();
+    return true;
+  }
+
+  async function logout() {
+    await taeApi('/api/auth/logout', { method: 'POST' });
+    clearAuth();
+    await startDemoSession();
+  }
+
+  /* ═══ BALANCE MODULE ═══════════════════════════════════════════ */
+
+  async function fetchBalance() {
+    if (!authState.authenticated) return;
+
+    if (authState.is_demo && authState.demo_session) {
+      const remaining = authState.demo_session.remaining_tokens || 0;
+      balanceState = {
+        remaining_tokens: remaining,
+        total_tokens: 5000,
+        usage_percent: ((5000 - remaining) / 5000) * 100,
+        remaining_cost_usd: 0,
+        plan: 'demo',
+        renewal_date: null,
+        status: remaining > 0 ? 'active' : 'exhausted',
+      };
+      updateBalanceUI();
+      if (remaining <= 0) handleExhausted('demo');
+      return;
+    }
+
+    const data = await taeApi('/api/me/tae-balance');
+    if (!data) return;
+
+    balanceState = {
+      remaining_tokens: data.balance?.remaining_tokens ?? 0,
+      total_tokens: data.balance?.total_tokens ?? 0,
+      usage_percent: data.balance?.usage_percent ?? 0,
+      remaining_cost_usd: data.balance?.remaining_cost_usd ?? 0,
+      plan: data.plan,
+      renewal_date: data.renewal_date,
+      status: data.status || 'active',
+    };
+
+    updateBalanceUI();
+
+    if (balanceState.status === 'exhausted') {
+      handleExhausted(balanceState.plan);
+    }
+  }
+
+  function updateBalanceUI() {
+    if (!authState.authenticated) {
+      balPct.textContent = '—';
+      balFill.style.width = '100%';
+      balFill.className = 'bal-fill';
+      return;
+    }
+
+    const pct = Math.round(balanceState.usage_percent);
+    const remaining = Math.round(100 - pct);
+    balPct.textContent = remaining + '%';
+    balFill.style.width = remaining + '%';
+
+    // Color based on usage
+    balFill.className = 'bal-fill';
+    if (remaining <= 0) balFill.classList.add('dead');
+    else if (remaining <= 10) balFill.classList.add('crit');
+    else if (remaining <= 25) balFill.classList.add('warn');
+
+    // Update identity panel balance
+    $('ibTokens').textContent = balanceState.remaining_tokens.toLocaleString() + ' / ' + balanceState.total_tokens.toLocaleString();
+    $('ibCost').textContent = '$' + (balanceState.remaining_cost_usd || 0).toFixed(2);
+    $('ibPlan').textContent = (balanceState.plan || 'demo').toUpperCase();
+    $('ibRenewal').textContent = balanceState.renewal_date || '—';
+  }
+
+  function handleExhausted(plan) {
+    if (platformState.paused) return;
+    platformState.paused = true;
+    platformState.pause_reason = 'exhausted';
+
+    const msg = plan === 'demo'
+      ? 'Your demo session allocation has been used. Register for a full account to continue.'
+      : 'Your monthly TAE communication allocation has been used.';
+
+    showPausedOverlay('TAE Paused', msg, 'Balance: 0 tokens');
+  }
+
+  function showPausedOverlay(title, msg, balanceText) {
+    $('taePaused').querySelector('h2').textContent = title;
+    $('pausedMsg').textContent = msg;
+    $('pausedBalance').textContent = balanceText;
+    taePaused.classList.add('on');
+  }
+
+  /* ═══ ALERT MODULE ═════════════════════════════════════════════ */
+
+  async function fetchAlerts() {
+    if (!authState.authenticated || authState.is_demo) return;
+
+    const data = await taeApi('/api/me/tae-alerts?unread=true');
+    if (!data) return;
+
+    alertState.alerts = data.alerts || [];
+    alertState.unread_count = data.unread_count || 0;
+
+    renderAlertNotices();
+  }
+
+  function renderAlertNotices() {
+    // Clear old
+    taeNotices.innerHTML = '';
+    const toShow = alertState.alerts.slice(0, TAE_CONFIG.maxNotices);
+
+    toShow.forEach(alert => {
+      const sev = alert.severity === 'critical' ? 'tn-critical'
+                : alert.severity === 'warning' ? 'tn-warning'
+                : 'tn-info';
+
+      const el = document.createElement('div');
+      el.className = `tae-notice ${sev}`;
+      el.innerHTML = `
+        <div class="tn-title">${esc(alert.title)}</div>
+        <div class="tn-msg">${esc(alert.message)}</div>
+        <span class="tn-dismiss">&times;</span>
+      `;
+
+      // Dismiss
+      el.querySelector('.tn-dismiss').onclick = () => dismissAlert(alert.id, el);
+      el.onclick = (e) => {
+        if (e.target.classList.contains('tn-dismiss')) return;
+        dismissAlert(alert.id, el);
+      };
+
+      taeNotices.appendChild(el);
+      requestAnimationFrame(() => el.classList.add('show'));
+    });
+  }
+
+  async function dismissAlert(alertId, el) {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 600);
+    await taeApi('/api/me/tae-alerts/read', {
+      method: 'POST',
+      body: JSON.stringify({ alert_ids: [alertId] }),
+    });
+  }
+
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  /* ═══ ALLOCATION PANEL ═════════════════════════════════════════ */
+
+  async function showAllocationPanel() {
+    if (!authState.authenticated) return;
+
+    const data = await taeApi('/api/me/tae-allocation');
+    if (!data) return;
+
+    const alloc = data.allocation || {};
+    const plan = data.plan || {};
+
+    $('allocBarFill').style.width = (100 - (alloc.usage_percent || 0)) + '%';
+
+    const rows = [
+      ['Plan', (plan.name || 'free').toUpperCase()],
+      ['Token limit', (plan.monthly_token_limit || 0).toLocaleString()],
+      ['Used', (alloc.used_tokens || 0).toLocaleString()],
+      ['Remaining', (alloc.remaining_tokens || 0).toLocaleString()],
+      ['Cost used', '$' + (alloc.used_cost_usd || 0).toFixed(2)],
+      ['Cost remaining', '$' + (alloc.remaining_cost_usd || 0).toFixed(2)],
+      ['Period', (alloc.period_start || '').slice(0, 10) + ' → ' + (alloc.period_end || '').slice(0, 10)],
+      ['Renewal', data.renewal_date || '—'],
+    ];
+
+    $('allocRows').innerHTML = rows.map(([k, v]) =>
+      `<div class="alloc-row"><span class="ak">${k}</span><span class="av">${v}</span></div>`
+    ).join('');
+
+    allocPanel.classList.add('on');
+  }
+
+  $('allocClose').onclick = () => allocPanel.classList.remove('on');
+  balIndicator.onclick = () => showAllocationPanel();
+
+  /* ═══ POLLING ══════════════════════════════════════════════════ */
+
+  function startPolling() {
+    stopPolling();
+    fetchBalance();
+    fetchAlerts();
+    balancePollTimer = setInterval(fetchBalance, TAE_CONFIG.pollBalanceMs);
+    alertPollTimer = setInterval(fetchAlerts, TAE_CONFIG.pollAlertsMs);
+  }
+
+  function stopPolling() {
+    if (balancePollTimer) { clearInterval(balancePollTimer); balancePollTimer = null; }
+    if (alertPollTimer) { clearInterval(alertPollTimer); alertPollTimer = null; }
+  }
+
+  /* ═══ TAE MESSAGE FLOW ═════════════════════════════════════════ */
+
+  async function activateDemoMode() {
+    if (platformState.paused) return;
+
+    if (backendAvailable() && authState.authenticated) {
+      const result = await taeApi('/api/tae/activate-demo-mode', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      if (result) {
+        // Process response balance/alerts
+        if (result.remaining_user_balance !== undefined) {
+          balanceState.remaining_tokens = result.remaining_user_balance;
+          updateBalanceUI();
+        }
+        if (result.user_alerts && result.user_alerts.length) {
+          alertState.alerts = [...result.user_alerts, ...alertState.alerts];
+          renderAlertNotices();
+        }
+        if (result.platform_safety_status === 'shutoff') {
+          handleEmergencyStop();
+        }
+        return result;
+      }
+    }
+    // Fallback
+    return structuredClone(MOCK['/api/tae']);
+  }
+
+  async function sendTaeMessage(message) {
+    if (platformState.paused) {
+      showToast('TAE is paused. ' + (platformState.pause_reason === 'exhausted' ? 'Upgrade to continue.' : 'Please log in.'));
+      return null;
+    }
+
+    if (backendAvailable() && authState.authenticated) {
+      const result = await taeApi('/api/tae/message', {
+        method: 'POST',
+        body: JSON.stringify({
+          message,
+          runtime_state: appState,
+          client: 'sios-runtime',
+        }),
+      });
+      if (result) {
+        // Update balance from response
+        if (result.remaining_user_balance !== undefined) {
+          balanceState.remaining_tokens = result.remaining_user_balance;
+          updateBalanceUI();
+        }
+        if (result.user_alerts && result.user_alerts.length) {
+          alertState.alerts = [...result.user_alerts, ...alertState.alerts];
+          renderAlertNotices();
+        }
+        if (result.platform_safety_status === 'shutoff') {
+          handleEmergencyStop();
+        }
+        return result;
+      }
+    }
+    return null;
+  }
+
+  function handleEmergencyStop() {
+    platformState.paused = true;
+    platformState.emergency_shutoff = true;
+    platformState.pause_reason = 'emergency';
+    showPausedOverlay('Platform Safety Pause', 'TAE is temporarily paused for platform safety. Service will resume automatically.', 'Emergency shutoff active');
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('on');
+  }
+
+  /* ═══ ASSET RENDERER (unchanged) ═══════════════════════════════ */
   function showAsset(key) {
     if (key === currentAsset) return;
     currentAsset = key;
@@ -455,7 +1097,7 @@ body.past-hero .toast{opacity:0!important}
     });
   }
 
-  /* ── State renderer ───────────────────────────────────────── */
+  /* ═══ STATE RENDERER (unchanged) ═══════════════════════════════ */
   function setStateFromJson(json) {
     appState = deepMerge(appState, json||{});
     render(appState);
@@ -480,7 +1122,7 @@ body.past-hero .toast{opacity:0!important}
     document.documentElement.style.setProperty('--energy', (s.orb?.intensity || .65));
   }
 
-  /* ── Lane navigation ──────────────────────────────────────── */
+  /* ═══ LANE NAV (unchanged) ═════════════════════════════════════ */
   function buildNav() {
     laneBar.innerHTML = '';
     LANES.slice(0,6).forEach(([key,glyph,label]) => {
@@ -502,14 +1144,22 @@ body.past-hero .toast{opacity:0!important}
       orb:{motion:'active',intensity:1}});
   }
 
-  /* ── Identity flow ────────────────────────────────────────── */
-  function acceptIdentity() {
+  /* ═══ IDENTITY FLOW (updated with backend activation) ══════════ */
+  async function acceptIdentity() {
+    // Call backend activation
+    const activation = await activateDemoMode();
+
     setStateFromJson({state:'gidAccepted',activePage:'market',laneLabel:'S.I.aaS',gid:'399152573423',
-      message:'This is not an app. This is me.',
+      message: activation?.identity_response || 'This is not an app. This is me.',
       ui:{showChrome:true,showGidInput:false,showSignup:false,showPageNav:true},
       orb:{motion:'identity-lock',intensity:1}});
     panel.classList.add('on');
+    $('panelTitle').textContent = 'Identity Accepted';
+    $('panelMsg').textContent = activation?.identity_response || 'This is not an app. This is me.';
+    $('panelGid').textContent = '399152573423';
+    $('panelRole').textContent = 'Prime Orchestrator';
   }
+
   function signup() {
     setStateFromJson({state:'signup',activePage:'personal',laneLabel:'Personal IaaS',gid:'GENERATING',
       message:'Identity Genesis. Your life, orchestrated by intelligence.',
@@ -526,7 +1176,11 @@ body.past-hero .toast{opacity:0!important}
   signupBtn.onclick = () => { scrollToHero(); signup(); };
   $('closePanel').onclick = () => panel.classList.remove('on');
 
-  /* ── Scroll management ────────────────────────────────────── */
+  /* ═══ PAUSED OVERLAY HANDLERS ══════════════════════════════════ */
+  $('pausedUpgrade').onclick = () => window.open('mailto:enterprise@spatialos.co', '_blank');
+  $('pausedClose').onclick = () => taePaused.classList.remove('on');
+
+  /* ═══ SCROLL MANAGEMENT (unchanged) ════════════════════════════ */
   function scrollToHero() { window.scrollTo({top:0,behavior:'smooth'}); }
 
   const heroEl = $('hero');
@@ -541,7 +1195,7 @@ body.past-hero .toast{opacity:0!important}
   /* CTA demo button */
   $('ctaDemo').onclick = () => { scrollToHero(); setTimeout(() => { openPage('landing','Home'); setTimeout(() => { gidInput.value = '399152573423'; acceptIdentity(); }, 800); }, 400); };
 
-  /* ── Section scroll animations ────────────────────────────── */
+  /* ═══ SECTION SCROLL ANIMATIONS (unchanged) ════════════════════ */
   const sectionObs = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) entry.target.classList.add('visible');
@@ -549,7 +1203,7 @@ body.past-hero .toast{opacity:0!important}
   }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
   document.querySelectorAll('.sys-section, .sys-cta-section').forEach(s => sectionObs.observe(s));
 
-  /* ── Canvas shader ────────────────────────────────────────── */
+  /* ═══ CANVAS SHADER (unchanged) ════════════════════════════════ */
   const canvas = $('shader'), ctx = canvas.getContext('2d');
   let tick = 0;
   function resize() {
@@ -582,16 +1236,21 @@ body.past-hero .toast{opacity:0!important}
   }
   animate(0);
 
-  /* ── Boot sequence ────────────────────────────────────────── */
-  function boot() {
+  /* ═══ BOOT SEQUENCE (updated with auth check) ═════════════════ */
+  async function boot() {
     buildNav();
     render(appState);
     requestAnimationFrame(() => fade.classList.add('off'));
+
+    // Check auth & start polling
+    await checkAuthOnLoad();
+
     setTimeout(() => setStateFromJson({
       state:'forming', activePage:'landing', message:'TAE, enter Demo Mode',
       ui:{showChrome:true,showGidInput:true,showSignup:true,showPageNav:false},
       orb:{visible:true,motion:'coalescing',intensity:.84}
     }), 2200);
+
     setTimeout(() => {
       setStateFromJson({
         state:'active', activePage:'landing', message:'System online. Enter GID or activate Demo Mode.',
@@ -603,10 +1262,15 @@ body.past-hero .toast{opacity:0!important}
   }
   boot();
 
-  /* ── Preload assets ───────────────────────────────────────── */
+  /* ═══ PRELOAD ASSETS (unchanged) ═══════════════════════════════ */
   Object.values(ASSETS).forEach(src => { const img = new Image(); img.src = src; });
+
+  /* ═══ EXPOSE FOR DEBUGGING ═════════════════════════════════════ */
+  window.SIOS = { authState, balanceState, platformState, register, login, logout, sendTaeMessage, fetchBalance, fetchAlerts };
 })();
 </script>
 
 </body>
 </html>
+
+</content>
