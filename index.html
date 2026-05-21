@@ -7,42 +7,33 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="SIOS"/>
-<meta name="description" content="SpatialOS — System Intelligence as a Service. Real-time identity, rendering, orchestration, and device mesh infrastructure."/>
+<meta name="description" content="SpatialOS — System Intelligence as a Service. TAE Runtime."/>
 <link rel="manifest" href="manifest.json"/>
-<title>SIOS · System Intelligence as a Service</title>
+<title>SIOS · TAE Runtime</title>
 <style>
-:root{--blue:#087bff;--ice:#eaf4ff;--soft:#8fbfff;--void:#000;--chrome:rgba(230,245,255,.9);--state:0;--energy:.6}
+:root{--blue:#087bff;--void:#000;--chrome:rgba(230,245,255,.9);--state:0;--energy:.6}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth}
-html,body{margin:0;width:100%;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Segoe UI",sans-serif}
-body{overflow-x:hidden;-webkit-font-smoothing:antialiased}
+html,body{margin:0;width:100%;height:100%;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Segoe UI",sans-serif;overflow:hidden}
+body{-webkit-font-smoothing:antialiased}
 
-/* ── Hero ─────────────────────────────────────────────────────── */
-#hero{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden}
-.stage{position:absolute;inset:0;background:#000;overflow:hidden}
-.pageAsset{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;opacity:0;transform:scale(1.04);filter:saturate(1.06) contrast(1.08) brightness(.9);will-change:opacity,transform,filter;transition:opacity 1600ms cubic-bezier(.16,1,.24,1),transform 4200ms cubic-bezier(.16,1,.24,1),filter 2200ms ease}
-.pageAsset.active{opacity:1;transform:scale(1);filter:saturate(1.12) contrast(1.1) brightness(1)}
-.pageAsset.exiting{opacity:0;transform:scale(1.075);filter:blur(16px) saturate(1.4) brightness(.4)}
+/* ── Fullscreen canvas ────────────────────────────────────────── */
+#orbCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:0}
 
-/* ── Shader canvas ────────────────────────────────────────────── */
-#shader{position:fixed;inset:0;width:100%;height:100%;mix-blend-mode:screen;opacity:.36;pointer-events:none;z-index:1;filter:contrast(1.15) saturate(1.25)}
-body.past-hero #shader{opacity:.14;transition:opacity 1.5s ease}
+/* ── Hidden video source ──────────────────────────────────────── */
+#textureSrc{display:none}
 
-/* ── Overlays inside hero ─────────────────────────────────────── */
-.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 0 45%,rgba(0,0,0,.2) 67%,#000 100%),linear-gradient(180deg,rgba(0,0,0,.64),transparent 24%,transparent 76%,rgba(0,0,0,.75));z-index:5}
-.scan{position:absolute;inset:0;z-index:6;pointer-events:none;opacity:.12;background:repeating-linear-gradient(180deg,rgba(255,255,255,.05) 0 1px,transparent 1px 5px)}
-
-/* ── Fixed interface layer ────────────────────────────────────── */
+/* ── Interface overlay ────────────────────────────────────────── */
 .interface{position:fixed;inset:0;z-index:100;pointer-events:none}
+
+/* ── HUD ──────────────────────────────────────────────────────── */
 .hud{position:absolute;left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));height:54px;border:1px solid rgba(220,240,255,.22);border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.015));box-shadow:inset 0 0 24px rgba(255,255,255,.08),0 0 28px rgba(0,120,255,.18);display:flex;align-items:center;justify-content:space-between;padding:0 16px;opacity:0;transform:translateY(-16px);transition:.9s cubic-bezier(.16,1,.24,1);backdrop-filter:brightness(.8);pointer-events:auto}
 .hud.on{opacity:1;transform:none}
-body.past-hero .hud{opacity:.7;border-color:rgba(220,240,255,.12);box-shadow:none}
 .brand{font-size:28px;letter-spacing:.22em;text-shadow:0 0 14px rgba(255,255,255,.8)}
 .meta{display:flex;gap:16px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(230,245,255,.75)}
 .meta b{font-weight:500;color:white}
 .status{color:#5bb0ff;text-shadow:0 0 12px #087bff}
 
-/* ── Balance indicator (in HUD) ───────────────────────────────── */
+/* ── Balance indicator ────────────────────────────────────────── */
 .bal{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.06em;color:rgba(180,215,255,.7);cursor:pointer;transition:color .4s}
 .bal:hover{color:#fff}
 .bal-bar{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden;position:relative}
@@ -53,31 +44,33 @@ body.past-hero .hud{opacity:.7;border-color:rgba(220,240,255,.12);box-shadow:non
 @keyframes balPulse{0%,100%{opacity:1}50%{opacity:.5}}
 .bal-pct{min-width:28px;text-align:right}
 
-/* ── Prompt / Signup / Lane bar ───────────────────────────────── */
-.prompt{position:absolute;left:50%;bottom:max(120px,calc(env(safe-area-inset-bottom) + 112px));width:min(86vw,520px);transform:translateX(-50%) translateY(22px);opacity:0;border-radius:999px;padding:14px 18px;border:1px solid rgba(220,240,255,.24);background:radial-gradient(circle at 80% 0,rgba(28,120,255,.25),transparent 38%),linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.72));box-shadow:inset 0 0 24px rgba(255,255,255,.09),0 0 36px rgba(0,120,255,.22);transition:1s cubic-bezier(.16,1,.24,1);pointer-events:auto}
+/* ── Demo badge ───────────────────────────────────────────────── */
+.demo-badge{position:absolute;left:50%;top:max(12px,env(safe-area-inset-top));transform:translateX(-50%);font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:rgba(91,176,255,.6);background:rgba(0,40,100,.35);border:1px solid rgba(0,120,255,.15);border-radius:999px;padding:6px 18px;opacity:0;transition:opacity .8s;pointer-events:none}
+.demo-badge.on{opacity:1}
+
+/* ── Prompt bar ───────────────────────────────────────────────── */
+.prompt{position:absolute;left:50%;bottom:max(100px,calc(env(safe-area-inset-bottom) + 92px));width:min(86vw,520px);transform:translateX(-50%) translateY(22px);opacity:0;border-radius:999px;padding:14px 18px;border:1px solid rgba(220,240,255,.24);background:radial-gradient(circle at 80% 0,rgba(28,120,255,.25),transparent 38%),linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.72));box-shadow:inset 0 0 24px rgba(255,255,255,.09),0 0 36px rgba(0,120,255,.22);transition:1s cubic-bezier(.16,1,.24,1);pointer-events:auto}
 .prompt.on{opacity:1;transform:translateX(-50%)}
 .prompt input{width:calc(100% - 58px);background:transparent;border:0;outline:0;color:#fff;font-size:17px;letter-spacing:.04em}
 .prompt input::placeholder{color:rgba(235,245,255,.74)}
 .go{position:absolute;right:7px;top:7px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(220,240,255,.38);background:rgba(0,0,0,.55);color:#fff;font-size:24px;box-shadow:0 0 18px rgba(0,120,255,.56);display:grid;place-items:center;cursor:pointer}
-.signup{position:absolute;left:50%;bottom:max(56px,calc(env(safe-area-inset-bottom) + 44px));transform:translateX(-50%) translateY(28px);opacity:0;pointer-events:auto;border:1px solid rgba(220,240,255,.24);border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.72));color:white;padding:12px 40px;font-size:15px;letter-spacing:.04em;box-shadow:inset 0 0 22px rgba(255,255,255,.08),0 0 25px rgba(0,120,255,.2);transition:1s cubic-bezier(.16,1,.24,1);cursor:pointer}
+
+/* ── Signup button ────────────────────────────────────────────── */
+.signup{position:absolute;left:50%;bottom:max(40px,calc(env(safe-area-inset-bottom) + 32px));transform:translateX(-50%) translateY(28px);opacity:0;pointer-events:auto;border:1px solid rgba(220,240,255,.24);border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.72));color:white;padding:12px 40px;font-size:15px;letter-spacing:.04em;box-shadow:inset 0 0 22px rgba(255,255,255,.08),0 0 25px rgba(0,120,255,.2);transition:1s cubic-bezier(.16,1,.24,1);cursor:pointer}
 .signup.on{opacity:1;transform:translateX(-50%)}
-
-/* Hide hero-only elements when scrolled past */
-body.past-hero .prompt,body.past-hero .signup,body.past-hero .laneBar,body.past-hero .scrollCue{opacity:0!important;pointer-events:none!important}
-body.past-hero .toast{opacity:0!important}
-
-/* ── Lane bar ─────────────────────────────────────────────────── */
-.laneBar{position:absolute;left:50%;bottom:max(8px,env(safe-area-inset-bottom));width:min(96vw,760px);height:72px;transform:translateX(-50%) translateY(26px);opacity:0;border:1px solid rgba(220,240,255,.18);border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(0,0,0,.7));box-shadow:inset 0 0 25px rgba(255,255,255,.08),0 0 35px rgba(0,120,255,.22);display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:8px;transition:1s cubic-bezier(.16,1,.24,1);pointer-events:auto}
-.laneBar.on{opacity:1;transform:translateX(-50%)}
-.lane{border:0;background:transparent;color:rgba(230,245,255,.68);font-size:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:20px;cursor:pointer}
-.lane.active{color:#fff;background:radial-gradient(circle at 50% 12%,rgba(0,120,255,.42),transparent 54%);box-shadow:inset 0 0 18px rgba(0,120,255,.22)}
-.glyph{font-size:19px;text-shadow:0 0 14px #087bff}
 
 /* ── Toast ────────────────────────────────────────────────────── */
 .toast{position:absolute;left:50%;top:78px;transform:translateX(-50%) translateY(-10px);opacity:0;max-width:86vw;text-align:center;padding:10px 16px;border-radius:18px;border:1px solid rgba(220,240,255,.2);background:rgba(0,0,0,.62);box-shadow:0 0 22px rgba(0,120,255,.2);font-size:12px;letter-spacing:.08em;color:rgba(235,245,255,.82);transition:.7s;pointer-events:none}
 .toast.on{opacity:1;transform:translateX(-50%)}
 
-/* ── TAE Notices (orb-native alert rendering) ─────────────────── */
+/* ── TAE activation text ──────────────────────────────────────── */
+.tae-activation{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity 1.8s cubic-bezier(.16,1,.24,1);pointer-events:none;z-index:110}
+.tae-activation.on{opacity:1}
+.tae-activation .statement{font-size:clamp(18px,4.5vw,32px);font-weight:200;letter-spacing:.06em;text-shadow:0 0 30px rgba(255,255,255,.5),0 0 80px rgba(0,120,255,.3);margin-bottom:24px}
+.tae-activation .gid-display{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(11px,2.5vw,14px);letter-spacing:.2em;color:#5bb0ff;text-shadow:0 0 20px rgba(8,123,255,.6)}
+.tae-activation .mode-display{font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:rgba(180,215,255,.6);margin-top:12px}
+
+/* ── TAE Notices ──────────────────────────────────────────────── */
 .tae-notices{position:absolute;left:50%;top:138px;transform:translateX(-50%);width:min(86vw,440px);display:flex;flex-direction:column;gap:8px;z-index:110;pointer-events:auto}
 .tae-notice{border-radius:18px;padding:12px 16px;font-size:12px;letter-spacing:.06em;line-height:1.5;opacity:0;transform:translateY(-12px) scale(.96);transition:all .6s cubic-bezier(.16,1,.24,1);cursor:pointer;position:relative;overflow:hidden}
 .tae-notice.show{opacity:1;transform:none}
@@ -85,581 +78,274 @@ body.past-hero .toast{opacity:0!important}
 .tae-notice .tn-msg{color:rgba(235,245,255,.78)}
 .tae-notice .tn-dismiss{position:absolute;right:12px;top:10px;font-size:14px;opacity:.5;cursor:pointer}
 .tae-notice .tn-dismiss:hover{opacity:1}
-/* Info — soft blue pulse */
 .tae-notice.tn-info{border:1px solid rgba(0,120,255,.25);background:rgba(0,40,100,.45);box-shadow:0 0 20px rgba(0,120,255,.15)}
 .tae-notice.tn-info .tn-title{color:#5bb0ff}
-/* Warning — chrome ripple */
 .tae-notice.tn-warning{border:1px solid rgba(255,160,0,.35);background:rgba(80,50,0,.45);box-shadow:0 0 24px rgba(255,140,0,.18);animation:warnRipple 3s ease infinite}
 .tae-notice.tn-warning .tn-title{color:#ffb347}
 @keyframes warnRipple{0%,100%{box-shadow:0 0 24px rgba(255,140,0,.18)}50%{box-shadow:0 0 36px rgba(255,140,0,.3),0 0 60px rgba(255,140,0,.08)}}
-/* Critical — red fracture pulse */
 .tae-notice.tn-critical{border:1px solid rgba(255,50,50,.4);background:rgba(100,15,15,.5);box-shadow:0 0 28px rgba(255,0,0,.2);animation:critPulse 1.8s ease infinite}
 .tae-notice.tn-critical .tn-title{color:#ff6666}
 @keyframes critPulse{0%,100%{box-shadow:0 0 28px rgba(255,0,0,.2);border-color:rgba(255,50,50,.4)}50%{box-shadow:0 0 45px rgba(255,0,0,.35),0 0 80px rgba(255,0,0,.1);border-color:rgba(255,80,80,.6)}}
 
-/* ── TAE Paused overlay ───────────────────────────────────────── */
-.tae-paused-overlay{position:absolute;left:50%;top:50%;width:min(86vw,420px);transform:translate(-50%,-50%) scale(.94);opacity:0;pointer-events:none;text-align:center;border-radius:36px;border:1px solid rgba(255,50,50,.25);background:radial-gradient(circle at 50% 0,rgba(255,30,0,.12),transparent 46%),rgba(0,0,0,.82);box-shadow:inset 0 0 42px rgba(255,50,50,.06),0 0 55px rgba(255,0,0,.12);padding:28px 22px;transition:.9s cubic-bezier(.16,1,.24,1)}
-.tae-paused-overlay.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
-.tae-paused-overlay h2{font-weight:300;letter-spacing:.12em;margin:0 0 8px;color:#ff6666}
-.tae-paused-overlay p{color:rgba(235,245,255,.6);line-height:1.45}
-.tae-paused-overlay .big{font-size:18px;letter-spacing:.08em;color:#ff8888;text-shadow:0 0 12px rgba(255,50,50,.4);margin:12px 0}
-.tae-paused-overlay .cta-upgrade{display:inline-block;margin-top:14px;padding:11px 28px;border-radius:999px;border:1px solid rgba(0,120,255,.35);background:linear-gradient(180deg,rgba(8,123,255,.2),rgba(0,0,0,.7));color:#5bb0ff;cursor:pointer;font-size:14px;letter-spacing:.06em;box-shadow:0 0 24px rgba(0,120,255,.15);transition:all .4s}
-.tae-paused-overlay .cta-upgrade:hover{border-color:rgba(0,120,255,.6);box-shadow:0 0 40px rgba(0,120,255,.3)}
-
-/* ── Allocation detail panel ──────────────────────────────────── */
-.alloc-panel{position:absolute;left:50%;top:50%;width:min(86vw,420px);transform:translate(-50%,-50%) scale(.94);opacity:0;pointer-events:none;text-align:center;border-radius:36px;border:1px solid rgba(220,240,255,.22);background:radial-gradient(circle at 50% 0,rgba(0,120,255,.18),transparent 46%),rgba(0,0,0,.78);box-shadow:inset 0 0 42px rgba(255,255,255,.05),0 0 55px rgba(0,120,255,.2);padding:28px 22px;transition:.9s cubic-bezier(.16,1,.24,1)}
-.alloc-panel.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
-.alloc-panel h2{font-weight:300;letter-spacing:.12em;margin:0 0 12px;font-size:18px}
-.alloc-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}
-.alloc-row .ak{color:rgba(180,215,255,.55);text-transform:uppercase;letter-spacing:.1em;font-size:10px}
-.alloc-row .av{color:rgba(235,245,255,.9);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-.alloc-bar{width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.08);margin:16px 0 8px;overflow:hidden}
-.alloc-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#087bff,#5bb0ff);transition:width 1s cubic-bezier(.16,1,.24,1);box-shadow:0 0 8px rgba(0,120,255,.4)}
-.alloc-close{margin-top:14px;padding:11px 22px;border-radius:999px;border:1px solid rgba(220,240,255,.24);background:rgba(0,0,0,.55);color:white;cursor:pointer}
-
-/* ── Demo fallback badge ──────────────────────────────────────── */
-.demo-badge{position:fixed;top:max(72px,calc(env(safe-area-inset-top) + 60px));right:max(16px,env(safe-area-inset-right));z-index:120;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,180,0,.6);border:1px solid rgba(255,180,0,.2);border-radius:12px;padding:4px 10px;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .6s}
-.demo-badge.on{opacity:1}
-
 /* ── Identity panel ───────────────────────────────────────────── */
-.identityPanel{position:absolute;left:50%;top:50%;width:min(86vw,420px);transform:translate(-50%,-50%) scale(.94);opacity:0;pointer-events:none;text-align:center;border-radius:36px;border:1px solid rgba(220,240,255,.22);background:radial-gradient(circle at 50% 0,rgba(0,120,255,.24),transparent 46%),rgba(0,0,0,.72);box-shadow:inset 0 0 42px rgba(255,255,255,.07),0 0 55px rgba(0,120,255,.3);padding:28px 22px;transition:.9s cubic-bezier(.16,1,.24,1)}
-.identityPanel.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
-.identityPanel h2{font-weight:300;letter-spacing:.12em;margin:0 0 8px}
-.identityPanel p{color:rgba(235,245,255,.76);line-height:1.45}
-.identityPanel .big{font-size:20px;letter-spacing:.08em;color:#fff;text-shadow:0 0 16px white}
-.close{margin-top:14px;padding:11px 22px;border-radius:999px;border:1px solid rgba(220,240,255,.24);background:rgba(0,0,0,.55);color:white;cursor:pointer}
-/* Balance display inside identity panel */
-.id-balance{margin-top:16px;padding:12px 0;border-top:1px solid rgba(255,255,255,.08)}
-.id-balance .ib-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0}
-.id-balance .ib-key{color:rgba(180,215,255,.5);text-transform:uppercase;letter-spacing:.1em;font-size:9px}
-.id-balance .ib-val{color:rgba(235,245,255,.85);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.identityPanel{position:absolute;left:50%;top:50%;width:min(86vw,440px);transform:translate(-50%,-50%) scale(.92);opacity:0;pointer-events:none;text-align:center;padding:48px 32px 40px;border:1px solid rgba(220,240,255,.22);border-radius:32px;background:radial-gradient(circle at 50% 0,rgba(28,120,255,.18),transparent 50%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.8));box-shadow:inset 0 0 36px rgba(255,255,255,.06),0 0 60px rgba(0,120,255,.15);transition:.9s cubic-bezier(.16,1,.24,1)}
+.identityPanel.open{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.identityPanel h2{font-size:20px;font-weight:300;letter-spacing:.12em;margin:0 0 28px}
+.identityPanel .metric{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(220,240,255,.08);font-size:13px}
+.identityPanel .metric:last-child{border:0}
+.identityPanel .mk{color:rgba(180,215,255,.5);letter-spacing:.08em}
+.identityPanel .mv{color:#fff;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em}
+.identityPanel .accept{margin-top:32px;border:1px solid rgba(220,240,255,.3);border-radius:999px;background:linear-gradient(180deg,rgba(8,123,255,.22),rgba(0,0,0,.7));color:#fff;padding:14px 48px;font-size:15px;letter-spacing:.08em;cursor:pointer;box-shadow:0 0 25px rgba(0,120,255,.2)}
 
-/* ── Scroll cue ───────────────────────────────────────────────── */
-.scrollCue{position:absolute;bottom:max(92px,calc(env(safe-area-inset-bottom) + 84px));left:50%;transform:translateX(-50%);z-index:101;text-align:center;opacity:0;transition:opacity 1.2s ease;pointer-events:none}
-.scrollCue.on{opacity:.7}
-.scrollCue .chevron{display:block;font-size:18px;color:rgba(180,215,255,.6);animation:scrollFloat 2.4s ease-in-out infinite}
-.scrollCue .label{display:block;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:rgba(140,180,255,.45);margin-top:4px}
-@keyframes scrollFloat{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(6px);opacity:1}}
+/* ── Allocation panel ─────────────────────────────────────────── */
+.allocPanel{position:absolute;left:50%;top:50%;width:min(86vw,400px);transform:translate(-50%,-50%) scale(.92);opacity:0;pointer-events:none;text-align:center;padding:32px 24px;border:1px solid rgba(220,240,255,.18);border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.82));box-shadow:0 0 50px rgba(0,120,255,.12);transition:.7s cubic-bezier(.16,1,.24,1)}
+.allocPanel.open{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.allocPanel h2{font-size:16px;font-weight:300;letter-spacing:.12em;margin:0 0 20px}
+.allocPanel .ap-row{display:flex;justify-content:space-between;padding:8px 0;font-size:12px;letter-spacing:.06em;border-bottom:1px solid rgba(220,240,255,.06)}
+.allocPanel .ap-label{color:rgba(180,215,255,.5)}
+.allocPanel .ap-val{color:#fff;font-family:monospace}
+.allocPanel .ap-close{margin-top:20px;border:1px solid rgba(220,240,255,.2);border-radius:999px;background:transparent;color:#fff;padding:10px 32px;font-size:13px;letter-spacing:.08em;cursor:pointer}
+.ap-actions{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.ap-actions button{border:1px solid rgba(220,240,255,.15);border-radius:999px;background:transparent;color:rgba(200,225,255,.7);padding:8px 20px;font-size:11px;letter-spacing:.08em;cursor:pointer;transition:all .3s}
+.ap-actions button:hover{border-color:rgba(220,240,255,.35);color:#fff}
 
-/* ── Debug ────────────────────────────────────────────────────── */
-.debug{position:absolute;left:10px;top:76px;z-index:30;font-size:9px;color:rgba(150,190,255,.55);pointer-events:none;letter-spacing:.06em}
+/* ── TAE Paused overlay ───────────────────────────────────────── */
+.tae-paused-overlay{position:absolute;inset:0;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;opacity:0;pointer-events:none;transition:opacity .8s;z-index:200}
+.tae-paused-overlay.on{opacity:1;pointer-events:auto}
+.tae-paused-overlay h2{font-size:24px;font-weight:200;letter-spacing:.12em;margin:0 0 16px}
+.tae-paused-overlay .paused-msg{font-size:14px;color:rgba(235,245,255,.6);line-height:1.6;max-width:400px}
+.tae-paused-overlay .paused-balance{font-family:monospace;font-size:13px;color:rgba(255,140,0,.8);margin-top:16px}
+.tae-paused-overlay .paused-btn{margin-top:28px;border:1px solid rgba(0,120,255,.3);border-radius:999px;background:linear-gradient(180deg,rgba(8,123,255,.2),rgba(0,0,0,.7));color:#fff;padding:14px 40px;font-size:14px;letter-spacing:.06em;cursor:pointer}
 
-/* ── Boot fade ────────────────────────────────────────────────── */
-.fadeBlack{position:fixed;inset:0;background:#000;z-index:200;opacity:1;pointer-events:none;transition:opacity 1500ms ease}
-.fadeBlack.off{opacity:0}
+/* ── TAE Conversation ─────────────────────────────────────────── */
+.tae-conv{position:absolute;left:50%;bottom:max(170px,calc(env(safe-area-inset-bottom) + 160px));width:min(86vw,520px);transform:translateX(-50%);max-height:35vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;opacity:0;transition:opacity .6s;pointer-events:auto;scrollbar-width:none}
+.tae-conv::-webkit-scrollbar{display:none}
+.tae-conv.on{opacity:1}
+.tae-msg{padding:10px 16px;border-radius:16px;font-size:13px;line-height:1.55;letter-spacing:.02em;max-width:85%;animation:msgIn .5s cubic-bezier(.16,1,.24,1)}
+.tae-msg.user{align-self:flex-end;background:rgba(8,123,255,.2);border:1px solid rgba(0,120,255,.2);color:rgba(235,245,255,.9)}
+.tae-msg.tae{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid rgba(220,240,255,.1);color:rgba(235,245,255,.82)}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
 
-/* ═══════════════════════════════════════════════════════════════
-   LANDING SECTIONS
-   ═══════════════════════════════════════════════════════════════ */
-
-#content{position:relative;z-index:2;background:#000}
-
-/* Gradient bridge from hero to content */
-#content::before{content:"";display:block;height:120px;background:linear-gradient(180deg,transparent,#000 80%);margin-top:-120px;position:relative;z-index:3;pointer-events:none}
-
-.sys-section{position:relative;padding:clamp(50px,10vh,100px) clamp(24px,6vw,80px);max-width:900px;margin:0 auto;overflow:hidden}
-
-/* Section entrance animation */
-.sys-section .sys-inner{opacity:0;transform:translateY(50px);transition:opacity 1.2s ease,transform 1.2s cubic-bezier(.16,1,.24,1)}
-.sys-section.visible .sys-inner{opacity:1;transform:none}
-
-/* Energy divider */
-.sys-divider{height:1px;background:linear-gradient(90deg,transparent 0%,rgba(0,120,255,.12) 10%,rgba(0,120,255,.45) 50%,rgba(0,120,255,.12) 90%,transparent 100%);box-shadow:0 0 12px rgba(0,120,255,.2),0 0 40px rgba(0,120,255,.06);margin-bottom:clamp(36px,7vh,72px)}
-
-/* Kicker */
-.sys-kicker{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:#5bb0ff;text-shadow:0 0 14px rgba(8,123,255,.5);margin-bottom:18px;font-weight:400}
-
-/* Headline */
-.sys-headline{font-size:clamp(26px,5.5vw,48px);font-weight:300;letter-spacing:-.02em;line-height:1.12;margin:0 0 22px;text-shadow:0 0 18px rgba(255,255,255,.2),0 0 50px rgba(0,120,255,.12)}
-
-/* Body */
-.sys-body{font-size:clamp(15px,3.2vw,18px);line-height:1.65;color:rgba(235,245,255,.68);max-width:620px;margin:0}
-
-/* Readout */
-.sys-readout{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(11px,2.5vw,13px);line-height:2.2;color:rgba(180,215,255,.7);border-left:1px solid rgba(0,120,255,.25);padding-left:20px;margin-top:32px}
-.sys-readout .rk{color:rgba(120,165,220,.45)}
-.sys-readout .rv{color:rgba(235,245,255,.9)}
-
-/* Stats row */
-.sys-stats{display:flex;gap:clamp(28px,6vw,64px);margin-top:40px;flex-wrap:wrap}
-.sys-stat{}
-.sys-stat-num{font-size:clamp(30px,6.5vw,52px);font-weight:200;letter-spacing:-.02em;text-shadow:0 0 18px rgba(0,120,255,.35);line-height:1;color:#fff}
-.sys-stat-unit{font-size:clamp(14px,3vw,18px);font-weight:300;color:rgba(140,190,255,.6);margin-left:4px}
-.sys-stat-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(150,190,255,.45);margin-top:8px}
-
-/* Verticals grid */
-.sys-verticals{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;margin-top:40px;border:1px solid rgba(0,120,255,.08);border-radius:2px;overflow:hidden}
-.sys-vert{padding:clamp(18px,4vw,28px) 12px;text-align:center;background:rgba(0,0,0,.3);transition:all .5s ease;cursor:default;position:relative}
-.sys-vert::after{content:"";position:absolute;inset:0;opacity:0;background:radial-gradient(circle at 50% 20%,rgba(0,120,255,.18),transparent 60%);transition:opacity .5s}
-.sys-vert:hover::after{opacity:1}
-.sys-vert-glyph{font-size:22px;text-shadow:0 0 12px #087bff;margin-bottom:8px;display:block}
-.sys-vert-name{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(230,245,255,.62)}
-
-/* Architecture stack */
-.sys-stack{display:flex;flex-direction:column;gap:1px;margin-top:40px;max-width:520px}
-.sys-layer{display:flex;align-items:center;gap:16px;padding:16px 22px;border-left:2px solid rgba(0,120,255,.2);transition:all .5s ease;position:relative}
-.sys-layer::before{content:"";position:absolute;left:-2px;top:0;bottom:0;width:2px;background:#087bff;opacity:0;transition:opacity .5s}
-.sys-layer:hover::before{opacity:1}
-.sys-layer:hover{background:linear-gradient(90deg,rgba(0,120,255,.06),transparent 50%)}
-.sys-layer-tag{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#5bb0ff;min-width:72px;text-shadow:0 0 10px rgba(8,123,255,.4)}
-.sys-layer-name{font-size:clamp(13px,3vw,15px);color:rgba(235,245,255,.78);letter-spacing:.02em}
-
-/* CTA section */
-.sys-cta-section{text-align:center;padding:clamp(60px,12vh,140px) clamp(24px,6vw,80px) clamp(80px,15vh,160px)}
-.sys-cta-headline{font-size:clamp(30px,6vw,54px);font-weight:300;letter-spacing:-.02em;margin:0 0 16px;text-shadow:0 0 20px rgba(255,255,255,.25),0 0 60px rgba(0,120,255,.15)}
-.sys-cta-sub{font-size:clamp(14px,3vw,17px);color:rgba(235,245,255,.6);margin:0 0 40px;line-height:1.5}
-.sys-cta-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
-.sys-cta-btn{display:inline-block;padding:15px 36px;border:1px solid rgba(220,240,255,.22);border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.7));color:#fff;font-size:15px;letter-spacing:.05em;cursor:pointer;box-shadow:inset 0 0 20px rgba(255,255,255,.06),0 0 28px rgba(0,120,255,.15);transition:all .4s ease;text-decoration:none}
-.sys-cta-btn:hover{border-color:rgba(220,240,255,.4);box-shadow:inset 0 0 20px rgba(255,255,255,.1),0 0 45px rgba(0,120,255,.28);transform:translateY(-2px)}
-.sys-cta-btn.primary{background:linear-gradient(180deg,rgba(8,123,255,.3),rgba(0,0,0,.7));border-color:rgba(100,183,255,.35);box-shadow:0 0 35px rgba(0,120,255,.25)}
-.sys-cta-btn.primary:hover{box-shadow:0 0 55px rgba(0,120,255,.4);border-color:rgba(100,183,255,.55)}
-
-/* Footer */
-.sys-footer{text-align:center;padding:40px 24px clamp(40px,8vh,80px);font-size:11px;letter-spacing:.12em;color:rgba(140,175,220,.35)}
-
-/* ── Back to top ──────────────────────────────────────────────── */
-.backToTop{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));z-index:102;width:44px;height:44px;border-radius:50%;border:1px solid rgba(220,240,255,.18);background:rgba(0,0,0,.7);color:rgba(235,245,255,.7);font-size:18px;display:grid;place-items:center;cursor:pointer;opacity:0;pointer-events:none;transition:all .5s ease;box-shadow:0 0 20px rgba(0,120,255,.15)}
-.backToTop.on{opacity:1;pointer-events:auto}
-.backToTop:hover{border-color:rgba(220,240,255,.35);box-shadow:0 0 30px rgba(0,120,255,.3)}
-
-/* ── Responsive ───────────────────────────────────────────────── */
-@media(max-width:520px){
-  .brand{font-size:23px}
-  .meta{gap:8px;font-size:8px}
-  .hud{height:48px;padding:0 12px}
-  .laneBar{height:64px}
-  .lane{font-size:9px}
-  .glyph{font-size:17px}
-  .sys-verticals{grid-template-columns:repeat(3,1fr)}
-  .sys-stats{gap:20px}
-  .bal{display:none}
-}
-@media(max-width:380px){
-  .sys-verticals{grid-template-columns:repeat(2,1fr)}
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ARAGiP AUTH / BILLING / ERROR STATE STYLES
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ── Auth Modal ───────────────────────────────────────────────── */
-.auth-backdrop{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .6s ease}
+/* ── Auth modal ───────────────────────────────────────────────── */
+.auth-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .5s;z-index:300}
 .auth-backdrop.on{opacity:1;pointer-events:auto}
-.auth-modal{position:absolute;left:50%;top:50%;width:min(88vw,400px);transform:translate(-50%,-50%) scale(.92);opacity:0;pointer-events:none;border-radius:36px;border:1px solid rgba(220,240,255,.22);background:radial-gradient(circle at 50% -10%,rgba(0,120,255,.22),transparent 52%),rgba(0,0,0,.88);box-shadow:inset 0 0 52px rgba(255,255,255,.04),0 0 65px rgba(0,120,255,.2);padding:32px 28px;transition:.7s cubic-bezier(.16,1,.24,1)}
+.auth-modal{position:absolute;left:50%;top:50%;width:min(86vw,400px);transform:translate(-50%,-50%) scale(.92);opacity:0;pointer-events:none;padding:40px 28px 32px;border:1px solid rgba(220,240,255,.2);border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.85));box-shadow:0 0 60px rgba(0,120,255,.12);transition:.6s cubic-bezier(.16,1,.24,1);z-index:301}
 .auth-backdrop.on .auth-modal{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
-.auth-title{text-align:center;font-size:22px;font-weight:300;letter-spacing:.1em;margin:0 0 6px;text-shadow:0 0 14px rgba(255,255,255,.3)}
-.auth-sub{text-align:center;font-size:12px;color:rgba(180,215,255,.5);letter-spacing:.06em;margin:0 0 22px}
-.auth-tabs{display:flex;gap:0;margin-bottom:22px;border-radius:999px;border:1px solid rgba(220,240,255,.12);overflow:hidden}
-.auth-tab{flex:1;padding:10px;text-align:center;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(180,215,255,.5);background:transparent;border:0;cursor:pointer;transition:all .3s}
-.auth-tab.active{color:#fff;background:rgba(0,120,255,.2);text-shadow:0 0 10px rgba(0,120,255,.5)}
-.auth-field{display:block;width:100%;margin-bottom:14px;padding:12px 16px;border-radius:18px;border:1px solid rgba(220,240,255,.15);background:rgba(255,255,255,.04);color:#fff;font-size:14px;letter-spacing:.04em;outline:0;transition:border-color .3s,box-shadow .3s}
+.auth-title{text-align:center;font-size:18px;font-weight:300;letter-spacing:.12em;margin:0 0 24px}
+.auth-tabs{display:flex;justify-content:center;gap:4px;margin-bottom:24px;background:rgba(255,255,255,.04);border-radius:999px;padding:3px}
+.auth-tab{flex:1;text-align:center;padding:8px 0;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(180,215,255,.5);border:0;background:transparent;border-radius:999px;cursor:pointer;transition:all .3s}
+.auth-tab.active{color:#fff;background:rgba(8,123,255,.25);box-shadow:0 0 12px rgba(0,120,255,.15)}
+.auth-form{display:flex;flex-direction:column;gap:14px}
+.auth-field{border:1px solid rgba(220,240,255,.12);border-radius:14px;background:rgba(255,255,255,.03);padding:12px 16px;color:#fff;font-size:14px;letter-spacing:.04em;outline:0;transition:border-color .3s}
+.auth-field:focus{border-color:rgba(0,120,255,.4)}
 .auth-field::placeholder{color:rgba(180,215,255,.35)}
-.auth-field:focus{border-color:rgba(0,120,255,.45);box-shadow:0 0 20px rgba(0,120,255,.15)}
-.auth-submit{display:block;width:100%;padding:14px;border-radius:999px;border:1px solid rgba(0,120,255,.35);background:linear-gradient(180deg,rgba(8,123,255,.25),rgba(0,0,0,.7));color:#fff;font-size:15px;letter-spacing:.06em;cursor:pointer;box-shadow:0 0 30px rgba(0,120,255,.2);transition:all .4s}
-.auth-submit:hover{border-color:rgba(0,120,255,.6);box-shadow:0 0 50px rgba(0,120,255,.35)}
-.auth-submit:disabled{opacity:.4;cursor:not-allowed}
-.auth-error{text-align:center;font-size:12px;color:#ff6666;margin:10px 0;min-height:16px;letter-spacing:.04em}
-.auth-guest{display:block;width:100%;text-align:center;margin-top:12px;font-size:12px;color:rgba(180,215,255,.4);background:transparent;border:0;cursor:pointer;letter-spacing:.06em;transition:color .3s}
-.auth-guest:hover{color:rgba(180,215,255,.7)}
-.auth-close{position:absolute;right:18px;top:18px;font-size:18px;color:rgba(180,215,255,.4);background:transparent;border:0;cursor:pointer;transition:color .3s}
+.auth-submit{border:1px solid rgba(0,120,255,.3);border-radius:999px;background:linear-gradient(180deg,rgba(8,123,255,.22),rgba(0,0,0,.7));color:#fff;padding:13px;font-size:14px;letter-spacing:.08em;cursor:pointer;transition:all .3s}
+.auth-submit:hover{box-shadow:0 0 25px rgba(0,120,255,.3)}
+.auth-close{position:absolute;right:16px;top:16px;font-size:18px;color:rgba(255,255,255,.4);cursor:pointer;background:0;border:0;padding:4px}
 .auth-close:hover{color:#fff}
-.auth-name-field{display:none}
-.auth-name-field.show{display:block}
 
-/* ── Account button (HUD) ─────────────────────────────────────── */
-.acct-btn{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.08em;color:rgba(180,215,255,.7);cursor:pointer;transition:color .4s;text-transform:uppercase;pointer-events:auto;position:relative}
+/* ── Account button/menu ──────────────────────────────────────── */
+.acct-btn{font-size:10px;letter-spacing:.06em;color:rgba(180,215,255,.7);cursor:pointer;position:relative;transition:color .3s}
 .acct-btn:hover{color:#fff}
-.acct-btn .acct-icon{font-size:14px}
-.acct-btn .acct-label{max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-
-/* ── Account dropdown ─────────────────────────────────────────── */
-.acct-menu{position:absolute;right:0;top:calc(100% + 8px);width:200px;border-radius:18px;border:1px solid rgba(220,240,255,.18);background:rgba(0,0,0,.88);box-shadow:0 0 30px rgba(0,120,255,.15);padding:8px;opacity:0;pointer-events:none;transform:translateY(-6px);transition:all .3s ease}
-.acct-menu.on{opacity:1;pointer-events:auto;transform:none}
-.acct-menu-item{display:block;width:100%;padding:10px 14px;border:0;background:transparent;color:rgba(230,245,255,.7);font-size:12px;letter-spacing:.06em;text-align:left;cursor:pointer;border-radius:12px;transition:all .2s}
-.acct-menu-item:hover{background:rgba(0,120,255,.12);color:#fff}
-.acct-menu-item.danger{color:rgba(255,120,120,.6)}
-.acct-menu-item.danger:hover{background:rgba(255,50,50,.12);color:#ff6666}
-.acct-menu-sep{height:1px;background:rgba(255,255,255,.06);margin:4px 8px}
+.acct-menu{position:absolute;right:0;top:52px;min-width:180px;border:1px solid rgba(220,240,255,.15);border-radius:16px;background:rgba(0,0,0,.9);backdrop-filter:blur(12px);padding:8px 0;opacity:0;transform:translateY(-8px);pointer-events:none;transition:all .3s;z-index:102}
+.acct-menu.open{opacity:1;transform:none;pointer-events:auto}
+.acct-menu button{display:block;width:100%;border:0;background:transparent;color:rgba(235,245,255,.7);text-align:left;padding:10px 18px;font-size:12px;letter-spacing:.06em;cursor:pointer;transition:all .2s}
+.acct-menu button:hover{background:rgba(0,120,255,.1);color:#fff}
 
 /* ── Plans panel ──────────────────────────────────────────────── */
-.plans-panel{position:absolute;left:50%;top:50%;width:min(92vw,540px);transform:translate(-50%,-50%) scale(.94);opacity:0;pointer-events:none;border-radius:36px;border:1px solid rgba(220,240,255,.18);background:radial-gradient(circle at 50% -5%,rgba(0,120,255,.18),transparent 50%),rgba(0,0,0,.88);box-shadow:inset 0 0 52px rgba(255,255,255,.04),0 0 65px rgba(0,120,255,.18);padding:28px 22px;transition:.7s cubic-bezier(.16,1,.24,1);z-index:115}
-.plans-panel.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
-.plans-panel h2{text-align:center;font-weight:300;letter-spacing:.12em;margin:0 0 6px;font-size:20px}
-.plans-panel .plans-sub{text-align:center;font-size:12px;color:rgba(180,215,255,.45);margin:0 0 22px;letter-spacing:.06em}
-.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
-.plan-card{border-radius:22px;border:1px solid rgba(220,240,255,.12);background:rgba(255,255,255,.03);padding:20px 16px;text-align:center;cursor:pointer;transition:all .4s ease;position:relative}
-.plan-card:hover{border-color:rgba(0,120,255,.35);background:rgba(0,120,255,.06);box-shadow:0 0 30px rgba(0,120,255,.12)}
-.plan-card.current{border-color:rgba(0,120,255,.4);box-shadow:inset 0 0 20px rgba(0,120,255,.08)}
-.plan-card .pc-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#5bb0ff;margin-bottom:8px}
-.plan-card .pc-price{font-size:28px;font-weight:200;margin-bottom:4px}
-.plan-card .pc-price .pc-mo{font-size:12px;color:rgba(180,215,255,.4)}
-.plan-card .pc-tokens{font-size:11px;color:rgba(180,215,255,.55);letter-spacing:.06em;margin-bottom:12px}
-.plan-card .pc-btn{display:inline-block;padding:8px 20px;border-radius:999px;border:1px solid rgba(220,240,255,.2);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.6));color:#fff;font-size:11px;letter-spacing:.08em;cursor:pointer;transition:all .3s}
-.plan-card .pc-btn:hover{border-color:rgba(0,120,255,.5);box-shadow:0 0 20px rgba(0,120,255,.2)}
-.plan-card.current .pc-btn{border-color:rgba(0,120,255,.3);color:#5bb0ff;cursor:default}
-.plans-close{display:block;margin:16px auto 0;padding:10px 22px;border-radius:999px;border:1px solid rgba(220,240,255,.18);background:rgba(0,0,0,.5);color:white;cursor:pointer;font-size:12px;letter-spacing:.06em}
+.plans-panel{position:absolute;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;opacity:0;pointer-events:none;transition:opacity .5s;z-index:250}
+.plans-panel.on{opacity:1;pointer-events:auto}
+.plans-panel h2{font-size:20px;font-weight:200;letter-spacing:.12em;margin:0}
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;max-width:700px;width:100%}
+.plan-card{border:1px solid rgba(220,240,255,.12);border-radius:20px;background:rgba(255,255,255,.03);padding:24px 20px;text-align:center;transition:all .4s;cursor:pointer}
+.plan-card:hover{border-color:rgba(0,120,255,.3);box-shadow:0 0 30px rgba(0,120,255,.12)}
+.plan-card .plan-name{font-size:14px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.plan-card .plan-price{font-size:28px;font-weight:200;margin-bottom:4px}
+.plan-card .plan-tokens{font-size:11px;color:rgba(180,215,255,.5);letter-spacing:.08em}
+.plan-card .plan-cta{margin-top:16px;border:1px solid rgba(0,120,255,.25);border-radius:999px;background:transparent;color:#fff;padding:10px 28px;font-size:12px;letter-spacing:.08em;cursor:pointer}
+.plans-close{position:absolute;right:24px;top:24px;font-size:22px;color:rgba(255,255,255,.4);cursor:pointer;background:0;border:0}
 
 /* ── Payment failed overlay ───────────────────────────────────── */
-.pay-failed-overlay{position:absolute;left:50%;top:50%;width:min(86vw,420px);transform:translate(-50%,-50%) scale(.94);opacity:0;pointer-events:none;text-align:center;border-radius:36px;border:1px solid rgba(255,140,0,.3);background:radial-gradient(circle at 50% 0,rgba(255,120,0,.1),transparent 46%),rgba(0,0,0,.85);box-shadow:inset 0 0 42px rgba(255,140,0,.04),0 0 55px rgba(255,140,0,.1);padding:28px 22px;transition:.9s cubic-bezier(.16,1,.24,1);z-index:112}
-.pay-failed-overlay.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
-.pay-failed-overlay h2{font-weight:300;letter-spacing:.12em;margin:0 0 8px;color:#ffb347}
-.pay-failed-overlay p{color:rgba(235,245,255,.6);line-height:1.45}
-.pay-failed-overlay .big{font-size:17px;letter-spacing:.06em;color:#ff8c00;text-shadow:0 0 10px rgba(255,140,0,.3);margin:12px 0}
+.pay-failed-overlay{position:absolute;inset:0;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;opacity:0;pointer-events:none;transition:opacity .6s;z-index:260}
+.pay-failed-overlay.on{opacity:1;pointer-events:auto}
+.pay-failed-overlay h2{font-size:20px;font-weight:200;letter-spacing:.1em;color:#ff6666;margin:0 0 16px}
+.pay-failed-overlay .pf-msg{font-size:14px;color:rgba(235,245,255,.6);line-height:1.6;max-width:380px}
+.pay-failed-overlay .pf-btn{margin-top:24px;border:1px solid rgba(255,100,100,.3);border-radius:999px;background:rgba(255,50,50,.1);color:#fff;padding:12px 32px;font-size:14px;cursor:pointer}
 
-/* ── Backend unavailable indicator ────────────────────────────── */
-.conn-status{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);z-index:130;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,120,120,.6);border:1px solid rgba(255,80,80,.2);border-radius:14px;padding:6px 14px;background:rgba(0,0,0,.75);opacity:0;pointer-events:none;transition:all .6s ease}
-.conn-status.on{opacity:1;transform:translateX(-50%);pointer-events:auto}
-.conn-status.ok{color:rgba(100,255,100,.5);border-color:rgba(100,255,100,.15)}
+/* ── Connection status ────────────────────────────────────────── */
+.conn-status{position:fixed;bottom:max(8px,env(safe-area-inset-bottom));right:16px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(150,180,220,.35);z-index:50;transition:all .5s}
+.conn-status.live{color:rgba(80,200,120,.5)}
+.conn-status.offline{color:rgba(255,100,100,.4)}
 
-/* ── TAE conversation display ─────────────────────────────────── */
-.tae-conv{position:absolute;left:50%;bottom:max(180px,calc(env(safe-area-inset-bottom) + 170px));width:min(86vw,520px);max-height:260px;transform:translateX(-50%);overflow-y:auto;display:flex;flex-direction:column;gap:8px;opacity:0;pointer-events:none;transition:opacity .6s ease;z-index:105;scrollbar-width:thin;scrollbar-color:rgba(0,120,255,.2) transparent}
-.tae-conv.on{opacity:1;pointer-events:auto}
-.tae-msg{border-radius:18px;padding:12px 16px;font-size:13px;line-height:1.55;letter-spacing:.02em;animation:msgIn .5s cubic-bezier(.16,1,.24,1)}
-.tae-msg.user{align-self:flex-end;max-width:78%;background:rgba(0,80,200,.2);border:1px solid rgba(0,120,255,.2);color:rgba(235,245,255,.85)}
-.tae-msg.tae{align-self:flex-start;max-width:85%;background:rgba(255,255,255,.04);border:1px solid rgba(220,240,255,.1);color:rgba(235,245,255,.78)}
-.tae-msg.tae .msg-label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#5bb0ff;margin-bottom:4px}
-.tae-msg.system{align-self:center;text-align:center;font-size:11px;color:rgba(180,215,255,.45);border:0;background:transparent;padding:6px 12px}
-@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-body.past-hero .tae-conv{opacity:0!important;pointer-events:none!important}
+/* ── Boot fade ────────────────────────────────────────────────── */
+.fadeBlack{position:fixed;inset:0;background:#000;z-index:9999;transition:opacity 1.8s cubic-bezier(.16,1,.24,1);pointer-events:none}
+.fadeBlack.off{opacity:0}
 
-/* ── Responsive additions ─────────────────────────────────────── */
-@media(max-width:520px){
-  .acct-btn .acct-label{display:none}
-  .plans-grid{grid-template-columns:1fr 1fr}
-  .auth-modal{width:min(94vw,400px);padding:24px 20px}
+/* ── Variant toggle ───────────────────────────────────────────── */
+.variant-toggle{position:fixed;bottom:max(8px,env(safe-area-inset-bottom));left:16px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(150,180,220,.35);z-index:50;cursor:pointer;background:0;border:0;transition:color .3s}
+.variant-toggle:hover{color:rgba(180,215,255,.7)}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media(max-width:420px){
+  .hud{padding:0 12px;height:48px}
+  .brand{font-size:22px}
+  .meta{gap:10px;font-size:9px}
+  .prompt{width:min(92vw,520px)}
+  .plans-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
-<div id="app">
 
-  <!-- ═══ HERO RUNTIME ═══════════════════════════════════════════ -->
-  <section id="hero">
-    <div class="stage" id="stage"></div>
-    <div class="vignette"></div>
-    <div class="scan"></div>
-  </section>
+<!-- Hidden video texture source -->
+<video id="textureSrc" src="assets/texture.mp4" autoplay loop muted playsinline crossorigin="anonymous"></video>
 
-  <!-- ═══ FIXED INTERFACE ════════════════════════════════════════ -->
-  <canvas id="shader"></canvas>
-  <div class="interface" id="interface">
-    <div class="hud" id="hud">
-      <div class="brand">SIOS</div>
-      <div class="meta">
-        <span id="laneLabel">DEMO</span>
-        <span>GID <b id="gidTxt">&mdash;</b></span>
-        <span>ROLE <b id="roleTxt">Prime Orchestrator</b></span>
-        <span class="status" id="statusTxt">OPTIMAL</span>
-        <!-- Balance indicator -->
-        <span class="bal" id="balIndicator" title="TAE allocation">
-          <span class="bal-bar"><span class="bal-fill" id="balFill" style="width:100%"></span></span>
-          <span class="bal-pct" id="balPct">—</span>
-        </span>
-        <!-- Account button -->
-        <span class="acct-btn" id="acctBtn">
-          <span class="acct-icon">◉</span>
-          <span class="acct-label" id="acctLabel">Guest</span>
-          <div class="acct-menu" id="acctMenu">
-            <button class="acct-menu-item" id="menuLogin">Log In / Register</button>
-            <button class="acct-menu-item" id="menuSubscribe">Subscribe</button>
-            <button class="acct-menu-item" id="menuBilling">Manage Billing</button>
-            <div class="acct-menu-sep"></div>
-            <button class="acct-menu-item" id="menuAllocation">View Allocation</button>
-            <div class="acct-menu-sep" id="menuLogoutSep"></div>
-            <button class="acct-menu-item danger" id="menuLogout">Log Out</button>
-          </div>
-        </span>
-      </div>
+<!-- Three.js orb canvas -->
+<canvas id="orbCanvas"></canvas>
+
+<!-- Interface overlay -->
+<div class="interface">
+
+  <!-- HUD -->
+  <div class="hud" id="hud">
+    <span class="brand">SIOS</span>
+    <div class="meta">
+      <span>GID <b id="gidLabel">—</b></span>
+      <span>Mode <b id="laneLabel">DEMO</b></span>
+      <span class="status" id="statusLabel">●</span>
     </div>
-    <div class="toast" id="toast">Living liquid intelligence.</div>
+    <div class="bal" id="balIndicator" onclick="SIOS.showAllocation()" style="display:none">
+      <span>TAE</span>
+      <div class="bal-bar"><div class="bal-fill" id="balFill" style="width:0%"></div></div>
+      <span class="bal-pct" id="balPct">—</span>
+    </div>
+    <div class="acct-btn" id="acctBtn" onclick="SIOS.toggleAcctMenu()">
+      <span id="acctLabel">Login</span>
+    </div>
+  </div>
 
-    <!-- TAE alert notices -->
-    <div class="tae-notices" id="taeNotices"></div>
+  <!-- Demo badge -->
+  <div class="demo-badge" id="demoBadge">DEMO SESSION</div>
 
-    <form class="prompt" id="gidForm">
-      <input id="gidInput" placeholder="TAE, enter Demo Mode" autocomplete="off"/>
-      <button class="go" type="submit">&uarr;</button>
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- TAE Notices -->
+  <div class="tae-notices" id="taeNotices"></div>
+
+  <!-- TAE Activation text (appears on demo mode trigger) -->
+  <div class="tae-activation" id="taeActivation">
+    <div class="statement">This is not an app. This is me.</div>
+    <div class="gid-display">GID 399152573423</div>
+    <div class="mode-display">Mode: Prime Orchestrator</div>
+  </div>
+
+  <!-- Identity panel -->
+  <div class="identityPanel" id="panel">
+    <h2 id="panelTitle">Identity Accepted</h2>
+    <div class="metric"><span class="mk">GID</span><span class="mv" id="pGid">399152573423</span></div>
+    <div class="metric"><span class="mk">ROLE</span><span class="mv" id="pRole">Prime Orchestrator</span></div>
+    <div class="metric"><span class="mk">STATUS</span><span class="mv" id="pStatus">OPTIMAL</span></div>
+    <div class="metric"><span class="mk">SCOPE</span><span class="mv">all surfaces</span></div>
+    <button class="accept" id="panelAccept" onclick="SIOS.closePanel()">Accept</button>
+  </div>
+
+  <!-- Allocation panel -->
+  <div class="allocPanel" id="allocPanel">
+    <h2>TAE Allocation</h2>
+    <div id="allocRows"></div>
+    <div class="ap-actions">
+      <button onclick="SIOS.openPlansPanel()">Upgrade</button>
+      <button onclick="SIOS.openBillingPortal()">Manage Billing</button>
+    </div>
+    <button class="ap-close" onclick="SIOS.closeAlloc()">Close</button>
+  </div>
+
+  <!-- TAE Paused overlay -->
+  <div class="tae-paused-overlay" id="taePaused">
+    <h2>TAE Paused</h2>
+    <div class="paused-msg" id="pausedMsg">Your allocation has been exhausted.</div>
+    <div class="paused-balance" id="pausedBal"></div>
+    <button class="paused-btn" onclick="SIOS.openPlansPanel()">Upgrade Plan</button>
+  </div>
+
+  <!-- TAE Conversation -->
+  <div class="tae-conv" id="taeConv"></div>
+
+  <!-- Prompt bar -->
+  <div class="prompt" id="promptBar">
+    <form id="gidForm" autocomplete="off">
+      <input id="gidInput" placeholder="TAE, enter Demo Mode" autocomplete="off" spellcheck="false"/>
+      <button class="go" type="submit">↑</button>
     </form>
-    <button class="signup" id="signupBtn">Sign Up</button>
-    <div class="laneBar" id="laneBar"></div>
+  </div>
 
-    <!-- Identity panel (with balance) -->
-    <div class="identityPanel" id="panel">
-      <h2 id="panelTitle">Identity Accepted</h2>
-      <p id="panelMsg">This is not an app. This is me.</p>
-      <div class="big" id="panelGid">399152573423</div>
-      <p id="panelRole">Prime Orchestrator</p>
-      <div class="id-balance" id="idBalance">
-        <div class="ib-row"><span class="ib-key">Balance</span><span class="ib-val" id="ibTokens">—</span></div>
-        <div class="ib-row"><span class="ib-key">Cost</span><span class="ib-val" id="ibCost">—</span></div>
-        <div class="ib-row"><span class="ib-key">Plan</span><span class="ib-val" id="ibPlan">—</span></div>
-        <div class="ib-row"><span class="ib-key">Renewal</span><span class="ib-val" id="ibRenewal">—</span></div>
-      </div>
-      <button class="close" id="closePanel">Return</button>
-    </div>
+  <!-- Signup / Enter button -->
+  <button class="signup" id="signupBtn">Enter SIOS</button>
 
-    <!-- Allocation detail panel (opened from HUD balance click) -->
-    <div class="alloc-panel" id="allocPanel">
-      <h2>TAE Allocation</h2>
-      <div class="alloc-bar"><div class="alloc-bar-fill" id="allocBarFill" style="width:0%"></div></div>
-      <div id="allocRows"></div>
-      <button class="cta-upgrade" id="allocSubscribe" style="margin-top:14px">Upgrade Plan</button>
-      <button class="alloc-close" id="allocManage" style="margin-left:8px">Manage Billing</button>
-      <button class="alloc-close" id="allocClose" style="margin-left:8px">Close</button>
-    </div>
-
-    <!-- TAE Paused overlay (balance exhausted) -->
-    <div class="tae-paused-overlay" id="taePaused">
-      <h2>TAE Paused</h2>
-      <p id="pausedMsg">Your monthly TAE communication allocation has been used.</p>
-      <div class="big" id="pausedBalance">Balance: 0 tokens</div>
-      <p>Upgrade your plan or wait for renewal to continue.</p>
-      <button class="cta-upgrade" id="pausedUpgrade">Upgrade Plan</button>
-      <button class="close" id="pausedClose" style="margin-left:8px">Dismiss</button>
-    </div>
-
-    <!-- TAE conversation display -->
-    <div class="tae-conv" id="taeConv"></div>
-
-    <!-- Plans panel -->
-    <div class="plans-panel" id="plansPanel">
-      <h2>TAE Allocation Plans</h2>
-      <p class="plans-sub">Unlock intelligence. Choose your TAE communication tier.</p>
-      <div class="plans-grid" id="plansGrid">
-        <!-- Filled dynamically -->
-      </div>
-      <button class="plans-close" id="plansClose">Close</button>
-    </div>
-
-    <!-- Payment failed overlay -->
-    <div class="pay-failed-overlay" id="payFailed">
-      <h2>Payment Failed</h2>
-      <p id="payFailedMsg">Your subscription payment could not be processed.</p>
-      <div class="big">Update your payment method to continue.</div>
-      <p>Your TAE allocation is paused until payment is resolved.</p>
-      <button class="cta-upgrade" id="payFailedBilling">Manage Billing</button>
-      <button class="close" id="payFailedClose" style="margin-left:8px">Dismiss</button>
-    </div>
-
-    <div class="debug" id="debug"></div>
+  <!-- Plans panel -->
+  <div class="plans-panel" id="plansPanel">
+    <button class="plans-close" onclick="SIOS.closePlans()">×</button>
+    <h2>TAE Allocation Plans</h2>
+    <div class="plans-grid" id="plansGrid"></div>
   </div>
 
   <!-- Auth modal -->
   <div class="auth-backdrop" id="authBackdrop">
-    <div class="auth-modal" id="authModal">
-      <button class="auth-close" id="authClose">&times;</button>
+    <div class="auth-modal">
+      <button class="auth-close" onclick="SIOS.closeAuth()">×</button>
       <h2 class="auth-title">Enter SIOS</h2>
-      <p class="auth-sub">Authenticate to access your TAE allocation</p>
       <div class="auth-tabs">
-        <button type="button" class="auth-tab active" id="tabLogin">Log In</button>
-        <button type="button" class="auth-tab" id="tabRegister">Register</button>
+        <button class="auth-tab active" id="tabLogin" type="button" onclick="SIOS.setAuthMode('login')">Login</button>
+        <button class="auth-tab" id="tabRegister" type="button" onclick="SIOS.setAuthMode('register')">Register</button>
       </div>
-      <form id="authForm">
-        <input class="auth-field auth-name-field" id="authName" type="text" placeholder="Display name" autocomplete="name"/>
-        <input class="auth-field" id="authEmail" type="email" placeholder="Email" autocomplete="email" required/>
-        <input class="auth-field" id="authPass" type="password" placeholder="Password" autocomplete="current-password" required/>
-        <div class="auth-error" id="authError"></div>
-        <button class="auth-submit" type="submit" id="authSubmit">Log In</button>
+      <form class="auth-form" id="authForm">
+        <input class="auth-field" id="authName" placeholder="Display name" style="display:none"/>
+        <input class="auth-field" id="authEmail" placeholder="Email" type="email" required/>
+        <input class="auth-field" id="authPass" placeholder="Password" type="password" required/>
+        <button class="auth-submit" type="submit" id="authSubmitBtn">Login</button>
       </form>
-      <button class="auth-guest" id="authGuest">Continue as Guest</button>
     </div>
   </div>
 
-  <!-- Demo fallback badge -->
-  <div class="demo-badge" id="demoBadge">DEMO FALLBACK</div>
-
-  <!-- ═══ SCROLL CUE ════════════════════════════════════════════ -->
-  <div class="scrollCue" id="scrollCue">
-    <span class="chevron">&darr;</span>
-    <span class="label">Explore</span>
+  <!-- Payment failed overlay -->
+  <div class="pay-failed-overlay" id="payFailed">
+    <h2>Payment Failed</h2>
+    <div class="pf-msg" id="pfMsg">We couldn't process your payment. Please update your billing information.</div>
+    <button class="pf-btn" onclick="SIOS.openBillingPortal()">Update Billing</button>
   </div>
 
-  <!-- ═══ CONTENT SECTIONS ══════════════════════════════════════ -->
-  <main id="content">
+  <!-- Account dropdown menu -->
+  <div class="acct-menu" id="acctMenu">
+    <button id="menuLogin" onclick="SIOS.openAuth('login')">Login</button>
+    <button id="menuRegister" onclick="SIOS.openAuth('register')">Register</button>
+    <button id="menuSubscribe" onclick="SIOS.openPlansPanel()" style="display:none">Subscribe</button>
+    <button id="menuBilling" onclick="SIOS.openBillingPortal()" style="display:none">Manage Billing</button>
+    <button id="menuAlloc" onclick="SIOS.showAllocation()" style="display:none">Allocation</button>
+    <button id="menuLogout" onclick="SIOS.logout()" style="display:none">Logout</button>
+  </div>
 
-    <!-- ── System Intelligence ──────────────────────────────── -->
-    <section class="sys-section" id="secIntel">
-      <div class="sys-divider"></div>
-      <div class="sys-inner">
-        <div class="sys-kicker">System Intelligence</div>
-        <h2 class="sys-headline">Not software.<br>A living runtime.</h2>
-        <p class="sys-body">SpatialOS is infrastructure that thinks. A real-time operating layer that renders interfaces, orchestrates devices, and adapts to identity&nbsp;&mdash; all from a single liquid intelligence core. Every pixel is computed. Every interaction is understood. Every surface is alive.</p>
-        <p class="sys-body" style="margin-top:16px;color:rgba(235,245,255,.52)">What you just experienced isn&rsquo;t a demo. It&rsquo;s the runtime itself&nbsp;&mdash; rendering in real time, responding to your identity, growing its own interface from the void.</p>
-      </div>
-    </section>
-
-    <!-- ── TAE ──────────────────────────────────────────────── -->
-    <section class="sys-section" id="secTae">
-      <div class="sys-divider"></div>
-      <div class="sys-inner">
-        <div class="sys-kicker">TAE &middot; The Autonomous Engine</div>
-        <h2 class="sys-headline">The engine that speaks back.</h2>
-        <p class="sys-body">TAE is the cognitive core of SpatialOS. It receives commands in natural language, interprets spatial context, and renders reality in real time. Not an assistant. Not a chatbot. A living engine that understands what you need before you finish asking.</p>
-        <div class="sys-readout">
-          <div><span class="rk">wake_phrase:</span> <span class="rv">&ldquo;TAE, enter Demo Mode&rdquo;</span></div>
-          <div><span class="rk">response:</span> <span class="rv">&ldquo;This is not an app. This is me.&rdquo;</span></div>
-          <div><span class="rk">mode:</span> <span class="rv">Prime Orchestrator</span></div>
-          <div><span class="rk">ambient_audio:</span> <span class="rv">true</span></div>
-          <div><span class="rk">status:</span> <span class="rv" style="color:#5bb0ff">LIVE</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Syncori ──────────────────────────────────────────── -->
-    <section class="sys-section" id="secSyncori">
-      <div class="sys-divider"></div>
-      <div class="sys-inner">
-        <div class="sys-kicker">Syncori &middot; Orchestration Layer</div>
-        <h2 class="sys-headline">Everything in sync.<br>Nothing in the way.</h2>
-        <p class="sys-body">Syncori is the real-time orchestration engine that keeps every device, every render pass, and every identity state perfectly synchronized. Throughput measured in terabytes. Latency measured in milliseconds. Accuracy at the edge of perfect.</p>
-        <div class="sys-stats">
-          <div class="sys-stat">
-            <div class="sys-stat-num">2.4<span class="sys-stat-unit">TB/s</span></div>
-            <div class="sys-stat-label">Throughput</div>
-          </div>
-          <div class="sys-stat">
-            <div class="sys-stat-num">4.2<span class="sys-stat-unit">ms</span></div>
-            <div class="sys-stat-label">Latency</div>
-          </div>
-          <div class="sys-stat">
-            <div class="sys-stat-num">99.993<span class="sys-stat-unit">%</span></div>
-            <div class="sys-stat-label">Accuracy</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Identity ─────────────────────────────────────────── -->
-    <section class="sys-section" id="secIdentity">
-      <div class="sys-divider"></div>
-      <div class="sys-inner">
-        <div class="sys-kicker">GID &middot; Galactic Identity</div>
-        <h2 class="sys-headline">Your identity is not a login.<br>It&rsquo;s a living signature.</h2>
-        <p class="sys-body">The Global Identity layer turns authentication into existence. Your GID isn&rsquo;t a username&nbsp;&mdash; it&rsquo;s a persistent, cryptographic identity that follows you across every surface, every device, every runtime instance.</p>
-        <div class="sys-readout">
-          <div><span class="rk">gid:</span> <span class="rv" style="font-size:15px;letter-spacing:.08em">399152573423</span></div>
-          <div><span class="rk">role:</span> <span class="rv">Prime Orchestrator</span></div>
-          <div><span class="rk">status:</span> <span class="rv" style="color:#5bb0ff">OPTIMAL</span></div>
-          <div><span class="rk">scope:</span> <span class="rv">all surfaces &middot; all devices &middot; all dimensions</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── IoT ──────────────────────────────────────────────── -->
-    <section class="sys-section" id="secIot">
-      <div class="sys-divider"></div>
-      <div class="sys-inner">
-        <div class="sys-kicker">Device Mesh &middot; Live</div>
-        <h2 class="sys-headline">1,247 devices.<br>One living mesh.</h2>
-        <p class="sys-body">SpatialOS doesn&rsquo;t connect to devices. It becomes the device layer. Every sensor, every screen, every endpoint is a node in a real-time intelligence mesh&nbsp;&mdash; synchronized, self-healing, and always optimal.</p>
-        <div class="sys-stats">
-          <div class="sys-stat">
-            <div class="sys-stat-num">1,247</div>
-            <div class="sys-stat-label">Devices Online</div>
-          </div>
-          <div class="sys-stat">
-            <div class="sys-stat-num" style="color:#5bb0ff">Live</div>
-            <div class="sys-stat-label">Sync Status</div>
-          </div>
-          <div class="sys-stat">
-            <div class="sys-stat-num" style="color:#5bb0ff">Optimal</div>
-            <div class="sys-stat-label">Mesh Health</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Verticals ────────────────────────────────────────── -->
-    <section class="sys-section" id="secVerticals">
-      <div class="sys-divider"></div>
-      <div class="sys-inner">
-        <div class="sys-kicker">IaaS Verticals</div>
-        <h2 class="sys-headline">Intelligence at the speed of every industry.</h2>
-        <p class="sys-body">One runtime. Every domain. SpatialOS adapts its intelligence layer to the vertical&nbsp;&mdash; rendering context-aware surfaces for finance, retail, real estate, hospitality, enterprise, and beyond.</p>
-        <div class="sys-verticals">
-          <div class="sys-vert"><span class="sys-vert-glyph">&#9678;</span><span class="sys-vert-name">Markets</span></div>
-          <div class="sys-vert"><span class="sys-vert-glyph">$</span><span class="sys-vert-name">Finance</span></div>
-          <div class="sys-vert"><span class="sys-vert-glyph">&#9638;</span><span class="sys-vert-name">Retail</span></div>
-          <div class="sys-vert"><span class="sys-vert-glyph">&#8962;</span><span class="sys-vert-name">Real Estate</span></div>
-          <div class="sys-vert"><span class="sys-vert-glyph">&#9832;</span><span class="sys-vert-name">Hospitality</span></div>
-          <div class="sys-vert"><span class="sys-vert-glyph">&#11045;</span><span class="sys-vert-name">Enterprise</span></div>
-          <div class="sys-vert"><span class="sys-vert-glyph">&#9672;</span><span class="sys-vert-name">Business</span></div>
-          <div class="sys-vert"><span class="sys-vert-glyph">&#9676;</span><span class="sys-vert-name">Creator</span></div>
-          <div class="sys-vert"><span class="sys-vert-glyph">&#10038;</span><span class="sys-vert-name">Personal</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Enterprise ───────────────────────────────────────── -->
-    <section class="sys-section" id="secEnterprise">
-      <div class="sys-divider"></div>
-      <div class="sys-inner">
-        <div class="sys-kicker">Enterprise Runtime</div>
-        <h2 class="sys-headline">Built for the organizations that build everything else.</h2>
-        <p class="sys-body">Enterprise-grade SpatialOS delivers dedicated runtime instances, custom identity layers, private device meshes, and SLA-backed orchestration. Your infrastructure doesn&rsquo;t just run. It thinks.</p>
-        <div class="sys-stack">
-          <div class="sys-layer"><span class="sys-layer-tag">Infra</span><span class="sys-layer-name">Dedicated runtime instances &middot; multi-region</span></div>
-          <div class="sys-layer"><span class="sys-layer-tag">Identity</span><span class="sys-layer-name">Custom GID domains &middot; SSO &middot; RBAC</span></div>
-          <div class="sys-layer"><span class="sys-layer-tag">Mesh</span><span class="sys-layer-name">Private device mesh &middot; edge compute</span></div>
-          <div class="sys-layer"><span class="sys-layer-tag">Orch</span><span class="sys-layer-name">SLA-backed Syncori &middot; priority scheduling</span></div>
-          <div class="sys-layer"><span class="sys-layer-tag">Comply</span><span class="sys-layer-name">SOC 2 &middot; audit trails &middot; data sovereignty</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Architecture ─────────────────────────────────────── -->
-    <section class="sys-section" id="secArch">
-      <div class="sys-divider"></div>
-      <div class="sys-inner">
-        <div class="sys-kicker">Architecture</div>
-        <h2 class="sys-headline">Layers of living intelligence.</h2>
-        <p class="sys-body">Five layers. One coherent system. Each layer feeds the next&nbsp;&mdash; from raw cognition to the surface you see.</p>
-        <div class="sys-stack">
-          <div class="sys-layer"><span class="sys-layer-tag">L5</span><span class="sys-layer-name">Render &mdash; living surfaces, adaptive UI, real-time growth</span></div>
-          <div class="sys-layer"><span class="sys-layer-tag">L4</span><span class="sys-layer-name">IoT &mdash; device mesh, sensor fusion, edge sync</span></div>
-          <div class="sys-layer"><span class="sys-layer-tag">L3</span><span class="sys-layer-name">GID &mdash; cryptographic identity, cross-surface persistence</span></div>
-          <div class="sys-layer"><span class="sys-layer-tag">L2</span><span class="sys-layer-name">Syncori &mdash; orchestration, scheduling, state coherence</span></div>
-          <div class="sys-layer"><span class="sys-layer-tag">L1</span><span class="sys-layer-name">TAE &mdash; cognitive core, natural language, spatial reasoning</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── CTA ──────────────────────────────────────────────── -->
-    <section class="sys-cta-section" id="secCta">
-      <div class="sys-divider" style="max-width:900px;margin:0 auto clamp(50px,10vh,100px)"></div>
-      <h2 class="sys-cta-headline">Enter the runtime.</h2>
-      <p class="sys-cta-sub">SpatialOS is live. Experience the intelligence layer&nbsp;&mdash; or request enterprise access.</p>
-      <div class="sys-cta-buttons">
-        <button class="sys-cta-btn primary" id="ctaDemo">Activate Demo Mode</button>
-        <button class="sys-cta-btn" id="ctaSubscribe">Subscribe to TAE</button>
-        <a class="sys-cta-btn" href="mailto:enterprise@spatialos.co">Enterprise Access</a>
-      </div>
-    </section>
-
-    <footer class="sys-footer">
-      &copy; 2026 SpatialOS &middot; System Intelligence as a Service
-    </footer>
-
-  </main>
-
-  <!-- ═══ BOOT FADE ═════════════════════════════════════════════ -->
-  <div class="fadeBlack" id="fade"></div>
 </div>
 
-<!-- Backend connection status -->
+<!-- Boot fade -->
+<div class="fadeBlack" id="fade"></div>
+
+<!-- Connection status -->
 <div class="conn-status" id="connStatus">Backend offline · Demo mode</div>
 
-<!-- Back-to-top -->
-<button class="backToTop" id="backToTop">&uarr;</button>
+<!-- Variant toggle -->
+<button class="variant-toggle" id="variantToggle" onclick="SIOS.toggleVariant()">Variant: B (Live Texture)</button>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <script>
 (() => {
   /* ═══════════════════════════════════════════════════════════
-     TAE RUNTIME CLIENT — SIOS ↔ TAE Backend Wiring
-     v0.4.0 — Auth, allocation, balance, alerts, demo fallback
+     SIOS TAE RUNTIME — Mercury Chrome Orb
+     Video-driven texture + procedural variant
      ═══════════════════════════════════════════════════════════ */
 
-  /* ── Configuration ─────────────────────────────────────────── */
   const TAE_CONFIG = {
     backendUrl: window.SIOS_BACKEND_URL || (location.hostname === 'localhost' ? 'http://localhost:3100' : ''),
     gid: '399152573423',
@@ -669,1096 +355,872 @@ body.past-hero .tae-conv{opacity:0!important;pointer-events:none!important}
     maxConvMsgs: 20,
   };
 
-  /* ── Auth mode tracking ────────────────────────────────────── */
-  let authMode = 'login'; // 'login' or 'register'
+  /* ── State ─────────────────────────────────────────────────── */
+  let authMode = 'login';
+  let currentVariant = 'B'; // A = procedural, B = video texture
+  let demoActive = false;
+  let orbIntensity = 0.6;
+  let orbBreathScale = 1;
 
-  /* ── Assets & Lanes (unchanged) ────────────────────────────── */
-  const ASSETS = {
-    idle:'assets/idle.webp', landing:'assets/landing.webp', pages:'assets/pages.webp',
-    market:'assets/market.webp', finance:'assets/finance.webp', retail:'assets/retail.webp',
-    realestate:'assets/realestate.webp', hospitality:'assets/hospitality.webp',
-    enterprise:'assets/enterprise.webp', business:'assets/business.webp',
-    creator:'assets/creator.webp', personal:'assets/personal.webp'
-  };
-  const LANES = [
-    ['landing','⌂','Home'],['market','◎','Markets'],['finance','$','Finance'],
-    ['retail','▦','Retail'],['realestate','⌂','Real Estate'],['hospitality','♨','Hospitality'],
-    ['enterprise','⬡','Enterprise'],['business','◈','Business'],['creator','◌','Creator'],
-    ['personal','✶','Personal']
-  ];
-
-  /* ── Mock fallback data ────────────────────────────────────── */
-  const MOCK = {
-    '/api/render-state':{system:'SIOS',state:'idle',phase:'liquid-origin',activePage:'idle',mode:'Prime Orchestrator',gid:null,message:'Living liquid intelligence.',ui:{showChrome:false,showGidInput:false,showSignup:false,showPageNav:false},orb:{motion:'breathing',intensity:.36}},
-    '/api/tae':{wakePhrase:'TAE, enter Demo Mode',response:'This is not an app. This is me.',ambientAudio:true,mode:'Prime Orchestrator'},
-    '/api/identity':{gid:'399152573423',role:'Prime Orchestrator',status:'OPTIMAL'},
-    '/api/iot':{online:true,devices:1247,health:'optimal'},
-    '/api/syncori':{flow:'live',throughput:'2.4 TB/s',latency:'4.2 ms'}
-  };
-
-  /* ── Auth State ────────────────────────────────────────────── */
   let authState = {
-    authenticated: false,
-    is_demo: false,
-    access_token: null,
-    refresh_token: null,
-    user: null,        // { id, email, gid, role, display_name }
-    demo_session: null,
-    expires_at: null,
+    authenticated: false, is_demo: false,
+    access_token: null, refresh_token: null,
+    user: null, demo_session: null, expires_at: null,
   };
-
-  /* ── Balance / Alert State ─────────────────────────────────── */
   let balanceState = {
-    remaining_tokens: 0,
-    total_tokens: 0,
-    usage_percent: 0,
-    remaining_cost_usd: 0,
-    plan: null,
-    renewal_date: null,
-    status: 'unknown',  // active, exhausted, unknown
+    remaining_tokens: 0, total_tokens: 0, usage_percent: 0,
+    remaining_cost_usd: 0, plan: null, renewal_date: null, status: 'unknown',
   };
-
-  let alertState = {
-    alerts: [],
-    unread_count: 0,
-  };
-
+  let alertState = { alerts: [], unread_count: 0 };
   let platformState = {
-    safety_status: 'safe',    // safe, elevated, critical, shutoff
-    emergency_shutoff: false,
-    paused: false,            // true when exhausted or emergency
-    pause_reason: null,
+    safety_status: 'safe', emergency_shutoff: false,
+    paused: false, pause_reason: null,
   };
+  let balancePollTimer = null, alertPollTimer = null;
 
-  /* ── Polling timers ────────────────────────────────────────── */
-  let balancePollTimer = null;
-  let alertPollTimer = null;
-
-  /* ── App State ─────────────────────────────────────────────── */
-  let appState = {...MOCK['/api/render-state']}, currentAsset = null;
   const $ = id => document.getElementById(id);
-  const stage=$('stage'), hud=$('hud'), toast=$('toast'), gidForm=$('gidForm'),
-        gidInput=$('gidInput'), signupBtn=$('signupBtn'), laneBar=$('laneBar'),
-        panel=$('panel'), fade=$('fade'), debug=$('debug'), scrollCue=$('scrollCue'),
-        backToTop=$('backToTop'), demoBadge=$('demoBadge'),
-        balIndicator=$('balIndicator'), balFill=$('balFill'), balPct=$('balPct'),
-        taeNotices=$('taeNotices'), taePaused=$('taePaused'), allocPanel=$('allocPanel'),
-        taeConv=$('taeConv'), authBackdrop=$('authBackdrop'), plansPanel=$('plansPanel'),
-        payFailed=$('payFailed'), connStatus=$('connStatus'),
-        acctBtn=$('acctBtn'), acctMenu=$('acctMenu'), acctLabel=$('acctLabel');
+  const hud=$('hud'), toast=$('toast'), gidForm=$('gidForm'), gidInput=$('gidInput'),
+        signupBtn=$('signupBtn'), panel=$('panel'), fade=$('fade'),
+        demoBadge=$('demoBadge'), balIndicator=$('balIndicator'),
+        balFill=$('balFill'), balPct=$('balPct'), taeNotices=$('taeNotices'),
+        taePaused=$('taePaused'), allocPanel=$('allocPanel'),
+        taeConv=$('taeConv'), authBackdrop=$('authBackdrop'),
+        plansPanel=$('plansPanel'), payFailed=$('payFailed'),
+        connStatus=$('connStatus'), acctBtn=$('acctBtn'),
+        acctMenu=$('acctMenu'), acctLabel=$('acctLabel'),
+        promptBar=$('promptBar'), taeActivation=$('taeActivation');
 
-  /* ── Utilities ─────────────────────────────────────────────── */
-  function deepMerge(a, b) {
-    const o = {...a};
-    for (const k in b) o[k] = (b[k] && typeof b[k]==='object' && !Array.isArray(b[k])) ? deepMerge(o[k]||{}, b[k]) : b[k];
-    return o;
+  /* ═══════════════════════════════════════════════════════════
+     THREE.JS ORB — Mercury Chrome with Video Texture
+     ═══════════════════════════════════════════════════════════ */
+
+  const canvas = $('orbCanvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setClearColor(0x000000, 1);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 3.8);
+
+  // Video texture
+  const video = $('textureSrc');
+  const videoTexture = new THREE.VideoTexture(video);
+  videoTexture.minFilter = THREE.LinearFilter;
+  videoTexture.magFilter = THREE.LinearFilter;
+  videoTexture.format = THREE.RGBAFormat;
+
+  // Procedural noise texture (for Variant A)
+  const noiseSize = 256;
+  const noiseData = new Uint8Array(noiseSize * noiseSize * 4);
+  const noiseTex = new THREE.DataTexture(noiseData, noiseSize, noiseSize, THREE.RGBAFormat);
+
+  // Vertex shader
+  const vertexShader = `
+    uniform sampler2D uTexture;
+    uniform float uTime;
+    uniform float uDisplace;
+    uniform float uBreath;
+    uniform float uIntensity;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPos;
+    varying float vLuma;
+
+    void main() {
+      vUv = uv;
+
+      // Sample texture for luminance
+      vec4 texColor = texture2D(uTexture, uv);
+      float luma = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+      vLuma = luma;
+
+      // Breathing
+      float breath = sin(uTime * 0.7) * 0.012 + sin(uTime * 1.3) * 0.006;
+      breath *= uBreath;
+
+      // Upward flow — displaced more at top
+      float flow = sin(uv.y * 12.566 - uTime * 2.0) * 0.008 * uIntensity;
+      flow += sin(uv.x * 8.0 + uTime * 1.5) * 0.004 * uIntensity;
+
+      // Ripple from luminance
+      float ripple = sin(length(uv - 0.5) * 30.0 - uTime * 4.0) * 0.006 * luma * uIntensity;
+
+      // Luminance displacement
+      float lumaDisplace = luma * uDisplace;
+
+      float totalDisplace = lumaDisplace + breath + flow + ripple;
+
+      vec3 displaced = position + normal * totalDisplace;
+
+      vNormal = normalize(normalMatrix * normal);
+      vec4 mvPosition = modelViewMatrix * vec4(displaced, 1.0);
+      vViewPos = -mvPosition.xyz;
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `;
+
+  // Fragment shader
+  const fragmentShader = `
+    uniform sampler2D uTexture;
+    uniform float uTime;
+    uniform float uIntensity;
+    uniform float uChrome;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPos;
+    varying float vLuma;
+
+    void main() {
+      vec3 texColor = texture2D(uTexture, vUv).rgb;
+
+      // View direction & fresnel
+      vec3 viewDir = normalize(vViewPos);
+      vec3 normal = normalize(vNormal);
+      float fresnel = pow(1.0 - abs(dot(normal, viewDir)), 3.0);
+
+      // Mercury chrome base — dark silver to bright chrome
+      vec3 darkChrome = vec3(0.08, 0.09, 0.11);
+      vec3 brightChrome = vec3(0.78, 0.82, 0.88);
+      vec3 chrome = mix(darkChrome, brightChrome, fresnel);
+
+      // Blue edge glow
+      vec3 edgeGlow = vec3(0.0, 0.47, 1.0) * fresnel * 0.6 * uIntensity;
+
+      // Blend video/texture into chrome surface
+      float blendAmt = 0.35 + fresnel * 0.25;
+      vec3 surface = mix(chrome, texColor * 1.1, blendAmt * uChrome);
+
+      // Specular highlights
+      vec3 lightDir = normalize(vec3(0.5, 1.0, 0.8));
+      vec3 halfDir = normalize(lightDir + viewDir);
+      float spec = pow(max(dot(normal, halfDir), 0.0), 64.0);
+      vec3 specColor = vec3(0.9, 0.92, 0.95) * spec * 0.7;
+
+      // Rim light — soft upper light
+      float rim = pow(max(dot(normal, vec3(0.0, 1.0, 0.0)), 0.0), 2.0) * 0.15;
+
+      // Upward luminance flow — brighter at top
+      float upFlow = smoothstep(-1.0, 1.0, normal.y) * 0.08 * uIntensity;
+
+      // Combine
+      vec3 finalColor = surface + edgeGlow + specColor + rim + upFlow;
+
+      // Subtle ambient occlusion at bottom
+      float ao = smoothstep(-0.5, 0.3, normal.y);
+      finalColor *= mix(0.6, 1.0, ao);
+
+      // Tonemap
+      finalColor = finalColor / (finalColor + vec3(1.0));
+
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `;
+
+  // Orb geometry & material
+  const geometry = new THREE.SphereGeometry(1, 192, 192);
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uTexture: { value: videoTexture },
+      uTime: { value: 0 },
+      uDisplace: { value: 0.06 },
+      uBreath: { value: 1.0 },
+      uIntensity: { value: 0.6 },
+      uChrome: { value: 1.0 },
+    },
+    vertexShader,
+    fragmentShader,
+  });
+
+  const orb = new THREE.Mesh(geometry, material);
+  scene.add(orb);
+
+  // Ambient particles (subtle)
+  const particleCount = 200;
+  const particleGeo = new THREE.BufferGeometry();
+  const pPositions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    pPositions[i * 3] = (Math.random() - 0.5) * 8;
+    pPositions[i * 3 + 1] = (Math.random() - 0.5) * 8;
+    pPositions[i * 3 + 2] = (Math.random() - 0.5) * 8;
+  }
+  particleGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+  const particleMat = new THREE.PointsMaterial({
+    size: 0.015, color: 0x087bff, transparent: true, opacity: 0.3,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const particles = new THREE.Points(particleGeo, particleMat);
+  scene.add(particles);
+
+  // Procedural noise update for Variant A
+  function updateNoise(time) {
+    for (let y = 0; y < noiseSize; y++) {
+      for (let x = 0; x < noiseSize; x++) {
+        const i = (y * noiseSize + x) * 4;
+        const nx = x / noiseSize, ny = y / noiseSize;
+        // Simplex-like layered noise
+        const v1 = Math.sin(nx * 8 + time * 0.7) * Math.cos(ny * 6 - time * 0.5);
+        const v2 = Math.sin((nx + ny) * 12 + time * 1.1) * 0.5;
+        const v3 = Math.cos(nx * 16 - time * 0.3) * Math.sin(ny * 14 + time * 0.9) * 0.3;
+        const flow = Math.sin(ny * 4 - time * 2.0 + nx * 2) * 0.3; // upward flow
+        const val = (v1 + v2 + v3 + flow) * 0.5 + 0.5;
+        const clamped = Math.max(0, Math.min(1, val));
+        // Mercury chrome colors
+        const r = Math.floor(clamped * 180 + 40);
+        const g = Math.floor(clamped * 190 + 45);
+        const b = Math.floor(clamped * 200 + 55);
+        noiseData[i] = r;
+        noiseData[i + 1] = g;
+        noiseData[i + 2] = b;
+        noiseData[i + 3] = 255;
+      }
+    }
+    noiseTex.needsUpdate = true;
   }
 
-  /* ── Backend API helper ────────────────────────────────────── */
+  // Animation loop
+  let clock = new THREE.Clock();
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const elapsed = clock.getElapsedTime();
+
+    // Update uniforms
+    material.uniforms.uTime.value = elapsed;
+    material.uniforms.uIntensity.value = orbIntensity;
+    material.uniforms.uBreath.value = orbBreathScale;
+
+    // Switch texture based on variant
+    if (currentVariant === 'A') {
+      if (elapsed % 0.05 < 0.02) updateNoise(elapsed); // throttle noise update
+      material.uniforms.uTexture.value = noiseTex;
+      material.uniforms.uChrome.value = 0.6;
+      material.uniforms.uDisplace.value = 0.04;
+    } else {
+      material.uniforms.uTexture.value = videoTexture;
+      material.uniforms.uChrome.value = 1.0;
+      material.uniforms.uDisplace.value = 0.06;
+    }
+
+    // Gentle orb rotation
+    orb.rotation.y = elapsed * 0.08;
+    orb.rotation.x = Math.sin(elapsed * 0.3) * 0.05;
+
+    // Scale breathing
+    const breathScale = 1 + Math.sin(elapsed * 0.7) * 0.008 + Math.sin(elapsed * 1.3) * 0.004;
+    orb.scale.setScalar(breathScale);
+
+    // Particle drift
+    particles.rotation.y = elapsed * 0.02;
+    const pArr = particles.geometry.attributes.position.array;
+    for (let i = 0; i < particleCount; i++) {
+      pArr[i * 3 + 1] += 0.002; // upward drift
+      if (pArr[i * 3 + 1] > 4) pArr[i * 3 + 1] = -4;
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // Resize
+  function onResize() {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  }
+  addEventListener('resize', onResize, { passive: true });
+
+  // Start video
+  video.play().catch(() => {
+    // Autoplay blocked — will start on first interaction
+    document.addEventListener('click', () => video.play(), { once: true });
+    document.addEventListener('touchstart', () => video.play(), { once: true });
+  });
+
+  /* ═══════════════════════════════════════════════════════════
+     BACKEND / AUTH / BILLING (carried from ARAGiP)
+     ═══════════════════════════════════════════════════════════ */
+
   function backendAvailable() {
-    return !!TAE_CONFIG.backendUrl;
+    return TAE_CONFIG.backendUrl && TAE_CONFIG.backendUrl.length > 0;
   }
 
   async function taeApi(path, options = {}) {
     if (!backendAvailable()) return null;
-
     const url = TAE_CONFIG.backendUrl + path;
-    const headers = { 'Content-Type': 'application/json' };
-
-    // Attach auth token
-    if (authState.access_token) {
-      headers['Authorization'] = `Bearer ${authState.access_token}`;
-    }
-
+    const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+    if (authState.access_token) headers['Authorization'] = 'Bearer ' + authState.access_token;
     try {
-      const resp = await fetch(url, {
-        ...options,
-        headers: { ...headers, ...(options.headers || {}) },
-      });
-
-      // Auth expired
-      if (resp.status === 401 && authState.authenticated) {
-        const refreshed = await tryRefreshToken();
-        if (refreshed) {
-          headers['Authorization'] = `Bearer ${authState.access_token}`;
-          const retry = await fetch(url, { ...options, headers });
-          if (retry.ok) return await retry.json();
-        }
-        handleAuthExpiry();
-        return null;
-      }
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        console.warn(`[TAE] ${path} → ${resp.status}`, err);
-        return null;
-      }
+      const resp = await fetch(url, { ...options, headers, body: options.body ? JSON.stringify(options.body) : undefined });
+      if (resp.status === 401) { handleAuthExpiry(); return null; }
+      if (!resp.ok) { const err = await resp.json().catch(() => ({})); console.warn('TAE API error:', err); return null; }
       return await resp.json();
-    } catch (e) {
-      console.warn(`[TAE] ${path} fetch error:`, e);
-      return null;
-    }
+    } catch(e) { console.warn('TAE API unreachable:', e.message); return null; }
   }
 
-  /* ── Legacy api() with demo fallback ───────────────────────── */
-  async function api(endpoint) {
-    if (backendAvailable() && authState.authenticated) {
-      const data = await taeApi(endpoint, { cache: 'no-store' });
-      if (data) return data;
-    }
-    // Fallback to mock
-    return structuredClone(MOCK[endpoint] || {});
-  }
-
-  /* ═══ AUTH MODULE ══════════════════════════════════════════════ */
-
+  // Auth persistence
   function saveAuth() {
     try {
-      sessionStorage.setItem('tae_auth', JSON.stringify({
-        access_token: authState.access_token,
-        refresh_token: authState.refresh_token,
-        is_demo: authState.is_demo,
-        expires_at: authState.expires_at,
+      localStorage.setItem('sios_auth', JSON.stringify({
+        access_token: authState.access_token, refresh_token: authState.refresh_token,
+        user: authState.user, is_demo: authState.is_demo, expires_at: authState.expires_at,
       }));
-    } catch {}
+    } catch(e) {}
   }
-
   function loadAuth() {
     try {
-      const stored = sessionStorage.getItem('tae_auth');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        authState.access_token = parsed.access_token;
-        authState.refresh_token = parsed.refresh_token;
-        authState.is_demo = parsed.is_demo;
-        authState.expires_at = parsed.expires_at;
-        return true;
+      const s = JSON.parse(localStorage.getItem('sios_auth'));
+      if (s && s.access_token) {
+        authState.access_token = s.access_token;
+        authState.refresh_token = s.refresh_token;
+        authState.user = s.user;
+        authState.is_demo = s.is_demo;
+        authState.expires_at = s.expires_at;
+        authState.authenticated = true;
       }
-    } catch {}
-    return false;
+    } catch(e) {}
   }
-
   function clearAuth() {
-    authState = {
-      authenticated: false, is_demo: false, access_token: null,
-      refresh_token: null, user: null, demo_session: null, expires_at: null,
-    };
-    sessionStorage.removeItem('tae_auth');
+    authState = { authenticated: false, is_demo: false, access_token: null, refresh_token: null, user: null, demo_session: null, expires_at: null };
+    try { localStorage.removeItem('sios_auth'); } catch(e) {}
     stopPolling();
-    updateBalanceUI();
-    demoBadge.classList.remove('on');
+    updateAccountUI();
   }
 
   async function tryRefreshToken() {
-    if (!authState.refresh_token || authState.is_demo) return false;
+    if (!authState.refresh_token || !backendAvailable()) return false;
     try {
-      const resp = await fetch(TAE_CONFIG.backendUrl + '/api/auth/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const resp = await fetch(TAE_CONFIG.backendUrl + '/auth/refresh', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh_token: authState.refresh_token }),
       });
       if (!resp.ok) return false;
       const data = await resp.json();
-      authState.access_token = data.tokens.access_token;
-      authState.refresh_token = data.tokens.refresh_token;
-      authState.expires_at = Date.now() + data.tokens.expires_in * 1000;
+      authState.access_token = data.access_token;
+      if (data.refresh_token) authState.refresh_token = data.refresh_token;
+      authState.expires_at = data.expires_at;
       saveAuth();
       return true;
-    } catch {
-      return false;
-    }
+    } catch(e) { return false; }
   }
 
   function handleAuthExpiry() {
-    clearAuth();
-    platformState.paused = true;
-    platformState.pause_reason = 'auth_expired';
-    showToast('Session expired. Log in to continue.');
-    showPausedOverlay('Session Expired', 'Your authentication session has expired. Log in again to continue using TAE.', 'Session expired');
+    tryRefreshToken().then(ok => { if (!ok) { clearAuth(); showToast('Session expired'); } });
   }
 
   async function checkAuthOnLoad() {
-    if (!backendAvailable()) {
-      demoBadge.classList.add('on');
-      return;
-    }
-
-    if (loadAuth() && authState.access_token) {
-      const me = await taeApi('/api/auth/me');
-      if (me && me.authenticated) {
-        authState.authenticated = true;
-        authState.is_demo = me.is_demo;
-        authState.user = me.user || null;
-        authState.demo_session = me.demo_session || null;
-        if (me.is_demo) demoBadge.classList.add('on');
+    loadAuth();
+    if (authState.authenticated && backendAvailable()) {
+      const me = await taeApi('/auth/me');
+      if (me) {
+        authState.user = me;
+        saveAuth();
         startPolling();
-        return;
+        fetchBalance();
+        fetchAlerts();
+      } else {
+        const refreshed = await tryRefreshToken();
+        if (!refreshed) clearAuth();
+        else { startPolling(); fetchBalance(); fetchAlerts(); }
       }
     }
-    // No valid auth — start demo session automatically
-    await startDemoSession();
   }
 
   async function startDemoSession() {
     if (!backendAvailable()) {
-      demoBadge.classList.add('on');
-      return;
-    }
-    try {
-      const resp = await fetch(TAE_CONFIG.backendUrl + '/api/auth/demo-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!resp.ok) { demoBadge.classList.add('on'); return; }
-      const data = await resp.json();
-      authState.authenticated = true;
       authState.is_demo = true;
-      authState.access_token = data.tokens.access_token;
-      authState.refresh_token = null;
-      authState.demo_session = data.demo_session;
-      authState.expires_at = Date.now() + data.tokens.expires_in * 1000;
-      saveAuth();
-      demoBadge.classList.add('on');
-      startPolling();
-    } catch {
-      demoBadge.classList.add('on');
+      authState.authenticated = true;
+      showToast('Demo mode (offline)');
+      updateAccountUI();
+      return true;
     }
+    const data = await taeApi('/auth/demo', { method: 'POST', body: {} });
+    if (data) {
+      authState.access_token = data.access_token;
+      authState.is_demo = true;
+      authState.authenticated = true;
+      authState.user = data.user || { display_name: 'Demo User', gid: TAE_CONFIG.gid };
+      authState.expires_at = data.expires_at;
+      saveAuth();
+      startPolling();
+      fetchBalance();
+      return true;
+    }
+    authState.is_demo = true;
+    authState.authenticated = true;
+    updateAccountUI();
+    return true;
   }
 
   async function register(email, password, displayName) {
-    const data = await taeApi('/api/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, display_name: displayName }),
-    });
-    if (!data) return false;
-    authState.authenticated = true;
-    authState.is_demo = false;
-    authState.access_token = data.tokens.access_token;
-    authState.refresh_token = data.tokens.refresh_token;
-    authState.user = data.user;
-    authState.expires_at = Date.now() + data.tokens.expires_in * 1000;
-    saveAuth();
-    demoBadge.classList.remove('on');
-    platformState.paused = false;
-    taePaused.classList.remove('on');
-    startPolling();
-    fetchBalance();
-    return true;
+    const data = await taeApi('/auth/register', { method: 'POST', body: { email, password, display_name: displayName } });
+    if (data && data.access_token) {
+      authState.access_token = data.access_token;
+      authState.refresh_token = data.refresh_token;
+      authState.user = data.user;
+      authState.authenticated = true;
+      authState.is_demo = false;
+      authState.expires_at = data.expires_at;
+      saveAuth();
+      closeAuth();
+      updateAccountUI();
+      startPolling();
+      fetchBalance();
+      showToast('Welcome to SIOS');
+      return true;
+    }
+    showToast('Registration failed');
+    return false;
   }
 
   async function login(email, password) {
-    const resp = await fetch(TAE_CONFIG.backendUrl + '/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    if (!resp.ok) return false;
-    const data = await resp.json();
-    authState.authenticated = true;
-    authState.is_demo = false;
-    authState.access_token = data.tokens.access_token;
-    authState.refresh_token = data.tokens.refresh_token;
-    authState.user = data.user;
-    authState.expires_at = Date.now() + data.tokens.expires_in * 1000;
-    saveAuth();
-    demoBadge.classList.remove('on');
-    platformState.paused = false;
-    taePaused.classList.remove('on');
-    startPolling();
-    fetchBalance();
-    return true;
+    const data = await taeApi('/auth/login', { method: 'POST', body: { email, password } });
+    if (data && data.access_token) {
+      authState.access_token = data.access_token;
+      authState.refresh_token = data.refresh_token;
+      authState.user = data.user;
+      authState.authenticated = true;
+      authState.is_demo = false;
+      authState.expires_at = data.expires_at;
+      saveAuth();
+      closeAuth();
+      updateAccountUI();
+      startPolling();
+      fetchBalance();
+      fetchAlerts();
+      showToast('Identity accepted');
+      return true;
+    }
+    showToast('Login failed');
+    return false;
   }
 
   async function logout() {
-    await taeApi('/api/auth/logout', { method: 'POST' });
     clearAuth();
-    await startDemoSession();
+    demoBadge.classList.remove('on');
+    balIndicator.style.display = 'none';
+    showToast('Disconnected');
   }
 
-  /* ═══ BALANCE MODULE ═══════════════════════════════════════════ */
-
+  // Balance
   async function fetchBalance() {
-    if (!authState.authenticated) return;
-
-    if (authState.is_demo && authState.demo_session) {
-      const remaining = authState.demo_session.remaining_tokens || 0;
-      balanceState = {
-        remaining_tokens: remaining,
-        total_tokens: 5000,
-        usage_percent: ((5000 - remaining) / 5000) * 100,
-        remaining_cost_usd: 0,
-        plan: 'demo',
-        renewal_date: null,
-        status: remaining > 0 ? 'active' : 'exhausted',
-      };
+    const data = await taeApi('/user/balance');
+    if (data) {
+      balanceState = { ...balanceState, ...data };
       updateBalanceUI();
-      if (remaining <= 0) handleExhausted('demo');
-      return;
-    }
-
-    const data = await taeApi('/api/me/tae-balance');
-    if (!data) return;
-
-    balanceState = {
-      remaining_tokens: data.balance?.remaining_tokens ?? 0,
-      total_tokens: data.balance?.total_tokens ?? 0,
-      usage_percent: data.balance?.usage_percent ?? 0,
-      remaining_cost_usd: data.balance?.remaining_cost_usd ?? 0,
-      plan: data.plan,
-      renewal_date: data.renewal_date,
-      status: data.status || 'active',
-    };
-
-    updateBalanceUI();
-
-    if (balanceState.status === 'exhausted') {
-      handleExhausted(balanceState.plan);
+      if (data.status === 'exhausted') handleExhausted(data.plan);
     }
   }
 
   function updateBalanceUI() {
-    if (!authState.authenticated) {
-      balPct.textContent = '—';
-      balFill.style.width = '100%';
-      balFill.className = 'bal-fill';
-      return;
+    if (!authState.authenticated) return;
+    balIndicator.style.display = 'flex';
+    const pct = balanceState.total_tokens > 0
+      ? Math.round((balanceState.remaining_tokens / balanceState.total_tokens) * 100) : 0;
+    balFill.style.width = pct + '%';
+    balPct.textContent = pct + '%';
+    balFill.className = 'bal-fill' + (pct <= 5 ? ' crit' : pct <= 20 ? ' warn' : '');
+    if (balanceState.status === 'exhausted') {
+      balFill.className = 'bal-fill dead';
+      balPct.textContent = '0%';
     }
-
-    const pct = Math.round(balanceState.usage_percent);
-    const remaining = Math.round(100 - pct);
-    balPct.textContent = remaining + '%';
-    balFill.style.width = remaining + '%';
-
-    // Color based on usage
-    balFill.className = 'bal-fill';
-    if (remaining <= 0) balFill.classList.add('dead');
-    else if (remaining <= 10) balFill.classList.add('crit');
-    else if (remaining <= 25) balFill.classList.add('warn');
-
-    // Update identity panel balance
-    $('ibTokens').textContent = balanceState.remaining_tokens.toLocaleString() + ' / ' + balanceState.total_tokens.toLocaleString();
-    $('ibCost').textContent = '$' + (balanceState.remaining_cost_usd || 0).toFixed(2);
-    $('ibPlan').textContent = (balanceState.plan || 'demo').toUpperCase();
-    $('ibRenewal').textContent = balanceState.renewal_date || '—';
   }
 
   function handleExhausted(plan) {
-    if (platformState.paused) return;
     platformState.paused = true;
     platformState.pause_reason = 'exhausted';
-
-    const msg = plan === 'demo'
-      ? 'Your demo session allocation has been used. Register for a full account to continue.'
-      : 'Your monthly TAE communication allocation has been used.';
-
-    showPausedOverlay('TAE Paused', msg, 'Balance: 0 tokens');
+    showPausedOverlay('TAE Paused', 'Your allocation has been exhausted.', plan ? `Plan: ${plan}` : '');
   }
 
-  function showPausedOverlay(title, msg, balanceText) {
+  function showPausedOverlay(title, msg, balText) {
     $('taePaused').querySelector('h2').textContent = title;
     $('pausedMsg').textContent = msg;
-    $('pausedBalance').textContent = balanceText;
+    $('pausedBal').textContent = balText || '';
     taePaused.classList.add('on');
   }
 
-  /* ═══ ALERT MODULE ═════════════════════════════════════════════ */
-
+  // Alerts
   async function fetchAlerts() {
-    if (!authState.authenticated || authState.is_demo) return;
-
-    const data = await taeApi('/api/me/tae-alerts?unread=true');
-    if (!data) return;
-
-    alertState.alerts = data.alerts || [];
-    alertState.unread_count = data.unread_count || 0;
-
-    // Check for payment failed alerts
-    const payAlert = alertState.alerts.find(a => a.type === 'payment_failed' || a.type === 'past_due');
-    if (payAlert && !platformState.paused) {
-      handlePaymentFailed(payAlert.message);
+    const data = await taeApi('/user/alerts?status=active&limit=10');
+    if (data && data.alerts) {
+      alertState.alerts = data.alerts;
+      alertState.unread_count = data.alerts.length;
+      renderAlertNotices();
+      const payAlert = alertState.alerts.find(a => a.type === 'payment_failed' || a.type === 'past_due');
+      if (payAlert) handlePaymentFailed(payAlert.message || 'Payment issue detected.');
     }
-
-    renderAlertNotices();
   }
 
   function renderAlertNotices() {
-    // Clear old
     taeNotices.innerHTML = '';
-    const toShow = alertState.alerts.slice(0, TAE_CONFIG.maxNotices);
-
-    toShow.forEach(alert => {
-      const sev = alert.severity === 'critical' ? 'tn-critical'
-                : alert.severity === 'warning' ? 'tn-warning'
-                : 'tn-info';
-
+    const show = alertState.alerts.slice(0, TAE_CONFIG.maxNotices);
+    show.forEach(a => {
+      const severity = (a.severity || 'info').toLowerCase();
+      const cls = severity === 'critical' ? 'tn-critical' : severity === 'warning' ? 'tn-warning' : 'tn-info';
       const el = document.createElement('div');
-      el.className = `tae-notice ${sev}`;
-      el.innerHTML = `
-        <div class="tn-title">${esc(alert.title)}</div>
-        <div class="tn-msg">${esc(alert.message)}</div>
-        <span class="tn-dismiss">&times;</span>
-      `;
-
-      // Dismiss
-      el.querySelector('.tn-dismiss').onclick = () => dismissAlert(alert.id, el);
-      el.onclick = (e) => {
-        if (e.target.classList.contains('tn-dismiss')) return;
-        dismissAlert(alert.id, el);
-      };
-
+      el.className = `tae-notice ${cls}`;
+      el.innerHTML = `<div class="tn-title">${esc(a.type||'Alert')}</div><div class="tn-msg">${esc(a.message||'')}</div><span class="tn-dismiss" onclick="SIOS.dismissAlert('${a.id}',this.parentElement)">×</span>`;
       taeNotices.appendChild(el);
       requestAnimationFrame(() => el.classList.add('show'));
     });
   }
 
   async function dismissAlert(alertId, el) {
-    el.classList.remove('show');
-    setTimeout(() => el.remove(), 600);
-    await taeApi('/api/me/tae-alerts/read', {
-      method: 'POST',
-      body: JSON.stringify({ alert_ids: [alertId] }),
-    });
+    if (el) { el.style.opacity = '0'; el.style.transform = 'translateY(-12px) scale(.9)'; setTimeout(() => el.remove(), 400); }
+    await taeApi(`/user/alerts/${alertId}/dismiss`, { method: 'POST' });
   }
 
-  function esc(s) {
-    const d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
-  }
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-  /* ═══ AUTH MODAL ════════════════════════════════════════════════ */
-
-  function openAuthModal(mode) {
+  // Auth modal
+  function openAuth(mode) {
     authMode = mode || 'login';
     updateAuthTabs();
-    $('authError').textContent = '';
-    $('authEmail').value = '';
-    $('authPass').value = '';
-    $('authName').value = '';
     authBackdrop.classList.add('on');
+    acctMenu.classList.remove('open');
   }
-
-  function closeAuthModal() {
-    authBackdrop.classList.remove('on');
-  }
-
+  function closeAuth() { authBackdrop.classList.remove('on'); }
+  function setAuthMode(mode) { authMode = mode; updateAuthTabs(); }
   function updateAuthTabs() {
     $('tabLogin').classList.toggle('active', authMode === 'login');
     $('tabRegister').classList.toggle('active', authMode === 'register');
-    $('authSubmit').textContent = authMode === 'login' ? 'Log In' : 'Create Account';
-    const nameField = $('authName');
-    nameField.classList.toggle('show', authMode === 'register');
-    $('authPass').autocomplete = authMode === 'login' ? 'current-password' : 'new-password';
+    $('authName').style.display = authMode === 'register' ? '' : 'none';
+    $('authSubmitBtn').textContent = authMode === 'login' ? 'Login' : 'Register';
   }
 
-  $('tabLogin').onclick = () => { authMode = 'login'; updateAuthTabs(); };
-  $('tabRegister').onclick = () => { authMode = 'register'; updateAuthTabs(); };
-  $('authClose').onclick = closeAuthModal;
-  $('authGuest').onclick = () => { closeAuthModal(); };
-  authBackdrop.onclick = (e) => { if (e.target === authBackdrop) closeAuthModal(); };
-
-  $('authForm').onsubmit = async (e) => {
+  $('authForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = $('authEmail').value.trim();
-    const pass = $('authPass').value;
-    const name = $('authName').value.trim();
-    const err = $('authError');
-    const btn = $('authSubmit');
+    const email = $('authEmail').value, pass = $('authPass').value, name = $('authName').value;
+    if (authMode === 'register') await register(email, pass, name);
+    else await login(email, pass);
+  });
 
-    if (!email || !pass) { err.textContent = 'Email and password required.'; return; }
-    if (authMode === 'register' && pass.length < 8) { err.textContent = 'Password must be at least 8 characters.'; return; }
-
-    btn.disabled = true;
-    btn.textContent = authMode === 'login' ? 'Logging in…' : 'Creating account…';
-    err.textContent = '';
-
-    try {
-      let ok;
-      if (authMode === 'login') {
-        ok = await login(email, pass);
-      } else {
-        ok = await register(email, pass, name || undefined);
-      }
-      if (ok) {
-        closeAuthModal();
-        updateAccountUI();
-        showToast(authMode === 'login' ? 'Authenticated. TAE is yours.' : 'Account created. Welcome to SIOS.');
-        addConvMsg('system', authMode === 'login' ? 'Identity authenticated.' : 'Identity created. Welcome to the runtime.');
-      } else {
-        err.textContent = authMode === 'login' ? 'Invalid credentials.' : 'Registration failed. Try a different email.';
-      }
-    } catch (ex) {
-      err.textContent = 'Connection error. Try again.';
-    }
-    btn.disabled = false;
-    btn.textContent = authMode === 'login' ? 'Log In' : 'Create Account';
-  };
-
-  /* ═══ ACCOUNT MENU ═══════════════════════════════════════════ */
-
+  // Account UI
   function updateAccountUI() {
-    if (authState.authenticated && !authState.is_demo && authState.user) {
-      acctLabel.textContent = authState.user.display_name || authState.user.email?.split('@')[0] || 'User';
+    if (authState.authenticated) {
+      acctLabel.textContent = authState.is_demo ? 'Demo' : (authState.user?.display_name || 'Account');
       $('menuLogin').style.display = 'none';
+      $('menuRegister').style.display = 'none';
+      $('menuSubscribe').style.display = '';
+      $('menuBilling').style.display = authState.is_demo ? 'none' : '';
+      $('menuAlloc').style.display = '';
       $('menuLogout').style.display = '';
-      $('menuLogoutSep').style.display = '';
-      $('menuBilling').style.display = '';
+      if (authState.is_demo) demoBadge.classList.add('on');
     } else {
-      acctLabel.textContent = authState.is_demo ? 'Demo' : 'Guest';
+      acctLabel.textContent = 'Login';
       $('menuLogin').style.display = '';
-      $('menuLogout').style.display = authState.is_demo ? '' : 'none';
-      $('menuLogoutSep').style.display = authState.is_demo ? '' : 'none';
+      $('menuRegister').style.display = '';
+      $('menuSubscribe').style.display = 'none';
       $('menuBilling').style.display = 'none';
+      $('menuAlloc').style.display = 'none';
+      $('menuLogout').style.display = 'none';
+      demoBadge.classList.remove('on');
     }
   }
 
-  acctBtn.onclick = (e) => {
-    e.stopPropagation();
-    acctMenu.classList.toggle('on');
-  };
-  document.addEventListener('click', () => acctMenu.classList.remove('on'));
-  acctMenu.onclick = (e) => e.stopPropagation();
+  function toggleAcctMenu() { acctMenu.classList.toggle('open'); }
 
-  $('menuLogin').onclick = () => { acctMenu.classList.remove('on'); openAuthModal('login'); };
-  $('menuSubscribe').onclick = () => { acctMenu.classList.remove('on'); openPlansPanel(); };
-  $('menuBilling').onclick = () => { acctMenu.classList.remove('on'); openBillingPortal(); };
-  $('menuAllocation').onclick = () => { acctMenu.classList.remove('on'); showAllocationPanel(); };
-  $('menuLogout').onclick = async () => {
-    acctMenu.classList.remove('on');
-    await logout();
-    updateAccountUI();
-    showToast('Logged out. Demo session active.');
-  };
+  // Click outside to close menu
+  document.addEventListener('click', (e) => {
+    if (!acctBtn.contains(e.target) && !acctMenu.contains(e.target)) acctMenu.classList.remove('open');
+  });
 
-  /* ═══ PLANS / SUBSCRIBE ══════════════════════════════════════ */
-
+  // Plans
   async function openPlansPanel() {
-    const grid = $('plansGrid');
-    grid.innerHTML = '<p style="color:rgba(180,215,255,.4);text-align:center;grid-column:1/-1">Loading plans…</p>';
     plansPanel.classList.add('on');
-
-    if (!backendAvailable()) {
-      grid.innerHTML = renderFallbackPlans();
-      return;
+    const plans = await taeApi('/billing/plans');
+    if (plans && plans.plans) {
+      renderPlans(plans.plans);
+    } else {
+      renderFallbackPlans();
     }
-
-    const data = await taeApi('/api/billing/plans');
-    if (!data) {
-      grid.innerHTML = renderFallbackPlans();
-      return;
-    }
-
-    const allPlans = [data.free_tier, ...(data.plans || [])];
-    const currentTier = balanceState.plan || 'demo';
-
-    grid.innerHTML = allPlans.map(p => {
-      const isCurrent = p.tier === currentTier;
-      const priceText = p.cost_usd === 0 ? 'Free' : `$${p.cost_usd}<span class="pc-mo">/mo</span>`;
-      const btnText = isCurrent ? 'Current' : (p.cost_usd === 0 ? 'Active' : 'Subscribe');
-      return `<div class="plan-card${isCurrent ? ' current' : ''}" data-price="${p.price_id || ''}" data-tier="${p.tier}">
-        <div class="pc-tier">${p.label || p.tier}</div>
-        <div class="pc-price">${priceText}</div>
-        <div class="pc-tokens">${(p.tokens || 0).toLocaleString()} tokens/mo</div>
-        <button class="pc-btn" ${isCurrent || p.cost_usd === 0 ? 'disabled' : ''}>${btnText}</button>
-      </div>`;
-    }).join('');
-
-    // Attach subscribe handlers
-    grid.querySelectorAll('.plan-card:not(.current)').forEach(card => {
-      const btn = card.querySelector('.pc-btn');
-      const priceId = card.dataset.price;
-      if (priceId && !btn.disabled) {
-        btn.onclick = () => startCheckout(priceId);
-      }
-    });
   }
-
+  function renderPlans(plans) {
+    $('plansGrid').innerHTML = plans.map(p => `
+      <div class="plan-card">
+        <div class="plan-name">${esc(p.name)}</div>
+        <div class="plan-price">${p.price === 0 ? 'Free' : '$' + p.price}</div>
+        <div class="plan-tokens">${p.tokens ? p.tokens.toLocaleString() + ' tokens' : ''}</div>
+        ${p.price_id ? `<button class="plan-cta" onclick="SIOS.startCheckout('${p.price_id}')">Subscribe</button>` : ''}
+      </div>
+    `).join('');
+  }
   function renderFallbackPlans() {
     const plans = [
-      { tier: 'Free', tokens: '5,000', price: 'Free' },
-      { tier: 'Starter', tokens: '50,000', price: '$9.99/mo' },
-      { tier: 'Pro', tokens: '500,000', price: '$29.99/mo' },
-      { tier: 'Enterprise', tokens: 'Custom', price: '$99.99/mo' },
+      { name: 'Demo', price: 'Free', tokens: '5,000 tokens', cta: false },
+      { name: 'Starter', price: '$9.99/mo', tokens: '50,000 tokens', cta: true },
+      { name: 'Pro', price: '$29.99/mo', tokens: '500,000 tokens', cta: true },
+      { name: 'Enterprise', price: 'Custom', tokens: 'Unlimited', cta: false },
     ];
-    return plans.map(p => `<div class="plan-card">
-      <div class="pc-tier">${p.tier}</div>
-      <div class="pc-price">${p.price}</div>
-      <div class="pc-tokens">${p.tokens} tokens/mo</div>
-      <button class="pc-btn" disabled>Connect backend</button>
-    </div>`).join('');
+    $('plansGrid').innerHTML = plans.map(p => `
+      <div class="plan-card">
+        <div class="plan-name">${p.name}</div>
+        <div class="plan-price">${p.price}</div>
+        <div class="plan-tokens">${p.tokens}</div>
+        ${p.cta ? '<button class="plan-cta" disabled>Coming Soon</button>' : ''}
+      </div>
+    `).join('');
   }
+  function closePlans() { plansPanel.classList.remove('on'); }
 
   async function startCheckout(priceId) {
-    if (!authState.authenticated || authState.is_demo) {
-      plansPanel.classList.remove('on');
-      openAuthModal('register');
-      showToast('Create an account to subscribe.');
-      return;
-    }
-
-    const data = await taeApi('/api/billing/create-checkout-session', {
-      method: 'POST',
-      body: JSON.stringify({ price_id: priceId }),
-    });
-    if (data?.checkout_url) {
-      window.location.href = data.checkout_url;
-    } else {
-      showToast('Checkout unavailable. Try again later.');
-    }
+    const data = await taeApi('/billing/checkout', { method: 'POST', body: { price_id: priceId } });
+    if (data && data.checkout_url) window.location.href = data.checkout_url;
+    else showToast('Checkout unavailable');
   }
 
   async function openBillingPortal() {
-    if (!authState.authenticated || authState.is_demo) {
-      openAuthModal('login');
-      return;
-    }
-    const data = await taeApi('/api/billing/create-portal-session', {
-      method: 'POST',
-    });
-    if (data?.portal_url) {
-      window.location.href = data.portal_url;
-    } else {
-      showToast('Billing portal unavailable.');
-    }
+    const data = await taeApi('/billing/portal', { method: 'POST' });
+    if (data && data.portal_url) window.location.href = data.portal_url;
+    else showToast('Billing portal unavailable');
   }
 
-  $('plansClose').onclick = () => plansPanel.classList.remove('on');
-
-  /* ═══ PAYMENT FAILED HANDLER ═════════════════════════════════ */
-
   function handlePaymentFailed(msg) {
-    platformState.paused = true;
-    platformState.pause_reason = 'payment_failed';
-    $('payFailedMsg').textContent = msg || 'Your subscription payment could not be processed.';
+    $('pfMsg').textContent = msg;
     payFailed.classList.add('on');
   }
 
-  $('payFailedBilling').onclick = () => { payFailed.classList.remove('on'); openBillingPortal(); };
-  $('payFailedClose').onclick = () => payFailed.classList.remove('on');
-
-  /* ═══ BACKEND CONNECTION CHECK ═══════════════════════════════ */
-
-  let backendOnline = false;
-
   async function checkBackendConnection() {
     if (!backendAvailable()) {
-      connStatus.textContent = 'No backend configured · Demo mode';
-      connStatus.className = 'conn-status on';
-      connStatus.classList.remove('ok');
-      backendOnline = false;
+      connStatus.textContent = 'Backend offline · Demo mode';
+      connStatus.className = 'conn-status offline';
       return;
     }
     try {
-      const resp = await fetch(TAE_CONFIG.backendUrl + '/health', { cache: 'no-store' });
+      const resp = await fetch(TAE_CONFIG.backendUrl + '/health', { signal: AbortSignal.timeout(5000) });
       if (resp.ok) {
-        const data = await resp.json();
-        backendOnline = true;
-        if (data.database === 'connected') {
-          connStatus.textContent = 'TAE online';
-          connStatus.className = 'conn-status on ok';
-          setTimeout(() => connStatus.classList.remove('on'), 3000);
-        } else {
-          connStatus.textContent = 'TAE online · DB error';
-          connStatus.className = 'conn-status on';
-        }
+        connStatus.textContent = 'TAE connected';
+        connStatus.className = 'conn-status live';
       } else {
-        throw new Error('bad response');
+        connStatus.textContent = 'Backend error';
+        connStatus.className = 'conn-status offline';
       }
-    } catch {
-      backendOnline = false;
+    } catch(e) {
       connStatus.textContent = 'Backend offline · Demo mode';
-      connStatus.className = 'conn-status on';
+      connStatus.className = 'conn-status offline';
     }
   }
 
-  /* ═══ TAE CONVERSATION DISPLAY ═══════════════════════════════ */
-
+  // Conversation
   function addConvMsg(role, text) {
-    if (!text) return;
+    taeConv.classList.add('on');
     const div = document.createElement('div');
-    if (role === 'system') {
-      div.className = 'tae-msg system';
-      div.textContent = text;
-    } else if (role === 'user') {
-      div.className = 'tae-msg user';
-      div.textContent = text;
-    } else {
-      div.className = 'tae-msg tae';
-      div.innerHTML = '<div class="msg-label">TAE</div>' + esc(text);
-    }
+    div.className = 'tae-msg ' + role;
+    div.textContent = text;
     taeConv.appendChild(div);
-    // Trim old messages
     while (taeConv.children.length > TAE_CONFIG.maxConvMsgs) taeConv.removeChild(taeConv.firstChild);
     taeConv.scrollTop = taeConv.scrollHeight;
-    taeConv.classList.add('on');
   }
 
-  function clearConv() {
-    taeConv.innerHTML = '';
-    taeConv.classList.remove('on');
-  }
-
-  /* ═══ CHECKOUT RESULT HANDLER ════════════════════════════════ */
-
-  function handleCheckoutResult() {
-    const url = new URL(location.href);
-    const result = url.pathname;
-    if (result === '/billing/success' || url.searchParams.get('checkout') === 'success') {
-      showToast('Subscription activated! TAE allocation locked.');
-      addConvMsg('system', 'Subscription confirmed. Your TAE allocation is now active.');
-      // Clean URL
-      history.replaceState(null, '', '/');
-      // Refresh balance
-      setTimeout(fetchBalance, 2000);
-    } else if (result === '/billing/cancel' || url.searchParams.get('checkout') === 'canceled') {
-      showToast('Checkout canceled.');
-      history.replaceState(null, '', '/');
+  // Allocation panel
+  async function showAllocation() {
+    const data = await taeApi('/user/balance');
+    const rows = $('allocRows');
+    if (data) {
+      balanceState = { ...balanceState, ...data };
+      updateBalanceUI();
+      rows.innerHTML = [
+        ['Plan', data.plan || 'Demo'],
+        ['Remaining Tokens', (data.remaining_tokens || 0).toLocaleString()],
+        ['Total Tokens', (data.total_tokens || 0).toLocaleString()],
+        ['Used', Math.round(data.usage_percent || 0) + '%'],
+        ['Cost Remaining', '$' + (data.remaining_cost_usd || 0).toFixed(4)],
+        ['Status', data.status || 'unknown'],
+      ].map(([k, v]) => `<div class="ap-row"><span class="ap-label">${k}</span><span class="ap-val">${v}</span></div>`).join('');
+    } else {
+      rows.innerHTML = '<div class="ap-row"><span class="ap-label">Status</span><span class="ap-val">Demo mode</span></div>';
     }
+    allocPanel.classList.add('open');
   }
+  function closeAlloc() { allocPanel.classList.remove('open'); }
 
-  /* ═══ ALLOCATION PANEL ═════════════════════════════════════════ */
-
-  async function showAllocationPanel() {
-    if (!authState.authenticated) return;
-
-    const data = await taeApi('/api/me/tae-allocation');
-    if (!data) return;
-
-    const alloc = data.allocation || {};
-    const plan = data.plan || {};
-
-    $('allocBarFill').style.width = (100 - (alloc.usage_percent || 0)) + '%';
-
-    const rows = [
-      ['Plan', (plan.name || 'free').toUpperCase()],
-      ['Token limit', (plan.monthly_token_limit || 0).toLocaleString()],
-      ['Used', (alloc.used_tokens || 0).toLocaleString()],
-      ['Remaining', (alloc.remaining_tokens || 0).toLocaleString()],
-      ['Cost used', '$' + (alloc.used_cost_usd || 0).toFixed(2)],
-      ['Cost remaining', '$' + (alloc.remaining_cost_usd || 0).toFixed(2)],
-      ['Period', (alloc.period_start || '').slice(0, 10) + ' → ' + (alloc.period_end || '').slice(0, 10)],
-      ['Renewal', data.renewal_date || '—'],
-    ];
-
-    $('allocRows').innerHTML = rows.map(([k, v]) =>
-      `<div class="alloc-row"><span class="ak">${k}</span><span class="av">${v}</span></div>`
-    ).join('');
-
-    allocPanel.classList.add('on');
-  }
-
-  $('allocClose').onclick = () => allocPanel.classList.remove('on');
-  $('allocSubscribe').onclick = () => { allocPanel.classList.remove('on'); openPlansPanel(); };
-  $('allocManage').onclick = () => { allocPanel.classList.remove('on'); openBillingPortal(); };
-  balIndicator.onclick = () => showAllocationPanel();
-
-  /* ═══ POLLING ══════════════════════════════════════════════════ */
-
+  // Polling
   function startPolling() {
     stopPolling();
-    fetchBalance();
-    fetchAlerts();
     balancePollTimer = setInterval(fetchBalance, TAE_CONFIG.pollBalanceMs);
     alertPollTimer = setInterval(fetchAlerts, TAE_CONFIG.pollAlertsMs);
   }
-
   function stopPolling() {
-    if (balancePollTimer) { clearInterval(balancePollTimer); balancePollTimer = null; }
-    if (alertPollTimer) { clearInterval(alertPollTimer); alertPollTimer = null; }
+    if (balancePollTimer) clearInterval(balancePollTimer);
+    if (alertPollTimer) clearInterval(alertPollTimer);
   }
 
-  /* ═══ TAE MESSAGE FLOW ═════════════════════════════════════════ */
-
-  async function activateDemoMode() {
-    if (platformState.paused) return;
-
-    if (backendAvailable() && authState.authenticated) {
-      const result = await taeApi('/api/tae/activate-demo-mode', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      if (result) {
-        // Process response balance/alerts
-        if (result.remaining_user_balance !== undefined) {
-          balanceState.remaining_tokens = result.remaining_user_balance;
-          updateBalanceUI();
-        }
-        if (result.user_alerts && result.user_alerts.length) {
-          alertState.alerts = [...result.user_alerts, ...alertState.alerts];
-          renderAlertNotices();
-        }
-        if (result.platform_safety_status === 'shutoff') {
-          handleEmergencyStop();
-        }
-        return result;
-      }
+  // Checkout result
+  function handleCheckoutResult() {
+    const params = new URLSearchParams(location.search);
+    if (params.get('checkout') === 'success') {
+      showToast('Subscription activated');
+      fetchBalance();
+      history.replaceState(null, '', location.pathname);
+    } else if (params.get('checkout') === 'cancel') {
+      showToast('Checkout cancelled');
+      history.replaceState(null, '', location.pathname);
     }
-    // Fallback
-    return structuredClone(MOCK['/api/tae']);
   }
 
-  async function sendTaeMessage(message) {
-    if (platformState.paused) {
-      showToast('TAE is paused. ' + (platformState.pause_reason === 'exhausted' ? 'Upgrade to continue.' : 'Please log in.'));
-      return null;
-    }
-
-    if (backendAvailable() && authState.authenticated) {
-      const result = await taeApi('/api/tae/message', {
-        method: 'POST',
-        body: JSON.stringify({
-          message,
-          runtime_state: appState,
-          client: 'sios-runtime',
-        }),
-      });
-      if (result) {
-        // Update balance from response
-        if (result.remaining_user_balance !== undefined) {
-          balanceState.remaining_tokens = result.remaining_user_balance;
-          updateBalanceUI();
-        }
-        if (result.user_alerts && result.user_alerts.length) {
-          alertState.alerts = [...result.user_alerts, ...alertState.alerts];
-          renderAlertNotices();
-        }
-        if (result.platform_safety_status === 'shutoff') {
-          handleEmergencyStop();
-        }
-        return result;
-      }
-    }
-    return null;
-  }
-
-  function handleEmergencyStop() {
-    platformState.paused = true;
-    platformState.emergency_shutoff = true;
-    platformState.pause_reason = 'emergency';
-    showPausedOverlay('Platform Safety Pause', 'TAE is temporarily paused for platform safety. Service will resume automatically.', 'Emergency shutoff active');
-  }
+  /* ═══════════════════════════════════════════════════════════
+     TAE DEMO MODE & INTERACTION
+     ═══════════════════════════════════════════════════════════ */
 
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add('on');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => toast.classList.remove('on'), 4000);
   }
 
-  /* ═══ ASSET RENDERER (unchanged) ═══════════════════════════════ */
-  function showAsset(key) {
-    if (key === currentAsset) return;
-    currentAsset = key;
-    const div = document.createElement('div');
-    div.className = 'pageAsset';
-    div.style.backgroundImage = `url(${ASSETS[key]||ASSETS.landing})`;
-    stage.appendChild(div);
-    requestAnimationFrame(() => div.classList.add('active'));
-    [...stage.children].forEach(el => {
-      if (el !== div) { el.classList.remove('active'); el.classList.add('exiting'); setTimeout(() => el.remove(), 1800); }
-    });
+  async function activateDemoMode() {
+    if (demoActive) return;
+    demoActive = true;
+
+    showToast('TAE, enter Demo Mode');
+
+    // Intensify orb
+    orbIntensity = 1.0;
+    orbBreathScale = 1.5;
+    material.uniforms.uDisplace.value = 0.1;
+
+    // Start demo session
+    await startDemoSession();
+
+    // Show activation text
+    setTimeout(() => {
+      taeActivation.classList.add('on');
+      $('gidLabel').textContent = TAE_CONFIG.gid;
+      $('laneLabel').textContent = 'PRIME';
+      $('statusLabel').textContent = '● LIVE';
+    }, 800);
+
+    // Hide activation text after display
+    setTimeout(() => {
+      taeActivation.classList.remove('on');
+    }, 5000);
+
+    // Show conversation
+    setTimeout(() => {
+      addConvMsg('tae', 'This is not an app. This is me.');
+      addConvMsg('tae', 'GID 399152573423 · Mode: Prime Orchestrator');
+    }, 1500);
+
+    updateAccountUI();
   }
 
-  /* ═══ STATE RENDERER (unchanged) ═══════════════════════════════ */
-  function setStateFromJson(json) {
-    appState = deepMerge(appState, json||{});
-    render(appState);
-    return appState;
-  }
-  window.setStateFromJson = setStateFromJson;
+  async function sendTaeMessage(message) {
+    if (!message.trim()) return;
+    addConvMsg('user', message);
 
-  function render(s) {
-    showAsset(s.activePage || s.state || 'idle');
-    const ui = s.ui || {};
-    hud.classList.toggle('on', !!ui.showChrome);
-    gidForm.classList.toggle('on', !!ui.showGidInput);
-    signupBtn.classList.toggle('on', !!ui.showSignup);
-    laneBar.classList.toggle('on', !!ui.showPageNav);
-    toast.textContent = s.message || '';
-    toast.classList.toggle('on', !!s.message);
-    $('gidTxt').textContent = s.gid || '\u2014';
-    $('roleTxt').textContent = s.mode || 'Prime Orchestrator';
-    $('laneLabel').textContent = (s.laneLabel || 'DEMO').toUpperCase();
-    $('statusTxt').textContent = s.status || 'OPTIMAL';
-    debug.textContent = `/api/render-state → ${s.state} · ${s.activePage}`;
-    document.documentElement.style.setProperty('--energy', (s.orb?.intensity || .65));
-  }
+    // Check for demo trigger
+    const lower = message.toLowerCase();
+    if (lower.includes('demo mode') || lower.includes('enter demo')) {
+      activateDemoMode();
+      return;
+    }
 
-  /* ═══ LANE NAV (unchanged) ═════════════════════════════════════ */
-  function buildNav() {
-    laneBar.innerHTML = '';
-    LANES.slice(0,6).forEach(([key,glyph,label]) => {
-      const b = document.createElement('button');
-      b.className = 'lane';
-      b.innerHTML = `<span class="glyph">${glyph}</span><span>${label}</span>`;
-      b.onclick = () => { scrollToHero(); setTimeout(() => openPage(key, label), 400); };
-      laneBar.appendChild(b);
-    });
-  }
-  function markNav(key) { [...laneBar.children].forEach((b,i) => b.classList.toggle('active', LANES[i]?.[0]===key)); }
-
-  function openPage(key, label) {
-    const display = {market:'S.I.aaS',finance:'Finance IaaS',retail:'Retail IaaS',realestate:'Real Estate IaaS',hospitality:'Hospitality IaaS',enterprise:'Enterprise IaaS',business:'Business IaaS',creator:'Creator IaaS',personal:'Personal IaaS',landing:'Demo'}[key]||label;
-    markNav(key);
-    setStateFromJson({state:'page',phase:'iaas-page',activePage:key,laneLabel:display,gid:'399152573423',status:'OPTIMAL',
-      message: display==='Demo' ? 'TAE, enter Demo Mode' : `${display} online. Intelligence is liquid.`,
-      ui:{showChrome:true,showGidInput:key==='landing',showSignup:key==='landing',showPageNav:key!=='idle'},
-      orb:{motion:'active',intensity:1}});
-  }
-
-  /* ═══ IDENTITY FLOW (updated with backend activation) ══════════ */
-  async function acceptIdentity() {
-    // Call backend activation
-    const activation = await activateDemoMode();
-
-    setStateFromJson({state:'gidAccepted',activePage:'market',laneLabel:'S.I.aaS',gid:'399152573423',
-      message: activation?.identity_response || 'This is not an app. This is me.',
-      ui:{showChrome:true,showGidInput:false,showSignup:false,showPageNav:true},
-      orb:{motion:'identity-lock',intensity:1}});
-    panel.classList.add('on');
-    $('panelTitle').textContent = 'Identity Accepted';
-    $('panelMsg').textContent = activation?.identity_response || 'This is not an app. This is me.';
-    $('panelGid').textContent = '399152573423';
-    $('panelRole').textContent = 'Prime Orchestrator';
-  }
-
-  function signup() {
-    setStateFromJson({state:'signup',activePage:'personal',laneLabel:'Personal IaaS',gid:'GENERATING',
-      message:'Identity Genesis. Your life, orchestrated by intelligence.',
-      ui:{showChrome:true,showGidInput:false,showSignup:false,showPageNav:true},
-      orb:{motion:'generating',intensity:.95}});
-    $('panelTitle').textContent = 'Identity Genesis';
-    $('panelMsg').textContent = 'A new GID is forming from the liquid intelligence layer.';
-    $('panelGid').textContent = 'Generating\u2026';
-    $('panelRole').textContent = 'Prime Orchestrator';
-    panel.classList.add('on');
-  }
-
-  gidForm.onsubmit = async (e) => {
-    e.preventDefault();
-    const v = (gidInput.value || '').trim();
-    if (!v) return;
-    if (v === '399152573423' || /tae.*demo/i.test(v)) {
-      scrollToHero();
-      acceptIdentity();
-    } else if (authState.authenticated && appState.state === 'gidAccepted') {
-      // Send as TAE message
-      gidInput.value = '';
-      addConvMsg('user', v);
-      const result = await sendTaeMessage(v);
-      if (result && result.response) {
-        addConvMsg('tae', result.response);
-        showToast(result.response.slice(0, 80));
-      } else if (result === null && platformState.paused) {
-        // Already handled
-      } else {
-        addConvMsg('system', 'No response from TAE. Demo mode active.');
+    // Send to backend
+    if (backendAvailable() && authState.authenticated) {
+      const resp = await taeApi('/api/tae/message', {
+        method: 'POST',
+        body: { message, gid: TAE_CONFIG.gid },
+      });
+      if (resp && resp.response) {
+        addConvMsg('tae', resp.response);
+        return;
       }
+    }
+
+    // Fallback
+    setTimeout(() => {
+      addConvMsg('tae', 'Runtime is alive. All systems nominal.');
+    }, 800);
+  }
+
+  // Form submit
+  gidForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = gidInput.value.trim();
+    if (!val) return;
+    gidInput.value = '';
+
+    if (authState.authenticated) {
+      sendTaeMessage(val);
     } else {
-      toast.textContent = 'Enter "TAE, enter Demo Mode" or type a GID.';
-      toast.classList.add('on');
+      // Check if it's the demo trigger or GID
+      if (val.toLowerCase().includes('demo mode') || val.toLowerCase().includes('enter demo')) {
+        activateDemoMode();
+      } else if (/^\d{6,}$/.test(val)) {
+        // GID entry
+        $('pGid').textContent = val;
+        $('gidLabel').textContent = val;
+        panel.classList.add('open');
+      } else {
+        sendTaeMessage(val);
+      }
     }
-  };
-  signupBtn.onclick = () => { scrollToHero(); openAuthModal('register'); };
-  $('closePanel').onclick = () => panel.classList.remove('on');
+  });
 
-  /* ═══ PAUSED OVERLAY HANDLERS ══════════════════════════════════ */
-  $('pausedUpgrade').onclick = () => { taePaused.classList.remove('on'); openPlansPanel(); };
-  $('pausedClose').onclick = () => taePaused.classList.remove('on');
-
-  /* ═══ SCROLL MANAGEMENT (unchanged) ════════════════════════════ */
-  function scrollToHero() { window.scrollTo({top:0,behavior:'smooth'}); }
-
-  const heroEl = $('hero');
-  const heroObs = new IntersectionObserver(([entry]) => {
-    document.body.classList.toggle('past-hero', !entry.isIntersecting);
-    backToTop.classList.toggle('on', !entry.isIntersecting);
-  }, { threshold: 0.15 });
-  heroObs.observe(heroEl);
-
-  backToTop.onclick = () => { scrollToHero(); openPage('landing','Home'); };
-
-  /* CTA buttons */
-  $('ctaDemo').onclick = () => { scrollToHero(); setTimeout(() => { openPage('landing','Home'); setTimeout(() => { gidInput.value = '399152573423'; acceptIdentity(); }, 800); }, 400); };
-  $('ctaSubscribe').onclick = () => { scrollToHero(); openPlansPanel(); };
-
-  /* ═══ SECTION SCROLL ANIMATIONS (unchanged) ════════════════════ */
-  const sectionObs = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) entry.target.classList.add('visible');
-    });
-  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-  document.querySelectorAll('.sys-section, .sys-cta-section').forEach(s => sectionObs.observe(s));
-
-  /* ═══ CANVAS SHADER (unchanged) ════════════════════════════════ */
-  const canvas = $('shader'), ctx = canvas.getContext('2d');
-  let tick = 0;
-  function resize() {
-    const d = Math.min(devicePixelRatio||1, 2);
-    canvas.width = innerWidth * d;
-    canvas.height = innerHeight * d;
-    ctx.setTransform(d,0,0,d,0,0);
+  function closePanel() {
+    panel.classList.remove('open');
+    activateDemoMode();
   }
-  addEventListener('resize', resize, {passive:true});
-  resize();
 
-  function animate(t) {
-    tick = t * .001;
-    ctx.clearRect(0, 0, innerWidth, innerHeight);
-    let e = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--energy')) || .7;
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 80; i++) {
-      const x = (Math.sin(i*12.989+tick*.22)*.5+.5)*innerWidth;
-      const y = ((i*47.13+tick*22*(.4+e))%(innerHeight+120))-60;
-      const r = (Math.sin(tick*2+i)*.5+.5)*1.6+0.35;
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(0,125,255,${.05+e*.1})`;
-      ctx.shadowColor = 'rgba(0,120,255,.95)';
-      ctx.shadowBlur = 10+e*18;
-      ctx.arc(x,y,r,0,Math.PI*2);
-      ctx.fill();
-    }
-    ctx.globalCompositeOperation = 'source-over';
-    requestAnimationFrame(animate);
+  // Signup button → auth modal
+  signupBtn.addEventListener('click', () => openAuth('register'));
+
+  // Variant toggle
+  function toggleVariant() {
+    currentVariant = currentVariant === 'A' ? 'B' : 'A';
+    $('variantToggle').textContent = `Variant: ${currentVariant} (${currentVariant === 'A' ? 'Procedural' : 'Live Texture'})`;
+    showToast(`Switched to Variant ${currentVariant}`);
   }
-  animate(0);
 
-  /* ═══ BOOT SEQUENCE (ARAGiP — auth, billing, backend check) ═══ */
+  /* ═══════════════════════════════════════════════════════════
+     BOOT SEQUENCE
+     ═══════════════════════════════════════════════════════════ */
+
   async function boot() {
-    buildNav();
-    render(appState);
-    requestAnimationFrame(() => fade.classList.add('off'));
-
-    // Check backend, auth & handle checkout results
     await checkBackendConnection();
     await checkAuthOnLoad();
     updateAccountUI();
     handleCheckoutResult();
 
-    setTimeout(() => setStateFromJson({
-      state:'forming', activePage:'landing', message:'TAE, enter Demo Mode',
-      ui:{showChrome:true,showGidInput:true,showSignup:true,showPageNav:false},
-      orb:{visible:true,motion:'coalescing',intensity:.84}
-    }), 2200);
+    // Fade in
+    requestAnimationFrame(() => fade.classList.add('off'));
 
+    // Show HUD
+    setTimeout(() => hud.classList.add('on'), 600);
+
+    // Show prompt
     setTimeout(() => {
-      setStateFromJson({
-        state:'active', activePage:'landing', message:'System online. Enter GID or activate Demo Mode.',
-        ui:{showChrome:true,showGidInput:true,showSignup:true,showPageNav:false},
-        orb:{visible:true,motion:'suspended',intensity:1}
-      });
-      scrollCue.classList.add('on');
-    }, 5200);
+      promptBar.classList.add('on');
+      signupBtn.classList.add('on');
+    }, 1800);
+
+    // Set initial state
+    $('gidLabel').textContent = '—';
+    $('statusLabel').textContent = '● IDLE';
   }
+
   boot();
 
-  /* ═══ PRELOAD ASSETS (unchanged) ═══════════════════════════════ */
-  Object.values(ASSETS).forEach(src => { const img = new Image(); img.src = src; });
+  /* ═══════════════════════════════════════════════════════════
+     EXPOSE API
+     ═══════════════════════════════════════════════════════════ */
 
-  /* ═══ EXPOSE FOR DEBUGGING ═════════════════════════════════════ */
-  window.SIOS = { authState, balanceState, platformState, register, login, logout, sendTaeMessage, fetchBalance, fetchAlerts, openAuthModal, openPlansPanel, openBillingPortal, addConvMsg, TAE_CONFIG };
+  window.SIOS = {
+    authState, balanceState, platformState,
+    register, login, logout,
+    sendTaeMessage, fetchBalance, fetchAlerts,
+    openAuth, closeAuth, setAuthMode,
+    openPlansPanel, closePlans, openBillingPortal,
+    startCheckout, showAllocation, closeAlloc,
+    closePanel, toggleAcctMenu, toggleVariant,
+    dismissAlert, addConvMsg, TAE_CONFIG,
+  };
+
 })();
 </script>
-
 </body>
 </html>
-
-</content>
