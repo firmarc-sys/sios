@@ -1,0 +1,12 @@
+{
+  "system":"SIOS",
+  "state":"idle",
+  "phase":"liquid-origin",
+  "mode":"Prime Orchestrator",
+  "gid":null,
+  "activePage":"idle",
+  "transition":{"type":"liquid-rise","duration":4200,"easing":"viscous"},
+  "message":"Living liquid intelligence.",
+  "orb":{"visible":false,"motion":"breathing","intensity":0.35,"chrome":true,"blueEnergy":true},
+  "ui":{"showChrome":false,"showLanding":false,"showPageChrome":false,"showGidInput":false,"showSignup":false}
+}

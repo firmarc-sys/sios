@@ -1,0 +1,11 @@
+{
+  "name": "SIOS · System Intelligence as a Service",
+  "short_name": "SIOS",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "description": "SpatialOS — real-time identity, rendering, orchestration, and device mesh infrastructure.",
+  "icons": []
+}
