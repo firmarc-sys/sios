@@ -200,8 +200,8 @@ body{-webkit-font-smoothing:antialiased}
 <!-- Hidden video texture source -->
 <video id="textureSrc" src="assets/texture.mp4" autoplay loop muted playsinline crossorigin="anonymous"></video>
 
-<!-- Ambient audio -->
-<audio id="ambientAudio" src="assets/ambient.mp3" loop preload="auto"></audio>
+<!-- Ambient audio playlist -->
+<audio id="ambientAudio" preload="auto"></audio>
 
 <!-- Three.js orb canvas -->
 <canvas id="orbCanvas"></canvas>
@@ -1226,28 +1226,59 @@ body{-webkit-font-smoothing:antialiased}
      BOOT SEQUENCE
      ═══════════════════════════════════════════════════════════ */
 
-  /* ── Ambient Audio ─────────────────────────────────────────── */
+  /* ── Ambient Audio Playlist ────────────────────────────────── */
   const ambientAudio = $('ambientAudio');
   ambientAudio.volume = 0;
 
-  function fadeInAudio(targetVolume = 0.35, duration = 3000) {
+  const ambientPlaylist = [
+    'assets/ambient.mp3',
+    'assets/ambient2.mp3',
+  ];
+  let currentTrack = 0;
+
+  function loadTrack(index) {
+    currentTrack = index % ambientPlaylist.length;
+    ambientAudio.src = ambientPlaylist[currentTrack];
+    ambientAudio.load();
+  }
+
+  // When track ends, crossfade to next
+  ambientAudio.addEventListener('ended', () => {
+    fadeAudio(0, 500, () => {
+      loadTrack(currentTrack + 1);
+      ambientAudio.play().then(() => fadeAudio(0.35, 3000)).catch(() => {});
+    });
+  });
+
+  function fadeAudio(targetVolume, duration, cb) {
     const steps = 60;
     const stepTime = duration / steps;
+    const startVol = ambientAudio.volume;
     let step = 0;
     const interval = setInterval(() => {
       step++;
-      ambientAudio.volume = Math.min(targetVolume, (step / steps) * targetVolume);
-      if (step >= steps) clearInterval(interval);
+      const t = step / steps;
+      ambientAudio.volume = Math.max(0, Math.min(1, startVol + (targetVolume - startVol) * t));
+      if (step >= steps) {
+        clearInterval(interval);
+        if (cb) cb();
+      }
     }, stepTime);
+  }
+
+  function fadeInAudio(targetVolume = 0.35, duration = 3000) {
+    fadeAudio(targetVolume, duration);
   }
 
   function startAmbientAudio() {
     if (ambientAudio._started) return;
     ambientAudio._started = true;
+    // Shuffle start position
+    currentTrack = Math.floor(Math.random() * ambientPlaylist.length);
+    loadTrack(currentTrack);
     ambientAudio.play().then(() => {
       fadeInAudio(0.35, 3000);
     }).catch(() => {
-      // Autoplay blocked — retry on first interaction
       ambientAudio._started = false;
     });
   }
