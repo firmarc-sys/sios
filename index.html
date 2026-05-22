@@ -394,7 +394,7 @@ body{-webkit-font-smoothing:antialiased}
         promptBar=$('promptBar'), taeActivation=$('taeActivation');
 
   /* ═══════════════════════════════════════════════════════════
-     THREE.JS ORB — Mercury Chrome with Video Texture
+     THREE.JS — Ferrofluid Chrome Orb + Drips + Pool + Blue Core
      ═══════════════════════════════════════════════════════════ */
 
   const canvas = $('orbCanvas');
@@ -402,10 +402,13 @@ body{-webkit-font-smoothing:antialiased}
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(innerWidth, innerHeight);
   renderer.setClearColor(0x000000, 1);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 100);
-  camera.position.set(0, 0, 3.8);
+  const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 100);
+  camera.position.set(0, 0.3, 4.2);
+  camera.lookAt(0, -0.1, 0);
 
   // Video texture
   const video = $('textureSrc');
@@ -419,34 +422,18 @@ body{-webkit-font-smoothing:antialiased}
   const noiseData = new Uint8Array(noiseSize * noiseSize * 4);
   const noiseTex = new THREE.DataTexture(noiseData, noiseSize, noiseSize, THREE.RGBAFormat);
 
-  // Vertex shader — deep organic mercury displacement
-  const vertexShader = `
-    uniform sampler2D uTexture;
-    uniform float uTime;
-    uniform float uDisplace;
-    uniform float uBreath;
-    uniform float uIntensity;
-    varying vec2 vUv;
-    varying vec3 vNormal;
-    varying vec3 vViewPos;
-    varying vec3 vWorldNormal;
-    varying vec3 vWorldPos;
-    varying float vLuma;
-    varying float vDisplacement;
-
-    // Hash-based noise for organic displacement
+  /* ─── GLSL Noise Functions (shared) ─────────────────────── */
+  const glslNoise = `
     vec3 hash3(vec3 p) {
       p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
                dot(p, vec3(269.5, 183.3, 246.1)),
                dot(p, vec3(113.5, 271.9, 124.6)));
       return fract(sin(p) * 43758.5453123) * 2.0 - 1.0;
     }
-
     float noise3D(vec3 p) {
-      vec3 i = floor(p);
-      vec3 f = fract(p);
+      vec3 i = floor(p); vec3 f = fract(p);
       vec3 u = f * f * (3.0 - 2.0 * f);
-      return mix(mix(mix(dot(hash3(i + vec3(0,0,0)), f - vec3(0,0,0)),
+      return mix(mix(mix(dot(hash3(i), f),
                          dot(hash3(i + vec3(1,0,0)), f - vec3(1,0,0)), u.x),
                      mix(dot(hash3(i + vec3(0,1,0)), f - vec3(0,1,0)),
                          dot(hash3(i + vec3(1,1,0)), f - vec3(1,1,0)), u.x), u.y),
@@ -455,326 +442,529 @@ body{-webkit-font-smoothing:antialiased}
                      mix(dot(hash3(i + vec3(0,1,1)), f - vec3(0,1,1)),
                          dot(hash3(i + vec3(1,1,1)), f - vec3(1,1,1)), u.x), u.y), u.z);
     }
-
     float fbm(vec3 p) {
-      float v = 0.0;
-      float a = 0.5;
-      for (int i = 0; i < 5; i++) {
-        v += a * noise3D(p);
-        p *= 2.1;
-        a *= 0.48;
-      }
+      float v = 0.0, a = 0.5;
+      for (int i = 0; i < 5; i++) { v += a * noise3D(p); p *= 2.1; a *= 0.48; }
       return v;
-    }
-
-    void main() {
-      vUv = uv;
-
-      // Sample texture for luminance
-      vec4 texColor = texture2D(uTexture, uv);
-      float luma = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
-      vLuma = luma;
-
-      // Organic mercury displacement — deep, viscous undulations
-      vec3 noisePos = position * 2.8 + vec3(uTime * 0.15, uTime * 0.1, uTime * 0.12);
-      float organicDisplace = fbm(noisePos) * 0.12 * uIntensity;
-
-      // Secondary fine detail layer
-      float detail = fbm(position * 6.0 + vec3(uTime * 0.3)) * 0.03 * uIntensity;
-
-      // Breathing — slow, viscous
-      float breath = sin(uTime * 0.5) * 0.015 + sin(uTime * 0.9) * 0.008;
-      breath *= uBreath;
-
-      // Viscous flow
-      float flow = sin(position.y * 4.0 - uTime * 0.8 + position.x * 2.0) * 0.01 * uIntensity;
-
-      // Luminance displacement from video
-      float lumaDisplace = luma * uDisplace * 0.5;
-
-      float totalDisplace = organicDisplace + detail + breath + flow + lumaDisplace;
-      vDisplacement = totalDisplace;
-
-      vec3 displaced = position + normal * totalDisplace;
-
-      // Compute perturbed normal for detailed shading
-      float eps = 0.01;
-      vec3 p1 = position + vec3(eps, 0, 0);
-      vec3 p2 = position + vec3(0, eps, 0);
-      float d1 = fbm(p1 * 2.8 + vec3(uTime * 0.15, uTime * 0.1, uTime * 0.12)) * 0.12
-               + fbm(p1 * 6.0 + vec3(uTime * 0.3)) * 0.03;
-      float d2 = fbm(p2 * 2.8 + vec3(uTime * 0.15, uTime * 0.1, uTime * 0.12)) * 0.12
-               + fbm(p2 * 6.0 + vec3(uTime * 0.3)) * 0.03;
-      vec3 perturbedNormal = normalize(normal + (normal.x - d1/eps) * 0.5 * vec3(1,0,0) + (normal.y - d2/eps) * 0.5 * vec3(0,1,0));
-
-      vNormal = normalize(normalMatrix * perturbedNormal);
-      vWorldNormal = normalize((modelMatrix * vec4(perturbedNormal, 0.0)).xyz);
-      vWorldPos = (modelMatrix * vec4(displaced, 1.0)).xyz;
-      vec4 mvPosition = modelViewMatrix * vec4(displaced, 1.0);
-      vViewPos = -mvPosition.xyz;
-      gl_Position = projectionMatrix * mvPosition;
     }
   `;
 
-  // Fragment shader — liquid mercury pool chrome
-  const fragmentShader = `
-    uniform sampler2D uTexture;
+  /* ─── ORB VERTEX SHADER ─────────────────────────────────── */
+  const orbVertexShader = `
     uniform float uTime;
+    uniform float uDisplace;
+    uniform float uBreath;
     uniform float uIntensity;
-    uniform float uChrome;
+    uniform sampler2D uTexture;
     varying vec2 vUv;
     varying vec3 vNormal;
     varying vec3 vViewPos;
-    varying vec3 vWorldNormal;
     varying vec3 vWorldPos;
-    varying float vLuma;
+    varying float vDisplacement;
+
+    ${glslNoise}
+
+    void main() {
+      vUv = uv;
+      vec4 texColor = texture2D(uTexture, uv);
+      float luma = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+
+      // Ferrofluid displacement — sharp spikes
+      vec3 np = position * 3.2 + vec3(uTime * 0.12, uTime * 0.08, uTime * 0.1);
+      float ferro = fbm(np) * 0.14 * uIntensity;
+      // Extra spike noise — sharp ferrofluid peaks
+      float spike = pow(max(fbm(position * 5.0 + uTime * 0.2), 0.0), 2.0) * 0.06 * uIntensity;
+      // Breathing
+      float breath = (sin(uTime * 0.45) * 0.012 + sin(uTime * 0.8) * 0.006) * uBreath;
+      // Video luminance displacement
+      float lumaD = luma * uDisplace * 0.4;
+
+      float totalD = ferro + spike + breath + lumaD;
+      vDisplacement = totalD;
+
+      vec3 displaced = position + normal * totalD;
+
+      // Perturbed normal
+      float eps = 0.008;
+      float d1 = fbm((position + vec3(eps,0,0)) * 3.2 + vec3(uTime*0.12, uTime*0.08, uTime*0.1)) * 0.14
+               + pow(max(fbm((position + vec3(eps,0,0)) * 5.0 + uTime*0.2), 0.0), 2.0) * 0.06;
+      float d2 = fbm((position + vec3(0,eps,0)) * 3.2 + vec3(uTime*0.12, uTime*0.08, uTime*0.1)) * 0.14
+               + pow(max(fbm((position + vec3(0,eps,0)) * 5.0 + uTime*0.2), 0.0), 2.0) * 0.06;
+      vec3 pNormal = normalize(normal + vec3((totalD - d1)/eps, (totalD - d2)/eps, 0.0) * 0.4);
+
+      vNormal = normalize(normalMatrix * pNormal);
+      vWorldPos = (modelMatrix * vec4(displaced, 1.0)).xyz;
+      vec4 mvPos = modelViewMatrix * vec4(displaced, 1.0);
+      vViewPos = -mvPos.xyz;
+      gl_Position = projectionMatrix * mvPos;
+    }
+  `;
+
+  /* ─── ORB FRAGMENT SHADER ───────────────────────────────── */
+  const orbFragmentShader = `
+    uniform float uTime;
+    uniform float uIntensity;
+    uniform float uChrome;
+    uniform float uBlueGlow;
+    uniform sampler2D uTexture;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPos;
+    varying vec3 vWorldPos;
     varying float vDisplacement;
 
     void main() {
       vec3 texColor = texture2D(uTexture, vUv).rgb;
       float texLuma = dot(texColor, vec3(0.299, 0.587, 0.114));
 
-      // View direction & fresnel
-      vec3 viewDir = normalize(vViewPos);
-      vec3 normal = normalize(vNormal);
-      float NdotV = abs(dot(normal, viewDir));
-      float fresnel = pow(1.0 - NdotV, 5.0);
-      float fresnelMid = pow(1.0 - NdotV, 2.5);
+      vec3 V = normalize(vViewPos);
+      vec3 N = normalize(vNormal);
+      float NdV = abs(dot(N, V));
+      float fresnel = pow(1.0 - NdV, 5.0);
+      float fresnelMid = pow(1.0 - NdV, 2.5);
 
-      // === MERCURY CHROME BASE ===
-      // Pure monochrome silver — no blue tint
-      vec3 deepBlack = vec3(0.02, 0.02, 0.025);
-      vec3 darkSilver = vec3(0.08, 0.08, 0.09);
-      vec3 midSilver = vec3(0.35, 0.36, 0.38);
-      vec3 brightSilver = vec3(0.85, 0.86, 0.88);
-      vec3 whitePeak = vec3(0.97, 0.97, 0.98);
+      // Chrome base — displacement drives dark/bright
+      float dN = smoothstep(-0.05, 0.15, vDisplacement);
+      vec3 chrome = mix(vec3(0.02), vec3(0.06, 0.06, 0.07), smoothstep(0.0, 0.15, dN));
+      chrome = mix(chrome, vec3(0.32, 0.33, 0.35), smoothstep(0.1, 0.5, dN));
+      chrome = mix(chrome, vec3(0.82, 0.83, 0.86), smoothstep(0.4, 0.85, dN));
+      chrome = mix(chrome, vec3(0.96), fresnel * 0.5);
 
-      // Displacement drives valley/peak distinction
-      float dispNorm = smoothstep(-0.06, 0.12, vDisplacement);
-      vec3 chrome = mix(deepBlack, darkSilver, smoothstep(0.0, 0.2, dispNorm));
-      chrome = mix(chrome, midSilver, smoothstep(0.15, 0.55, dispNorm));
-      chrome = mix(chrome, brightSilver, smoothstep(0.45, 0.85, dispNorm));
-      chrome = mix(chrome, whitePeak, fresnel * 0.6);
+      // Environment reflection
+      vec3 R = reflect(-V, N);
+      float envG = R.y * 0.5 + 0.5;
+      vec3 envCol = mix(vec3(0.02), vec3(0.5, 0.52, 0.55), smoothstep(0.1, 0.9, envG));
+      float caustic = pow(abs(sin(R.x * 5.0 + R.y * 3.0 + uTime * 0.25)), 10.0) * 0.35;
+      envCol += vec3(caustic);
+      chrome = mix(chrome, envCol, 0.2 + fresnel * 0.2);
 
-      // === ENVIRONMENT REFLECTIONS ===
-      vec3 reflectDir = reflect(-viewDir, normal);
-      float envGrad = reflectDir.y * 0.5 + 0.5;
-      // Monochrome environment — silver gradient
-      vec3 envColor = mix(vec3(0.03), vec3(0.55, 0.56, 0.58), smoothstep(0.15, 0.85, envGrad));
-      // Add bright caustic-like bands
-      float caustic = pow(abs(sin(reflectDir.x * 6.0 + reflectDir.y * 4.0 + uTime * 0.3)), 8.0) * 0.4;
-      envColor += vec3(caustic);
-      chrome = mix(chrome, envColor, 0.25 + fresnel * 0.2);
+      // Video blend — very subtle
+      vec3 surface = mix(chrome, vec3(texLuma) * 0.5 + chrome * 0.5, 0.06 * uChrome);
 
-      // === VIDEO TEXTURE BLEND === (very subtle — drives ripple, not color)
-      float blendAmt = 0.08 + fresnelMid * 0.06;
-      vec3 texMono = vec3(texLuma) * 0.6 + chrome * 0.4; // desaturated, blended with chrome
-      vec3 surface = mix(chrome, texMono, blendAmt * uChrome);
+      // 5-light specular
+      vec3 specTotal = vec3(0.0);
+      vec3 sCol = vec3(0.95);
+      // Key overhead
+      vec3 H1 = normalize(normalize(vec3(0.3, 1.2, 0.6)) + V);
+      specTotal += sCol * pow(max(dot(N, H1), 0.0), 280.0) * 2.0;
+      // Fill left
+      vec3 H2 = normalize(normalize(vec3(-0.9, 0.3, 0.5)) + V);
+      specTotal += sCol * pow(max(dot(N, H2), 0.0), 140.0) * 0.5;
+      // Rim back
+      vec3 H3 = normalize(normalize(vec3(0.0, -0.2, -1.0)) + V);
+      specTotal += sCol * pow(max(dot(N, H3), 0.0), 64.0) * 0.35;
+      // Orbiting
+      vec3 L4 = normalize(vec3(sin(uTime * 0.22) * 0.9, cos(uTime * 0.18) * 0.5, 0.6));
+      specTotal += sCol * pow(max(dot(N, normalize(L4 + V)), 0.0), 320.0) * 1.0;
+      vec3 L5 = normalize(vec3(-sin(uTime * 0.15) * 0.7, 0.5, cos(uTime * 0.2) * 0.8));
+      specTotal += sCol * pow(max(dot(N, normalize(L5 + V)), 0.0), 200.0) * 0.6;
 
-      // === MULTI-LIGHT SPECULAR SYSTEM ===
-      // Key light — strong overhead
-      vec3 L1 = normalize(vec3(0.3, 1.0, 0.6));
-      vec3 H1 = normalize(L1 + viewDir);
-      float spec1 = pow(max(dot(normal, H1), 0.0), 256.0) * 1.8;
+      // Curvature AO
+      float ao = mix(0.12, 1.0, smoothstep(-0.03, 0.1, vDisplacement));
 
-      // Fill — soft left
-      vec3 L2 = normalize(vec3(-0.9, 0.4, 0.4));
-      vec3 H2 = normalize(L2 + viewDir);
-      float spec2 = pow(max(dot(normal, H2), 0.0), 128.0) * 0.6;
+      // === BLUE INNER GLOW ===
+      // Emanates from inside — strongest at center, fading at edges
+      float coreGlow = pow(NdV, 2.5) * uBlueGlow; // NdV = 1 at center facing camera
+      // Add subsurface scattering feel
+      float sss = pow(max(dot(N, normalize(vec3(0, 0, 1))), 0.0), 3.0) * 0.4 * uBlueGlow;
+      vec3 blueLight = vec3(0.02, 0.35, 1.0) * (coreGlow * 0.8 + sss);
+      // Pulsing blue glow
+      blueLight *= 0.7 + 0.3 * sin(uTime * 0.6);
 
-      // Rim — behind, catch edges
-      vec3 L3 = normalize(vec3(0.0, -0.3, -1.0));
-      vec3 H3 = normalize(L3 + viewDir);
-      float spec3 = pow(max(dot(normal, H3), 0.0), 64.0) * 0.4;
+      // Rim
+      float rim = pow(fresnel, 1.8) * 0.15;
 
-      // Orbiting accent
-      vec3 L4 = normalize(vec3(sin(uTime * 0.25) * 0.9, cos(uTime * 0.2) * 0.5, 0.6));
-      vec3 H4 = normalize(L4 + viewDir);
-      float spec4 = pow(max(dot(normal, H4), 0.0), 300.0) * 1.2;
+      // Combine
+      vec3 finalColor = surface * ao + specTotal + rim + blueLight;
+      // Slight blue rim at edges
+      finalColor += vec3(0.0, 0.15, 0.5) * fresnel * 0.2 * uBlueGlow;
 
-      // Secondary orbiting — opposite phase
-      vec3 L5 = normalize(vec3(-sin(uTime * 0.18) * 0.7, 0.6, cos(uTime * 0.22) * 0.8));
-      vec3 H5 = normalize(L5 + viewDir);
-      float spec5 = pow(max(dot(normal, H5), 0.0), 180.0) * 0.7;
-
-      vec3 specColor = vec3(0.95, 0.95, 0.96); // pure silver specular
-      vec3 specTotal = specColor * (spec1 + spec2 + spec3 + spec4 + spec5);
-
-      // Anisotropic stretch — liquid metal elongated highlights
-      vec3 tangent = normalize(cross(normal, vec3(0.0, 1.0, 0.0)));
-      float aniso = pow(max(1.0 - abs(dot(tangent, normalize(L1 - viewDir))), 0.0), 16.0);
-      specTotal += vec3(0.5) * aniso * 0.15;
-
-      // === CURVATURE DARKENING ===
-      // Concave areas (valleys) get darker — mimics ambient occlusion
-      float curvature = smoothstep(-0.04, 0.08, vDisplacement);
-      float ao = mix(0.15, 1.0, curvature);
-
-      // === RIM LIGHT ===
-      float rim = pow(fresnel, 2.0) * 0.2;
-
-      // === COMBINE ===
-      vec3 finalColor = surface * ao + specTotal + rim;
-
-      // High contrast S-curve for that deep black + bright chrome look
-      finalColor = pow(finalColor, vec3(1.1));
-
-      // ACES filmic tonemap
+      // Tonemap
+      finalColor = pow(finalColor, vec3(1.08));
       finalColor = (finalColor * (2.51 * finalColor + 0.03)) / (finalColor * (2.43 * finalColor + 0.59) + 0.14);
-
-      // Final contrast punch
-      finalColor = pow(finalColor, vec3(1.05));
 
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `;
 
-  // Orb geometry & material
-  const geometry = new THREE.SphereGeometry(1, 192, 192);
-  const material = new THREE.ShaderMaterial({
+  /* ─── POOL VERTEX SHADER ────────────────────────────────── */
+  const poolVertexShader = `
+    uniform float uTime;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPos;
+    varying vec3 vWorldPos;
+
+    ${glslNoise}
+
+    void main() {
+      vUv = uv;
+      vec3 pos = position;
+      // Ripple displacement
+      float dist = length(pos.xz);
+      float ripple = sin(dist * 8.0 - uTime * 2.5) * 0.015 * exp(-dist * 0.5);
+      ripple += fbm(vec3(pos.xz * 2.0, uTime * 0.3)) * 0.02;
+      // Impact ripples from drips
+      ripple += sin(dist * 14.0 - uTime * 4.0) * 0.008 * exp(-dist * 0.8);
+      pos.y += ripple;
+
+      // Perturbed normal
+      float eps = 0.05;
+      float dx = sin(length(vec2(pos.x+eps, pos.z))*8.0 - uTime*2.5)*0.015*exp(-length(vec2(pos.x+eps, pos.z))*0.5)
+               - sin(dist*8.0 - uTime*2.5)*0.015*exp(-dist*0.5);
+      float dz = sin(length(vec2(pos.x, pos.z+eps))*8.0 - uTime*2.5)*0.015*exp(-length(vec2(pos.x, pos.z+eps))*0.5)
+               - sin(dist*8.0 - uTime*2.5)*0.015*exp(-dist*0.5);
+      vec3 pN = normalize(vec3(-dx/eps, 1.0, -dz/eps));
+
+      vNormal = normalize(normalMatrix * pN);
+      vWorldPos = (modelMatrix * vec4(pos, 1.0)).xyz;
+      vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
+      vViewPos = -mvPos.xyz;
+      gl_Position = projectionMatrix * mvPos;
+    }
+  `;
+
+  /* ─── POOL FRAGMENT SHADER ──────────────────────────────── */
+  const poolFragmentShader = `
+    uniform float uTime;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPos;
+    varying vec3 vWorldPos;
+
+    void main() {
+      vec3 V = normalize(vViewPos);
+      vec3 N = normalize(vNormal);
+      float NdV = abs(dot(N, V));
+      float fresnel = pow(1.0 - NdV, 4.0);
+
+      // Mercury pool surface
+      vec3 chrome = mix(vec3(0.04), vec3(0.25, 0.26, 0.28), fresnel);
+      chrome = mix(chrome, vec3(0.7, 0.72, 0.75), pow(fresnel, 2.0));
+
+      // Reflection of blue glow from orb
+      float dist = length(vWorldPos.xz);
+      float orbReflect = exp(-dist * 1.5) * 0.4;
+      vec3 blueReflect = vec3(0.02, 0.2, 0.7) * orbReflect * (0.7 + 0.3 * sin(uTime * 0.6));
+
+      // Specular
+      vec3 H1 = normalize(normalize(vec3(0.3, 1.2, 0.6)) + V);
+      float spec = pow(max(dot(N, H1), 0.0), 128.0) * 0.8;
+      vec3 H2 = normalize(normalize(vec3(sin(uTime*0.3)*0.5, 0.8, 0.4)) + V);
+      spec += pow(max(dot(N, H2), 0.0), 200.0) * 0.5;
+
+      // Edge fade
+      float fade = 1.0 - smoothstep(1.5, 2.8, dist);
+
+      vec3 finalColor = chrome + blueReflect + vec3(0.9) * spec;
+      finalColor *= fade;
+
+      // Tonemap
+      finalColor = (finalColor * (2.51 * finalColor + 0.03)) / (finalColor * (2.43 * finalColor + 0.59) + 0.14);
+
+      gl_FragColor = vec4(finalColor, fade * 0.85);
+    }
+  `;
+
+  /* ─── DRIP VERTEX SHADER ────────────────────────────────── */
+  const dripVertexShader = `
+    uniform float uTime;
+    varying vec3 vNormal;
+    varying vec3 vViewPos;
+    varying vec3 vWorldPos;
+
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+      vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+      vViewPos = -mvPos.xyz;
+      gl_Position = projectionMatrix * mvPos;
+    }
+  `;
+
+  /* ─── DRIP FRAGMENT SHADER ──────────────────────────────── */
+  const dripFragmentShader = `
+    uniform float uTime;
+    uniform float uBlueGlow;
+    varying vec3 vNormal;
+    varying vec3 vViewPos;
+    varying vec3 vWorldPos;
+
+    void main() {
+      vec3 V = normalize(vViewPos);
+      vec3 N = normalize(vNormal);
+      float fresnel = pow(1.0 - abs(dot(N, V)), 4.0);
+
+      // Chrome drip
+      vec3 chrome = mix(vec3(0.08), vec3(0.6, 0.62, 0.65), fresnel);
+      chrome = mix(chrome, vec3(0.92), pow(fresnel, 2.5));
+
+      // Blue inner glow from orb
+      float yFade = smoothstep(-1.8, 0.2, vWorldPos.y);
+      vec3 blueGlow = vec3(0.02, 0.25, 0.85) * yFade * 0.3 * uBlueGlow;
+
+      // Specular
+      vec3 H = normalize(normalize(vec3(0.3, 1.0, 0.8)) + V);
+      float spec = pow(max(dot(N, H), 0.0), 200.0) * 1.2;
+
+      vec3 finalColor = chrome + blueGlow + vec3(0.9) * spec;
+      finalColor = (finalColor * (2.51 * finalColor + 0.03)) / (finalColor * (2.43 * finalColor + 0.59) + 0.14);
+
+      gl_FragColor = vec4(finalColor, 0.9);
+    }
+  `;
+
+  /* ─── SCENE LIGHTING ────────────────────────────────────── */
+  const ambLight = new THREE.AmbientLight(0x222233, 0.4);
+  scene.add(ambLight);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+  keyLight.position.set(1, 3, 2);
+  scene.add(keyLight);
+  const fillLight = new THREE.PointLight(0x8888aa, 0.6, 15);
+  fillLight.position.set(-3, 1, 2);
+  scene.add(fillLight);
+  // Blue core light — illuminates the orb and pool
+  const blueCore = new THREE.PointLight(0x0055ff, 2.0, 6);
+  blueCore.position.set(0, 0, 0);
+  scene.add(blueCore);
+  // Blue underglow — lights the pool
+  const blueUnder = new THREE.PointLight(0x0044cc, 1.2, 5);
+  blueUnder.position.set(0, -0.8, 0);
+  scene.add(blueUnder);
+
+  /* ─── ORB ───────────────────────────────────────────────── */
+  const orbGeom = new THREE.SphereGeometry(1, 192, 192);
+  const orbMat = new THREE.ShaderMaterial({
     uniforms: {
       uTexture: { value: videoTexture },
       uTime: { value: 0 },
       uDisplace: { value: 0.06 },
       uBreath: { value: 1.0 },
-      uIntensity: { value: 0.6 },
+      uIntensity: { value: 0.7 },
       uChrome: { value: 1.0 },
+      uBlueGlow: { value: 1.0 },
     },
-    vertexShader,
-    fragmentShader,
+    vertexShader: orbVertexShader,
+    fragmentShader: orbFragmentShader,
   });
-
-  const orb = new THREE.Mesh(geometry, material);
+  const orb = new THREE.Mesh(orbGeom, orbMat);
+  orb.position.set(0, 0.3, 0);
   scene.add(orb);
 
-  // Chrome droplets — small reflective spheres orbiting near the orb
-  const dropletCount = 18;
-  const dropletGeo = new THREE.SphereGeometry(1, 24, 24);
-  const dropletMat = new THREE.MeshStandardMaterial({
-    color: 0xcccccc, metalness: 1.0, roughness: 0.05,
-    envMapIntensity: 1.0,
+  /* ─── BLUE INNER GLOW SPHERE ────────────────────────────── */
+  const glowGeom = new THREE.SphereGeometry(0.35, 32, 32);
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0x0066ff,
+    transparent: true,
+    opacity: 0.15,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const glowSphere = new THREE.Mesh(glowGeom, glowMat);
+  glowSphere.position.copy(orb.position);
+  scene.add(glowSphere);
+
+  // Outer glow halo
+  const haloGeom = new THREE.SphereGeometry(1.15, 48, 48);
+  const haloMat = new THREE.MeshBasicMaterial({
+    color: 0x0044cc,
+    transparent: true,
+    opacity: 0.04,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.BackSide,
+  });
+  const halo = new THREE.Mesh(haloGeom, haloMat);
+  halo.position.copy(orb.position);
+  scene.add(halo);
+
+  /* ─── MERCURY POOL ──────────────────────────────────────── */
+  const poolGeom = new THREE.CircleGeometry(3.0, 128);
+  poolGeom.rotateX(-Math.PI / 2);
+  const poolMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: poolVertexShader,
+    fragmentShader: poolFragmentShader,
+    transparent: true,
+    depthWrite: false,
+  });
+  const pool = new THREE.Mesh(poolGeom, poolMat);
+  pool.position.y = -1.25;
+  scene.add(pool);
+
+  /* ─── FERROFLUID DRIPS ──────────────────────────────────── */
+  const dripMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uBlueGlow: { value: 1.0 },
+    },
+    vertexShader: dripVertexShader,
+    fragmentShader: dripFragmentShader,
+    transparent: true,
   });
 
-  // Add lighting for droplets
-  const ambLight = new THREE.AmbientLight(0x333333, 0.5);
-  scene.add(ambLight);
-  const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-  dirLight.position.set(1, 2, 1.5);
-  scene.add(dirLight);
-  const rimLight = new THREE.PointLight(0x888899, 0.8, 10);
-  rimLight.position.set(-2, -1, 2);
-  scene.add(rimLight);
+  const drips = [];
+  const dripCount = 12;
+  for (let i = 0; i < dripCount; i++) {
+    // Each drip: elongated sphere (teardrop shape via scale)
+    const dripGeom = new THREE.SphereGeometry(0.03 + Math.random() * 0.03, 12, 16);
+    const mesh = new THREE.Mesh(dripGeom, dripMat.clone());
+    const angle = (i / dripCount) * Math.PI * 2 + Math.random() * 0.3;
+    const radius = 0.85 + Math.random() * 0.2;
+    mesh.userData = {
+      angle: angle,
+      radius: radius,
+      speed: 0.3 + Math.random() * 0.5,
+      phase: Math.random() * Math.PI * 2,
+      startY: 0.3 - Math.sin(angle) * 0.4, // start near orb bottom
+      elongation: 1.5 + Math.random() * 2.0,
+    };
+    mesh.scale.set(1, mesh.userData.elongation, 1);
+    scene.add(mesh);
+    drips.push(mesh);
+  }
+
+  /* ─── CHROME DROPLETS ───────────────────────────────────── */
+  const dropletGeom = new THREE.SphereGeometry(1, 16, 16);
+  const dropletBaseMat = new THREE.MeshStandardMaterial({
+    color: 0xcccccc, metalness: 1.0, roughness: 0.05,
+  });
 
   const droplets = [];
-  for (let i = 0; i < dropletCount; i++) {
-    const mesh = new THREE.Mesh(dropletGeo, dropletMat.clone());
-    const size = 0.015 + Math.random() * 0.04; // tiny chrome spheres
-    mesh.scale.setScalar(size);
-    // Orbit parameters
+  for (let i = 0; i < 14; i++) {
+    const mesh = new THREE.Mesh(dropletGeom, dropletBaseMat.clone());
+    mesh.scale.setScalar(0.012 + Math.random() * 0.035);
     mesh.userData = {
-      radius: 1.1 + Math.random() * 0.6,
-      speed: 0.15 + Math.random() * 0.3,
+      radius: 1.15 + Math.random() * 0.5,
+      speed: 0.1 + Math.random() * 0.25,
       phase: Math.random() * Math.PI * 2,
-      tiltX: (Math.random() - 0.5) * 1.2,
-      tiltZ: (Math.random() - 0.5) * 1.2,
-      bobSpeed: 0.5 + Math.random() * 1.5,
-      bobAmt: 0.02 + Math.random() * 0.06,
+      tiltX: (Math.random() - 0.5) * 1.0,
+      tiltZ: (Math.random() - 0.5) * 1.0,
+      bobSpeed: 0.3 + Math.random() * 1.2,
+      bobAmt: 0.02 + Math.random() * 0.05,
     };
     scene.add(mesh);
     droplets.push(mesh);
   }
 
-  // Subtle dust particles
-  const particleCount = 80;
+  /* ─── SUBTLE PARTICLES ──────────────────────────────────── */
+  const particleCount = 60;
   const particleGeo = new THREE.BufferGeometry();
   const pPositions = new Float32Array(particleCount * 3);
   for (let i = 0; i < particleCount; i++) {
-    pPositions[i * 3] = (Math.random() - 0.5) * 6;
-    pPositions[i * 3 + 1] = (Math.random() - 0.5) * 6;
-    pPositions[i * 3 + 2] = (Math.random() - 0.5) * 6;
+    pPositions[i * 3] = (Math.random() - 0.5) * 5;
+    pPositions[i * 3 + 1] = (Math.random() - 0.5) * 5;
+    pPositions[i * 3 + 2] = (Math.random() - 0.5) * 5;
   }
   particleGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
   const particleMat = new THREE.PointsMaterial({
-    size: 0.008, color: 0x888888, transparent: true, opacity: 0.08,
+    size: 0.006, color: 0x4466aa, transparent: true, opacity: 0.06,
     blending: THREE.AdditiveBlending, depthWrite: false,
   });
   const particles = new THREE.Points(particleGeo, particleMat);
   scene.add(particles);
 
-  // Procedural noise update for Variant A
+  /* ─── PROCEDURAL NOISE (Variant A) ──────────────────────── */
   function updateNoise(time) {
     for (let y = 0; y < noiseSize; y++) {
       for (let x = 0; x < noiseSize; x++) {
         const i = (y * noiseSize + x) * 4;
         const nx = x / noiseSize, ny = y / noiseSize;
-        // Simplex-like layered noise
         const v1 = Math.sin(nx * 8 + time * 0.7) * Math.cos(ny * 6 - time * 0.5);
         const v2 = Math.sin((nx + ny) * 12 + time * 1.1) * 0.5;
         const v3 = Math.cos(nx * 16 - time * 0.3) * Math.sin(ny * 14 + time * 0.9) * 0.3;
-        const flow = Math.sin(ny * 4 - time * 2.0 + nx * 2) * 0.3; // upward flow
-        const val = (v1 + v2 + v3 + flow) * 0.5 + 0.5;
-        const clamped = Math.max(0, Math.min(1, val));
-        // Mercury chrome colors
-        const r = Math.floor(clamped * 180 + 40);
-        const g = Math.floor(clamped * 190 + 45);
-        const b = Math.floor(clamped * 200 + 55);
-        noiseData[i] = r;
-        noiseData[i + 1] = g;
-        noiseData[i + 2] = b;
-        noiseData[i + 3] = 255;
+        const val = (v1 + v2 + v3) * 0.5 + 0.5;
+        const c = Math.max(0, Math.min(1, val));
+        noiseData[i] = Math.floor(c * 180 + 40);
+        noiseData[i+1] = Math.floor(c * 190 + 45);
+        noiseData[i+2] = Math.floor(c * 200 + 55);
+        noiseData[i+3] = 255;
       }
     }
     noiseTex.needsUpdate = true;
   }
 
-  // Animation loop
+  /* ─── ANIMATION LOOP ────────────────────────────────────── */
   let clock = new THREE.Clock();
 
   function animate() {
     requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
 
-    const elapsed = clock.getElapsedTime();
+    // Orb uniforms
+    orbMat.uniforms.uTime.value = t;
+    orbMat.uniforms.uIntensity.value = orbIntensity;
+    orbMat.uniforms.uBreath.value = orbBreathScale;
 
-    // Update uniforms
-    material.uniforms.uTime.value = elapsed;
-    material.uniforms.uIntensity.value = orbIntensity;
-    material.uniforms.uBreath.value = orbBreathScale;
-
-    // Switch texture based on variant
+    // Variant switching
     if (currentVariant === 'A') {
-      if (elapsed % 0.05 < 0.02) updateNoise(elapsed); // throttle noise update
-      material.uniforms.uTexture.value = noiseTex;
-      material.uniforms.uChrome.value = 0.6;
-      material.uniforms.uDisplace.value = 0.04;
+      if (t % 0.05 < 0.02) updateNoise(t);
+      orbMat.uniforms.uTexture.value = noiseTex;
+      orbMat.uniforms.uChrome.value = 0.6;
+      orbMat.uniforms.uDisplace.value = 0.04;
     } else {
-      material.uniforms.uTexture.value = videoTexture;
-      material.uniforms.uChrome.value = 1.0;
-      material.uniforms.uDisplace.value = 0.06;
+      orbMat.uniforms.uTexture.value = videoTexture;
+      orbMat.uniforms.uChrome.value = 1.0;
+      orbMat.uniforms.uDisplace.value = 0.06;
     }
 
-    // Gentle orb rotation — slower, more viscous
-    orb.rotation.y = elapsed * 0.05;
-    orb.rotation.x = Math.sin(elapsed * 0.2) * 0.03;
+    // Pool uniforms
+    poolMat.uniforms.uTime.value = t;
 
-    // Scale breathing — subtle
-    const breathScale = 1 + Math.sin(elapsed * 0.5) * 0.006 + Math.sin(elapsed * 0.9) * 0.003;
+    // Orb rotation — slow, viscous
+    orb.rotation.y = t * 0.04;
+    orb.rotation.x = Math.sin(t * 0.15) * 0.025;
+    const breathScale = 1 + Math.sin(t * 0.45) * 0.005 + Math.sin(t * 0.8) * 0.003;
     orb.scale.setScalar(breathScale);
 
-    // Chrome droplets — orbit near the orb surface
-    for (const d of droplets) {
+    // Blue core pulse
+    const pulse = 0.7 + 0.3 * Math.sin(t * 0.6);
+    blueCore.intensity = 2.0 * pulse;
+    blueUnder.intensity = 1.2 * pulse;
+    glowSphere.material.opacity = 0.1 + 0.08 * pulse;
+    halo.material.opacity = 0.03 + 0.02 * pulse;
+    halo.scale.setScalar(1.0 + Math.sin(t * 0.5) * 0.03);
+
+    // Ferrofluid drips — fall from orb, reset to top
+    for (const d of drips) {
       const u = d.userData;
-      const angle = elapsed * u.speed + u.phase;
-      d.position.x = Math.cos(angle) * u.radius + Math.sin(angle * 0.5) * u.tiltX * 0.3;
-      d.position.y = Math.sin(angle * 0.7) * u.tiltX * 0.5 + Math.sin(elapsed * u.bobSpeed) * u.bobAmt;
-      d.position.z = Math.sin(angle) * u.radius + Math.cos(angle * 0.5) * u.tiltZ * 0.3;
+      const cycle = ((t * u.speed + u.phase) % 3.0) / 3.0; // 0→1 cycle
+      const yStart = orb.position.y - 0.6;
+      const yEnd = pool.position.y + 0.05;
+      const fallCurve = Math.pow(cycle, 1.8); // accelerating fall
+      const y = yStart - (yStart - yEnd) * fallCurve;
+      const wobble = Math.sin(t * 3 + u.phase) * 0.02;
+
+      d.position.x = Math.cos(u.angle) * u.radius * (1 - cycle * 0.3) + wobble;
+      d.position.y = y;
+      d.position.z = Math.sin(u.angle) * u.radius * (1 - cycle * 0.3);
+
+      // Stretch as they fall, squish at bottom
+      const stretch = 1.0 + fallCurve * 2.0;
+      const squash = cycle > 0.9 ? 1.0 + (1.0 - cycle) * 10.0 * 0.5 : 1.0;
+      d.scale.set(squash * 0.8, stretch * u.elongation, squash * 0.8);
+
+      // Fade near pool impact
+      d.material.uniforms.uTime.value = t;
+      d.material.uniforms.uBlueGlow.value = pulse;
+      d.visible = cycle < 0.95; // disappear at pool contact
     }
 
-    // Particle drift — very subtle
-    particles.rotation.y = elapsed * 0.015;
+    // Chrome droplets orbit
+    for (const d of droplets) {
+      const u = d.userData;
+      const a = t * u.speed + u.phase;
+      d.position.x = Math.cos(a) * u.radius + Math.sin(a * 0.5) * u.tiltX * 0.25;
+      d.position.y = orb.position.y + Math.sin(a * 0.7) * u.tiltX * 0.4 + Math.sin(t * u.bobSpeed) * u.bobAmt;
+      d.position.z = Math.sin(a) * u.radius + Math.cos(a * 0.5) * u.tiltZ * 0.25;
+    }
+
+    // Particles
+    particles.rotation.y = t * 0.01;
     const pArr = particles.geometry.attributes.position.array;
     for (let i = 0; i < particleCount; i++) {
-      pArr[i * 3 + 1] += 0.001;
-      if (pArr[i * 3 + 1] > 3) pArr[i * 3 + 1] = -3;
+      pArr[i * 3 + 1] += 0.0008;
+      if (pArr[i * 3 + 1] > 2.5) pArr[i * 3 + 1] = -2.5;
     }
     particles.geometry.attributes.position.needsUpdate = true;
 
@@ -792,7 +982,6 @@ body{-webkit-font-smoothing:antialiased}
 
   // Start video
   video.play().catch(() => {
-    // Autoplay blocked — will start on first interaction
     document.addEventListener('click', () => video.play(), { once: true });
     document.addEventListener('touchstart', () => video.play(), { once: true });
   });
