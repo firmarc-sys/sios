@@ -1,0 +1,60 @@
+[build]
+  publish = "."
+  command = ""
+
+[build.environment]
+  SIOS_BACKEND_URL = "https://sioslive.onrender.com"
+  TAE_BACKEND_URL = "https://sioslive.onrender.com"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://sioslive.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/*"
+  to = "https://sioslive.onrender.com/auth/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/user/*"
+  to = "https://sioslive.onrender.com/user/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/billing/*"
+  to = "https://sioslive.onrender.com/billing/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/admin/*"
+  to = "https://sioslive.onrender.com/admin/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/webhook/stripe"
+  to = "https://sioslive.onrender.com/webhook/stripe"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/health"
+  to = "https://sioslive.onrender.com/health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-SIOS-Backend = "https://sioslive.onrender.com"
+    X-SIOS-Frontend = "https://sios-runtime.netlify.app"
