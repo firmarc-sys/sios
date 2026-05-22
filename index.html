@@ -66,11 +66,11 @@ body{-webkit-font-smoothing:antialiased}
 /* ── TAE activation text ──────────────────────────────────────── */
 .tae-activation{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity 1.8s cubic-bezier(.16,1,.24,1);pointer-events:none;z-index:110}
 
-/* ── Brand lockup — below orb, above pool ─────────────────── */
+/* ── Brand lockup — below orb, mirror chrome ──────────────── */
 .brand-lockup{position:absolute;left:50%;bottom:clamp(18%,22vh,28%);transform:translateX(-50%);text-align:center;pointer-events:none;z-index:105;opacity:0;animation:brandFadeIn 3s 1.5s cubic-bezier(.16,1,.24,1) forwards}
-.brand-lockup .bl-name{font-size:clamp(28px,5.5vw,42px);font-weight:300;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.92);text-shadow:0 0 40px rgba(0,80,255,.25),0 0 12px rgba(255,255,255,.3);margin-bottom:6px}
-.brand-lockup .bl-by{font-size:clamp(11px,2.2vw,14px);font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:rgba(180,200,230,.55);margin-bottom:4px}
-.brand-lockup .bl-infra{font-size:clamp(9px,1.8vw,11px);font-weight:400;letter-spacing:.25em;text-transform:uppercase;color:rgba(120,155,210,.4)}
+.brand-lockup .bl-name{font-size:clamp(28px,5.5vw,42px);font-weight:300;letter-spacing:.28em;text-transform:uppercase;margin-bottom:6px;background:linear-gradient(180deg,#e8e8ec 0%,#fff 18%,#888 42%,#333 58%,#aaa 72%,#fff 88%,#c0c0c8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 18px rgba(200,210,230,.25)) drop-shadow(0 0 40px rgba(0,80,255,.15));position:relative}
+.brand-lockup .bl-by{font-size:clamp(11px,2.2vw,14px);font-weight:400;letter-spacing:.18em;text-transform:uppercase;margin-bottom:4px;background:linear-gradient(180deg,#ccc 0%,#fff 30%,#777 55%,#aaa 80%,#ddd 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 8px rgba(180,200,230,.2))}
+.brand-lockup .bl-infra{font-size:clamp(9px,1.8vw,11px);font-weight:400;letter-spacing:.25em;text-transform:uppercase;background:linear-gradient(180deg,#999 0%,#ccc 35%,#666 60%,#888 85%,#aaa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 6px rgba(120,155,210,.15))}
 @keyframes brandFadeIn{to{opacity:1}}
 .tae-activation.on{opacity:1}
 .tae-activation .statement{font-size:clamp(18px,4.5vw,32px);font-weight:200;letter-spacing:.06em;text-shadow:0 0 30px rgba(255,255,255,.5),0 0 80px rgba(0,120,255,.3);margin-bottom:24px}
