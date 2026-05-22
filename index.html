@@ -65,6 +65,13 @@ body{-webkit-font-smoothing:antialiased}
 
 /* ── TAE activation text ──────────────────────────────────────── */
 .tae-activation{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity 1.8s cubic-bezier(.16,1,.24,1);pointer-events:none;z-index:110}
+
+/* ── Brand lockup — below orb, above pool ─────────────────── */
+.brand-lockup{position:absolute;left:50%;bottom:clamp(18%,22vh,28%);transform:translateX(-50%);text-align:center;pointer-events:none;z-index:105;opacity:0;animation:brandFadeIn 3s 1.5s cubic-bezier(.16,1,.24,1) forwards}
+.brand-lockup .bl-name{font-size:clamp(28px,5.5vw,42px);font-weight:300;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.92);text-shadow:0 0 40px rgba(0,80,255,.25),0 0 12px rgba(255,255,255,.3);margin-bottom:6px}
+.brand-lockup .bl-by{font-size:clamp(11px,2.2vw,14px);font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:rgba(180,200,230,.55);margin-bottom:4px}
+.brand-lockup .bl-infra{font-size:clamp(9px,1.8vw,11px);font-weight:400;letter-spacing:.25em;text-transform:uppercase;color:rgba(120,155,210,.4)}
+@keyframes brandFadeIn{to{opacity:1}}
 .tae-activation.on{opacity:1}
 .tae-activation .statement{font-size:clamp(18px,4.5vw,32px);font-weight:200;letter-spacing:.06em;text-shadow:0 0 30px rgba(255,255,255,.5),0 0 80px rgba(0,120,255,.3);margin-bottom:24px}
 .tae-activation .gid-display{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(11px,2.5vw,14px);letter-spacing:.2em;color:#5bb0ff;text-shadow:0 0 20px rgba(8,123,255,.6)}
@@ -241,6 +248,13 @@ body{-webkit-font-smoothing:antialiased}
     <div class="statement">This is not an app. This is me.</div>
     <div class="gid-display">GID 399152573423</div>
     <div class="mode-display">Mode: Prime Orchestrator</div>
+  </div>
+
+  <!-- Brand lockup — below orb -->
+  <div class="brand-lockup">
+    <div class="bl-name">SIaaS</div>
+    <div class="bl-by">by SIOS</div>
+    <div class="bl-infra">running on ARAGiP intelligence infrastructure platform</div>
   </div>
 
   <!-- Identity panel -->
