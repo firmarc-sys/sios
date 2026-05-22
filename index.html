@@ -26,7 +26,7 @@ body{-webkit-font-smoothing:antialiased}
 .interface{position:fixed;inset:0;z-index:100;pointer-events:none}
 
 /* ── HUD ──────────────────────────────────────────────────────── */
-.hud{position:absolute;left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));height:54px;border:1px solid rgba(220,240,255,.22);border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.015));box-shadow:inset 0 0 24px rgba(255,255,255,.08),0 0 28px rgba(0,120,255,.18);display:flex;align-items:center;justify-content:space-between;padding:0 16px;opacity:0;transform:translateY(-16px);transition:.9s cubic-bezier(.16,1,.24,1);backdrop-filter:brightness(.8);pointer-events:auto}
+.hud{position:absolute;left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));top:max(8px,env(safe-area-inset-top));height:54px;border:1px solid rgba(220,240,255,.22);border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.015));box-shadow:inset 0 0 24px rgba(255,255,255,.08),0 0 28px rgba(0,120,255,.18);display:flex;align-items:center;justify-content:space-between;padding:0 16px;opacity:0;transform:translateY(-16px);transition:.9s cubic-bezier(.16,1,.24,1);backdrop-filter:brightness(.8);pointer-events:auto}
 .hud.on{opacity:1;transform:none}
 .brand{font-size:28px;letter-spacing:.22em;text-shadow:0 0 14px rgba(255,255,255,.8)}
 .meta{display:flex;gap:16px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(230,245,255,.75)}
@@ -49,14 +49,14 @@ body{-webkit-font-smoothing:antialiased}
 .demo-badge.on{opacity:1}
 
 /* ── Prompt bar ───────────────────────────────────────────────── */
-.prompt{position:absolute;left:50%;bottom:max(100px,calc(env(safe-area-inset-bottom) + 92px));width:min(86vw,520px);transform:translateX(-50%) translateY(22px);opacity:0;border-radius:999px;padding:14px 18px;border:1px solid rgba(220,240,255,.24);background:radial-gradient(circle at 80% 0,rgba(28,120,255,.25),transparent 38%),linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.72));box-shadow:inset 0 0 24px rgba(255,255,255,.09),0 0 36px rgba(0,120,255,.22);transition:1s cubic-bezier(.16,1,.24,1);pointer-events:auto}
+.prompt{position:absolute;left:50%;bottom:max(110px,calc(env(safe-area-inset-bottom) + 100px));width:min(86vw,520px);transform:translateX(-50%) translateY(22px);opacity:0;border-radius:999px;padding:14px 18px;border:1px solid rgba(220,240,255,.24);background:radial-gradient(circle at 80% 0,rgba(28,120,255,.25),transparent 38%),linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.72));box-shadow:inset 0 0 24px rgba(255,255,255,.09),0 0 36px rgba(0,120,255,.22);transition:1s cubic-bezier(.16,1,.24,1);pointer-events:auto}
 .prompt.on{opacity:1;transform:translateX(-50%)}
 .prompt input{width:calc(100% - 58px);background:transparent;border:0;outline:0;color:#fff;font-size:17px;letter-spacing:.04em}
 .prompt input::placeholder{color:rgba(235,245,255,.74)}
 .go{position:absolute;right:7px;top:7px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(220,240,255,.38);background:rgba(0,0,0,.55);color:#fff;font-size:24px;box-shadow:0 0 18px rgba(0,120,255,.56);display:grid;place-items:center;cursor:pointer}
 
 /* ── Signup button ────────────────────────────────────────────── */
-.signup{position:absolute;left:50%;bottom:max(40px,calc(env(safe-area-inset-bottom) + 32px));transform:translateX(-50%) translateY(28px);opacity:0;pointer-events:auto;border:1px solid rgba(220,240,255,.24);border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.72));color:white;padding:12px 40px;font-size:15px;letter-spacing:.04em;box-shadow:inset 0 0 22px rgba(255,255,255,.08),0 0 25px rgba(0,120,255,.2);transition:1s cubic-bezier(.16,1,.24,1);cursor:pointer}
+.signup{position:absolute;left:50%;bottom:max(90px,calc(env(safe-area-inset-bottom) + 82px));transform:translateX(-50%) translateY(28px);opacity:0;pointer-events:auto;border:1px solid rgba(220,240,255,.24);border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.72));color:white;padding:12px 40px;font-size:15px;letter-spacing:.04em;box-shadow:inset 0 0 22px rgba(255,255,255,.08),0 0 25px rgba(0,120,255,.2);transition:1s cubic-bezier(.16,1,.24,1);cursor:pointer}
 .signup.on{opacity:1;transform:translateX(-50%)}
 
 /* ── Toast ────────────────────────────────────────────────────── */
@@ -64,14 +64,24 @@ body{-webkit-font-smoothing:antialiased}
 .toast.on{opacity:1;transform:translateX(-50%)}
 
 /* ── TAE activation text ──────────────────────────────────────── */
-.tae-activation{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity 1.8s cubic-bezier(.16,1,.24,1);pointer-events:none;z-index:110}
+.tae-activation{position:absolute;left:50%;top:62%;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity 1.8s cubic-bezier(.16,1,.24,1);pointer-events:none;z-index:110}
 
-/* ── Brand lockup — below orb, mirror chrome ──────────────── */
-.brand-lockup{position:absolute;left:50%;bottom:clamp(18%,22vh,28%);transform:translateX(-50%);text-align:center;pointer-events:none;z-index:105;opacity:0;animation:brandFadeIn 3s 1.5s cubic-bezier(.16,1,.24,1) forwards}
-.brand-lockup .bl-name{font-size:clamp(28px,5.5vw,42px);font-weight:300;letter-spacing:.28em;text-transform:uppercase;margin-bottom:6px;background:linear-gradient(180deg,#e8e8ec 0%,#fff 18%,#888 42%,#333 58%,#aaa 72%,#fff 88%,#c0c0c8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 18px rgba(200,210,230,.25)) drop-shadow(0 0 40px rgba(0,80,255,.15));position:relative}
-.brand-lockup .bl-by{font-size:clamp(11px,2.2vw,14px);font-weight:400;letter-spacing:.18em;text-transform:uppercase;margin-bottom:4px;background:linear-gradient(180deg,#ccc 0%,#fff 30%,#777 55%,#aaa 80%,#ddd 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 8px rgba(180,200,230,.2))}
-.brand-lockup .bl-infra{font-size:clamp(9px,1.8vw,11px);font-weight:400;letter-spacing:.25em;text-transform:uppercase;background:linear-gradient(180deg,#999 0%,#ccc 35%,#666 60%,#888 85%,#aaa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 6px rgba(120,155,210,.15))}
+/* ── Brand lockup — top of screen, SIOS header ────────────── */
+.brand-lockup{position:absolute;left:50%;top:max(60px,calc(env(safe-area-inset-top) + 58px));transform:translateX(-50%);text-align:center;pointer-events:none;z-index:105;opacity:0;animation:brandFadeIn 3s 1.5s cubic-bezier(.16,1,.24,1) forwards}
+.brand-lockup .bl-name{font-size:clamp(32px,7vw,52px);font-weight:200;letter-spacing:.35em;text-transform:uppercase;margin-bottom:4px;background:linear-gradient(180deg,#e8e8ec 0%,#fff 20%,#999 45%,#444 60%,#aaa 75%,#fff 90%,#c0c0c8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 20px rgba(200,215,240,.3)) drop-shadow(0 0 50px rgba(0,80,255,.15))}
+.brand-lockup .bl-by{font-size:clamp(9px,2vw,12px);font-weight:300;letter-spacing:.32em;text-transform:uppercase;background:linear-gradient(180deg,#888 0%,#ccc 40%,#666 70%,#aaa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 10px rgba(0,60,200,.12))}
 @keyframes brandFadeIn{to{opacity:1}}
+
+/* ── Bottom nav bar — 5 module icons ──────────────────────── */
+.bottom-nav{position:absolute;left:50%;bottom:max(16px,calc(env(safe-area-inset-bottom) + 12px));transform:translateX(-50%);display:flex;gap:clamp(8px,3vw,20px);align-items:center;pointer-events:auto;opacity:0;animation:brandFadeIn 2.5s 2.5s cubic-bezier(.16,1,.24,1) forwards;z-index:106}
+.nav-module{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:all .4s}
+.nav-module:hover .nav-icon{border-color:rgba(0,120,255,.5);box-shadow:0 0 20px rgba(0,120,255,.3)}
+.nav-icon{width:clamp(44px,10vw,56px);height:clamp(44px,10vw,56px);border-radius:50%;border:1px solid rgba(180,200,230,.2);background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;transition:all .4s;backdrop-filter:blur(4px)}
+.nav-icon svg{width:20px;height:20px;stroke:rgba(180,210,250,.55);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.nav-module.active .nav-icon{border-color:rgba(0,120,255,.5);box-shadow:0 0 18px rgba(0,120,255,.25),inset 0 0 12px rgba(0,80,200,.15)}
+.nav-module.active .nav-icon svg{stroke:rgba(100,180,255,.9)}
+.nav-module.active .nav-label{color:rgba(200,225,255,.9)}
+.nav-label{font-size:clamp(8px,1.8vw,10px);letter-spacing:.12em;text-transform:uppercase;color:rgba(150,180,220,.4);transition:color .4s}
 .tae-activation.on{opacity:1}
 .tae-activation .statement{font-size:clamp(18px,4.5vw,32px);font-weight:200;letter-spacing:.06em;text-shadow:0 0 30px rgba(255,255,255,.5),0 0 80px rgba(0,120,255,.3);margin-bottom:24px}
 .tae-activation .gid-display{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(11px,2.5vw,14px);letter-spacing:.2em;color:#5bb0ff;text-shadow:0 0 20px rgba(8,123,255,.6)}
@@ -125,7 +135,7 @@ body{-webkit-font-smoothing:antialiased}
 .tae-paused-overlay .paused-btn{margin-top:28px;border:1px solid rgba(0,120,255,.3);border-radius:999px;background:linear-gradient(180deg,rgba(8,123,255,.2),rgba(0,0,0,.7));color:#fff;padding:14px 40px;font-size:14px;letter-spacing:.06em;cursor:pointer}
 
 /* ── TAE Conversation ─────────────────────────────────────────── */
-.tae-conv{position:absolute;left:50%;bottom:max(170px,calc(env(safe-area-inset-bottom) + 160px));width:min(86vw,520px);transform:translateX(-50%);max-height:35vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;opacity:0;transition:opacity .6s;pointer-events:auto;scrollbar-width:none}
+.tae-conv{position:absolute;left:50%;bottom:max(180px,calc(env(safe-area-inset-bottom) + 170px));width:min(86vw,520px);transform:translateX(-50%);max-height:35vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;opacity:0;transition:opacity .6s;pointer-events:auto;scrollbar-width:none}
 .tae-conv::-webkit-scrollbar{display:none}
 .tae-conv.on{opacity:1}
 .tae-msg{padding:10px 16px;border-radius:16px;font-size:13px;line-height:1.55;letter-spacing:.02em;max-width:85%;animation:msgIn .5s cubic-bezier(.16,1,.24,1)}
@@ -250,11 +260,34 @@ body{-webkit-font-smoothing:antialiased}
     <div class="mode-display">Mode: Prime Orchestrator</div>
   </div>
 
-  <!-- Brand lockup — below orb -->
+  <!-- Brand lockup — top header -->
   <div class="brand-lockup">
-    <div class="bl-name">SIaaS</div>
-    <div class="bl-by">by SIOS</div>
-    <div class="bl-infra">running on ARAGiP intelligence infrastructure platform</div>
+    <div class="bl-name">S I O S</div>
+    <div class="bl-by">Spatial Operating System</div>
+  </div>
+
+  <!-- Bottom nav — 5 module icons -->
+  <div class="bottom-nav">
+    <div class="nav-module" onclick="SIOS.navTo('system')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+      <span class="nav-label">System</span>
+    </div>
+    <div class="nav-module" onclick="SIOS.navTo('render')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <span class="nav-label">Render</span>
+    </div>
+    <div class="nav-module active" onclick="SIOS.navTo('tae')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="8" stroke-dasharray="4 3"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg></div>
+      <span class="nav-label">TAE</span>
+    </div>
+    <div class="nav-module" onclick="SIOS.navTo('iot')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M6.5 6.5A9.96 9.96 0 0112 5c2.1 0 4.04.65 5.5 1.5"/><path d="M8.5 10A5.98 5.98 0 0112 9c1.3 0 2.5.37 3.5 1"/><circle cx="12" cy="14" r="2"/><path d="M12 16v4"/></svg></div>
+      <span class="nav-label">IoT</span>
+    </div>
+    <div class="nav-module" onclick="SIOS.navTo('syncori')">
+      <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><path d="M10 8h4M10 16h4M8 10v4M16 10v4"/></svg></div>
+      <span class="nav-label">Syncori</span>
+    </div>
   </div>
 
   <!-- Identity panel -->
@@ -364,7 +397,7 @@ body{-webkit-font-smoothing:antialiased}
      ═══════════════════════════════════════════════════════════ */
 
   const TAE_CONFIG = {
-    backendUrl: window.SIOS_BACKEND_URL || (location.hostname === 'localhost' ? 'http://localhost:3100' : ''),
+    backendUrl: window.SIOS_BACKEND_URL || (location.hostname === 'localhost' ? 'http://localhost:3100' : 'https://sioslive.onrender.com'),
     gid: '399152573423',
     pollBalanceMs: 30000,
     pollAlertsMs: 15000,
@@ -421,8 +454,8 @@ body{-webkit-font-smoothing:antialiased}
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 100);
-  camera.position.set(0, 0.3, 4.2);
-  camera.lookAt(0, -0.1, 0);
+  camera.position.set(0, 0.6, 3.8);
+  camera.lookAt(0, -0.3, 0);
 
   // Video texture
   const video = $('textureSrc');
@@ -483,28 +516,26 @@ body{-webkit-font-smoothing:antialiased}
       vec4 texColor = texture2D(uTexture, uv);
       float luma = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
 
-      // Ferrofluid displacement — sharp spikes
-      vec3 np = position * 3.2 + vec3(uTime * 0.12, uTime * 0.08, uTime * 0.1);
-      float ferro = fbm(np) * 0.14 * uIntensity;
-      // Extra spike noise — sharp ferrofluid peaks
-      float spike = pow(max(fbm(position * 5.0 + uTime * 0.2), 0.0), 2.0) * 0.06 * uIntensity;
+      // Smooth chrome sphere with subtle organic surface movement
+      vec3 np = position * 1.8 + vec3(uTime * 0.06, uTime * 0.04, uTime * 0.05);
+      float surface = fbm(np) * 0.025 * uIntensity;
+      // Gentle bulge where drips would emerge (bottom hemisphere)
+      float bottomBulge = smoothstep(0.1, -0.8, position.y) * 0.015 * (0.8 + 0.2 * sin(uTime * 0.3));
       // Breathing
-      float breath = (sin(uTime * 0.45) * 0.012 + sin(uTime * 0.8) * 0.006) * uBreath;
-      // Video luminance displacement
-      float lumaD = luma * uDisplace * 0.4;
+      float breath = (sin(uTime * 0.45) * 0.008 + sin(uTime * 0.8) * 0.004) * uBreath;
+      // Video luminance — very subtle
+      float lumaD = luma * uDisplace * 0.15;
 
-      float totalD = ferro + spike + breath + lumaD;
+      float totalD = surface + bottomBulge + breath + lumaD;
       vDisplacement = totalD;
 
       vec3 displaced = position + normal * totalD;
 
-      // Perturbed normal
-      float eps = 0.008;
-      float d1 = fbm((position + vec3(eps,0,0)) * 3.2 + vec3(uTime*0.12, uTime*0.08, uTime*0.1)) * 0.14
-               + pow(max(fbm((position + vec3(eps,0,0)) * 5.0 + uTime*0.2), 0.0), 2.0) * 0.06;
-      float d2 = fbm((position + vec3(0,eps,0)) * 3.2 + vec3(uTime*0.12, uTime*0.08, uTime*0.1)) * 0.14
-               + pow(max(fbm((position + vec3(0,eps,0)) * 5.0 + uTime*0.2), 0.0), 2.0) * 0.06;
-      vec3 pNormal = normalize(normal + vec3((totalD - d1)/eps, (totalD - d2)/eps, 0.0) * 0.4);
+      // Smooth normal perturbation
+      float eps = 0.01;
+      float d1 = fbm((position + vec3(eps,0,0)) * 1.8 + vec3(uTime*0.06, uTime*0.04, uTime*0.05)) * 0.025;
+      float d2 = fbm((position + vec3(0,eps,0)) * 1.8 + vec3(uTime*0.06, uTime*0.04, uTime*0.05)) * 0.025;
+      vec3 pNormal = normalize(normal + vec3((totalD - d1)/eps, (totalD - d2)/eps, 0.0) * 0.15);
 
       vNormal = normalize(normalMatrix * pNormal);
       vWorldPos = (modelMatrix * vec4(displaced, 1.0)).xyz;
@@ -534,67 +565,59 @@ body{-webkit-font-smoothing:antialiased}
       vec3 V = normalize(vViewPos);
       vec3 N = normalize(vNormal);
       float NdV = abs(dot(N, V));
-      float fresnel = pow(1.0 - NdV, 5.0);
-      float fresnelMid = pow(1.0 - NdV, 2.5);
+      float fresnel = pow(1.0 - NdV, 4.0);
 
-      // Chrome base — displacement drives dark/bright
-      float dN = smoothstep(-0.05, 0.15, vDisplacement);
-      vec3 chrome = mix(vec3(0.02), vec3(0.06, 0.06, 0.07), smoothstep(0.0, 0.15, dN));
-      chrome = mix(chrome, vec3(0.32, 0.33, 0.35), smoothstep(0.1, 0.5, dN));
-      chrome = mix(chrome, vec3(0.82, 0.83, 0.86), smoothstep(0.4, 0.85, dN));
-      chrome = mix(chrome, vec3(0.96), fresnel * 0.5);
-
-      // Environment reflection
+      // Mirror chrome — high reflectivity, deep darks, bright highlights
       vec3 R = reflect(-V, N);
-      float envG = R.y * 0.5 + 0.5;
-      vec3 envCol = mix(vec3(0.02), vec3(0.5, 0.52, 0.55), smoothstep(0.1, 0.9, envG));
-      float caustic = pow(abs(sin(R.x * 5.0 + R.y * 3.0 + uTime * 0.25)), 10.0) * 0.35;
-      envCol += vec3(caustic);
-      chrome = mix(chrome, envCol, 0.2 + fresnel * 0.2);
+      float envY = R.y * 0.5 + 0.5;
 
-      // Video blend — very subtle
-      vec3 surface = mix(chrome, vec3(texLuma) * 0.5 + chrome * 0.5, 0.06 * uChrome);
+      // Dark chrome base with environment-driven reflections
+      vec3 chrome = vec3(0.02, 0.02, 0.025);
+      // Top hemisphere bright, bottom dark — classic chrome look
+      chrome = mix(chrome, vec3(0.55, 0.56, 0.6), smoothstep(0.3, 0.85, envY));
+      chrome = mix(chrome, vec3(0.88, 0.9, 0.92), smoothstep(0.7, 1.0, envY));
+      // Dark equator band
+      float eqBand = 1.0 - smoothstep(0.0, 0.15, abs(envY - 0.45));
+      chrome = mix(chrome, vec3(0.01), eqBand * 0.6);
+      // Fresnel bright rim
+      chrome = mix(chrome, vec3(0.95), fresnel * 0.6);
 
-      // 5-light specular
+      // Subtle caustic reflections
+      float caustic = pow(abs(sin(R.x * 6.0 + R.z * 4.0 + uTime * 0.15)), 12.0) * 0.2;
+      chrome += vec3(caustic);
+
+      // Very subtle video influence
+      vec3 surface = mix(chrome, vec3(texLuma * 0.3 + 0.3) * chrome, 0.04 * uChrome);
+
+      // Multi-light specular — bright crisp highlights
       vec3 specTotal = vec3(0.0);
-      vec3 sCol = vec3(0.95);
-      // Key overhead
-      vec3 H1 = normalize(normalize(vec3(0.3, 1.2, 0.6)) + V);
-      specTotal += sCol * pow(max(dot(N, H1), 0.0), 280.0) * 2.0;
-      // Fill left
-      vec3 H2 = normalize(normalize(vec3(-0.9, 0.3, 0.5)) + V);
-      specTotal += sCol * pow(max(dot(N, H2), 0.0), 140.0) * 0.5;
-      // Rim back
-      vec3 H3 = normalize(normalize(vec3(0.0, -0.2, -1.0)) + V);
-      specTotal += sCol * pow(max(dot(N, H3), 0.0), 64.0) * 0.35;
-      // Orbiting
-      vec3 L4 = normalize(vec3(sin(uTime * 0.22) * 0.9, cos(uTime * 0.18) * 0.5, 0.6));
-      specTotal += sCol * pow(max(dot(N, normalize(L4 + V)), 0.0), 320.0) * 1.0;
-      vec3 L5 = normalize(vec3(-sin(uTime * 0.15) * 0.7, 0.5, cos(uTime * 0.2) * 0.8));
-      specTotal += sCol * pow(max(dot(N, normalize(L5 + V)), 0.0), 200.0) * 0.6;
+      vec3 sCol = vec3(1.0);
+      // Strong key from above-right
+      vec3 H1 = normalize(normalize(vec3(0.4, 1.5, 0.8)) + V);
+      specTotal += sCol * pow(max(dot(N, H1), 0.0), 400.0) * 2.5;
+      // Wide fill from left
+      vec3 H2 = normalize(normalize(vec3(-1.0, 0.4, 0.6)) + V);
+      specTotal += sCol * pow(max(dot(N, H2), 0.0), 120.0) * 0.4;
+      // Rim highlight from behind
+      vec3 H3 = normalize(normalize(vec3(0.0, 0.2, -1.0)) + V);
+      specTotal += sCol * pow(max(dot(N, H3), 0.0), 80.0) * 0.3;
+      // Subtle moving highlight
+      vec3 L4 = normalize(vec3(sin(uTime * 0.15) * 0.6, 0.8, cos(uTime * 0.12) * 0.5));
+      specTotal += sCol * pow(max(dot(N, normalize(L4 + V)), 0.0), 500.0) * 1.2;
 
-      // Curvature AO
-      float ao = mix(0.12, 1.0, smoothstep(-0.03, 0.1, vDisplacement));
-
-      // === BLUE INNER GLOW ===
-      // Emanates from inside — strongest at center, fading at edges
-      float coreGlow = pow(NdV, 2.5) * uBlueGlow; // NdV = 1 at center facing camera
-      // Add subsurface scattering feel
-      float sss = pow(max(dot(N, normalize(vec3(0, 0, 1))), 0.0), 3.0) * 0.4 * uBlueGlow;
-      vec3 blueLight = vec3(0.02, 0.35, 1.0) * (coreGlow * 0.8 + sss);
-      // Pulsing blue glow
+      // Blue inner glow — emanates from core, visible in lower hemisphere
+      float coreGlow = pow(NdV, 3.0) * uBlueGlow;
+      float bottomGlow = smoothstep(0.5, -0.8, vWorldPos.y - 0.3) * 0.6;
+      vec3 blueLight = vec3(0.02, 0.3, 1.0) * (coreGlow * 0.4 + bottomGlow * 0.5) * uBlueGlow;
       blueLight *= 0.7 + 0.3 * sin(uTime * 0.6);
 
-      // Rim
-      float rim = pow(fresnel, 1.8) * 0.15;
+      // Blue edge highlights
+      vec3 blueRim = vec3(0.0, 0.18, 0.7) * fresnel * 0.35 * uBlueGlow;
 
       // Combine
-      vec3 finalColor = surface * ao + specTotal + rim + blueLight;
-      // Slight blue rim at edges
-      finalColor += vec3(0.0, 0.15, 0.5) * fresnel * 0.2 * uBlueGlow;
+      vec3 finalColor = surface + specTotal + blueLight + blueRim;
 
-      // Tonemap
-      finalColor = pow(finalColor, vec3(1.08));
+      // ACES Filmic Tonemap
       finalColor = (finalColor * (2.51 * finalColor + 0.03)) / (finalColor * (2.43 * finalColor + 0.59) + 0.14);
 
       gl_FragColor = vec4(finalColor, 1.0);
@@ -614,21 +637,24 @@ body{-webkit-font-smoothing:antialiased}
     void main() {
       vUv = uv;
       vec3 pos = position;
-      // Ripple displacement
       float dist = length(pos.xz);
-      float ripple = sin(dist * 8.0 - uTime * 2.5) * 0.015 * exp(-dist * 0.5);
-      ripple += fbm(vec3(pos.xz * 2.0, uTime * 0.3)) * 0.02;
-      // Impact ripples from drips
-      ripple += sin(dist * 14.0 - uTime * 4.0) * 0.008 * exp(-dist * 0.8);
+      // Strong concentric ripples from center — like the reference
+      float ripple = sin(dist * 12.0 - uTime * 2.0) * 0.025 * exp(-dist * 0.25);
+      // Secondary faster ripples
+      ripple += sin(dist * 20.0 - uTime * 3.5) * 0.012 * exp(-dist * 0.4);
+      // Subtle organic motion
+      ripple += fbm(vec3(pos.xz * 1.5, uTime * 0.2)) * 0.015;
+      // Impact waves from drip contact point
+      ripple += sin(dist * 30.0 - uTime * 5.0) * 0.006 * exp(-dist * 1.2);
       pos.y += ripple;
 
-      // Perturbed normal
-      float eps = 0.05;
-      float dx = sin(length(vec2(pos.x+eps, pos.z))*8.0 - uTime*2.5)*0.015*exp(-length(vec2(pos.x+eps, pos.z))*0.5)
-               - sin(dist*8.0 - uTime*2.5)*0.015*exp(-dist*0.5);
-      float dz = sin(length(vec2(pos.x, pos.z+eps))*8.0 - uTime*2.5)*0.015*exp(-length(vec2(pos.x, pos.z+eps))*0.5)
-               - sin(dist*8.0 - uTime*2.5)*0.015*exp(-dist*0.5);
-      vec3 pN = normalize(vec3(-dx/eps, 1.0, -dz/eps));
+      // Normal perturbation for sharp reflections on ripple crests
+      float eps = 0.04;
+      float d1 = length(vec2(pos.x+eps, pos.z));
+      float d2 = length(vec2(pos.x, pos.z+eps));
+      float r1 = sin(d1*12.0 - uTime*2.0)*0.025*exp(-d1*0.25) + sin(d1*20.0 - uTime*3.5)*0.012*exp(-d1*0.4);
+      float r2 = sin(d2*12.0 - uTime*2.0)*0.025*exp(-d2*0.25) + sin(d2*20.0 - uTime*3.5)*0.012*exp(-d2*0.4);
+      vec3 pN = normalize(vec3(-(r1-ripple)/eps, 1.0, -(r2-ripple)/eps));
 
       vNormal = normalize(normalMatrix * pN);
       vWorldPos = (modelMatrix * vec4(pos, 1.0)).xyz;
@@ -650,33 +676,42 @@ body{-webkit-font-smoothing:antialiased}
       vec3 V = normalize(vViewPos);
       vec3 N = normalize(vNormal);
       float NdV = abs(dot(N, V));
-      float fresnel = pow(1.0 - NdV, 4.0);
+      float fresnel = pow(1.0 - NdV, 3.5);
 
-      // Mercury pool surface
-      vec3 chrome = mix(vec3(0.04), vec3(0.25, 0.26, 0.28), fresnel);
-      chrome = mix(chrome, vec3(0.7, 0.72, 0.75), pow(fresnel, 2.0));
-
-      // Reflection of blue glow from orb
+      // Dark mercury pool — high contrast chrome reflections on ripple crests
       float dist = length(vWorldPos.xz);
-      float orbReflect = exp(-dist * 1.5) * 0.4;
-      vec3 blueReflect = vec3(0.02, 0.2, 0.7) * orbReflect * (0.7 + 0.3 * sin(uTime * 0.6));
+      vec3 chrome = vec3(0.015);
+      // Ripple crests catch light — bright chrome bands
+      float crestLight = pow(fresnel, 1.5) * 0.8;
+      chrome = mix(chrome, vec3(0.5, 0.52, 0.56), crestLight);
+      chrome = mix(chrome, vec3(0.85, 0.87, 0.9), pow(fresnel, 3.0) * 0.6);
 
-      // Specular
-      vec3 H1 = normalize(normalize(vec3(0.3, 1.2, 0.6)) + V);
-      float spec = pow(max(dot(N, H1), 0.0), 128.0) * 0.8;
-      vec3 H2 = normalize(normalize(vec3(sin(uTime*0.3)*0.5, 0.8, 0.4)) + V);
-      spec += pow(max(dot(N, H2), 0.0), 200.0) * 0.5;
+      // Blue glow from center — intense beam contact point
+      float centerGlow = exp(-dist * 2.5) * 1.2;
+      float beamGlow = exp(-dist * 5.0) * 2.0; // very bright at center
+      vec3 blueLight = vec3(0.03, 0.35, 1.0) * centerGlow + vec3(0.3, 0.6, 1.0) * beamGlow;
+      blueLight *= 0.75 + 0.25 * sin(uTime * 0.6);
+
+      // Blue highlight on ripple crests near center
+      float blueRipple = exp(-dist * 0.8) * pow(fresnel, 1.5) * 0.5;
+      vec3 blueReflect = vec3(0.02, 0.2, 0.65) * blueRipple;
+
+      // Specular highlights on ripple crests
+      vec3 H1 = normalize(normalize(vec3(0.3, 1.5, 0.6)) + V);
+      float spec = pow(max(dot(N, H1), 0.0), 200.0) * 1.2;
+      vec3 H2 = normalize(normalize(vec3(-0.5, 1.0, 0.3)) + V);
+      spec += pow(max(dot(N, H2), 0.0), 150.0) * 0.6;
 
       // Edge fade
-      float fade = 1.0 - smoothstep(1.5, 2.8, dist);
+      float fade = 1.0 - smoothstep(1.8, 3.0, dist);
 
-      vec3 finalColor = chrome + blueReflect + vec3(0.9) * spec;
+      vec3 finalColor = chrome + blueLight + blueReflect + vec3(0.95) * spec;
       finalColor *= fade;
 
       // Tonemap
       finalColor = (finalColor * (2.51 * finalColor + 0.03)) / (finalColor * (2.43 * finalColor + 0.59) + 0.14);
 
-      gl_FragColor = vec4(finalColor, fade * 0.85);
+      gl_FragColor = vec4(finalColor, fade * 0.9);
     }
   `;
 
@@ -758,6 +793,157 @@ body{-webkit-font-smoothing:antialiased}
   pool.position.y = -1.25;
   scene.add(pool);
 
+  /* ─── LIQUID DRIP STREAMS ───────────────────────────────── */
+  // Central thick pillar + surrounding drip streams (like reference)
+  const dripStreamShader = {
+    vertexShader: `
+      uniform float uTime;
+      varying vec3 vNormal;
+      varying vec3 vViewPos;
+      varying vec3 vWorldPos;
+      varying float vY;
+
+      void main() {
+        vY = position.y;
+        // Gentle wobble
+        vec3 pos = position;
+        pos.x += sin(position.y * 4.0 + uTime * 1.5) * 0.008;
+        pos.z += cos(position.y * 3.0 + uTime * 1.2) * 0.006;
+
+        vNormal = normalize(normalMatrix * normal);
+        vWorldPos = (modelMatrix * vec4(pos, 1.0)).xyz;
+        vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
+        vViewPos = -mvPos.xyz;
+        gl_Position = projectionMatrix * mvPos;
+      }
+    `,
+    fragmentShader: `
+      uniform float uTime;
+      uniform float uIsCenter;
+      varying vec3 vNormal;
+      varying vec3 vViewPos;
+      varying vec3 vWorldPos;
+      varying float vY;
+
+      void main() {
+        vec3 V = normalize(vViewPos);
+        vec3 N = normalize(vNormal);
+        float NdV = abs(dot(N, V));
+        float fresnel = pow(1.0 - NdV, 4.0);
+
+        // Chrome drip
+        vec3 chrome = mix(vec3(0.03), vec3(0.35, 0.36, 0.4), fresnel);
+        chrome = mix(chrome, vec3(0.8, 0.82, 0.85), pow(fresnel, 2.0));
+
+        // Blue glow — strongest at bottom where drip meets pool
+        float bottomGlow = smoothstep(-0.8, -1.25, vWorldPos.y);
+        vec3 blueGlow = vec3(0.03, 0.35, 1.0) * bottomGlow * (1.0 + uIsCenter * 2.0);
+        blueGlow *= 0.7 + 0.3 * sin(uTime * 0.6);
+
+        // Specular
+        vec3 H1 = normalize(normalize(vec3(0.3, 1.2, 0.6)) + V);
+        float spec = pow(max(dot(N, H1), 0.0), 200.0) * 1.5;
+
+        // Flowing highlight pattern
+        float flow = sin(vY * 8.0 - uTime * 2.5) * 0.15 + 0.85;
+
+        vec3 finalColor = (chrome * flow + vec3(0.9) * spec + blueGlow);
+        finalColor = (finalColor * (2.51 * finalColor + 0.03)) / (finalColor * (2.43 * finalColor + 0.59) + 0.14);
+
+        gl_FragColor = vec4(finalColor, 1.0);
+      }
+    `
+  };
+
+  // Central thick pillar
+  const pillarGeom = new THREE.CylinderGeometry(0.06, 0.04, 1.55, 24, 32);
+  const pillarMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uIsCenter: { value: 1.0 } },
+    vertexShader: dripStreamShader.vertexShader,
+    fragmentShader: dripStreamShader.fragmentShader,
+  });
+  const pillar = new THREE.Mesh(pillarGeom, pillarMat);
+  pillar.position.set(0, -0.48, 0);
+  scene.add(pillar);
+
+  // Surrounding drip streams — 5 thinner drips at varying angles
+  const dripStreams = [];
+  const dripAngles = [0, 1.2, 2.4, 3.6, 4.8];
+  for (let i = 0; i < 5; i++) {
+    const angle = dripAngles[i];
+    const radius = 0.22 + Math.random() * 0.12;
+    const thickness = 0.015 + Math.random() * 0.015;
+    const height = 0.8 + Math.random() * 0.5;
+
+    // Create curved drip using tube
+    const points = [];
+    const segs = 16;
+    for (let j = 0; j <= segs; j++) {
+      const t = j / segs;
+      const x = Math.cos(angle) * radius * (1.0 - t * 0.3);
+      const y = -0.6 - t * height;
+      const z = Math.sin(angle) * radius * (1.0 - t * 0.3);
+      points.push(new THREE.Vector3(x, y, z));
+    }
+    const curve = new THREE.CatmullRomCurve3(points);
+    const tubeGeom = new THREE.TubeGeometry(curve, 20, thickness, 8, false);
+    const dripMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uIsCenter: { value: 0.0 } },
+      vertexShader: dripStreamShader.vertexShader,
+      fragmentShader: dripStreamShader.fragmentShader,
+    });
+    const drip = new THREE.Mesh(tubeGeom, dripMat);
+    scene.add(drip);
+    dripStreams.push(drip);
+  }
+
+  /* ─── BLUE BEAM (where central pillar meets pool) ──────── */
+  const beamGeom = new THREE.CylinderGeometry(0.02, 0.08, 0.4, 16, 1, true);
+  const beamMat = new THREE.MeshBasicMaterial({
+    color: 0x1188ff,
+    transparent: true,
+    opacity: 0.6,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const beam = new THREE.Mesh(beamGeom, beamMat);
+  beam.position.set(0, -1.15, 0);
+  scene.add(beam);
+
+  // Bright beam flare at contact point
+  const flareGeom = new THREE.SphereGeometry(0.12, 16, 16);
+  const flareMat = new THREE.MeshBasicMaterial({
+    color: 0x44aaff,
+    transparent: true,
+    opacity: 0.5,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const beamFlare = new THREE.Mesh(flareGeom, flareMat);
+  beamFlare.position.set(0, -1.25, 0);
+  beamFlare.scale.set(1, 0.3, 1);
+  scene.add(beamFlare);
+
+  /* ─── CIRCUIT TRACE PARTICLES ──────────────────────────── */
+  // Subtle blue dots/lines on sides (like reference)
+  const circuitCount = 30;
+  const circuitGeo = new THREE.BufferGeometry();
+  const cPositions = new Float32Array(circuitCount * 3);
+  for (let i = 0; i < circuitCount; i++) {
+    const side = i % 2 === 0 ? -1 : 1;
+    cPositions[i * 3] = side * (1.5 + Math.random() * 1.0);
+    cPositions[i * 3 + 1] = -0.5 + Math.random() * 1.0 - 0.5;
+    cPositions[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
+  }
+  circuitGeo.setAttribute('position', new THREE.BufferAttribute(cPositions, 3));
+  const circuitMat = new THREE.PointsMaterial({
+    size: 0.012, color: 0x2266cc, transparent: true, opacity: 0.15,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const circuits = new THREE.Points(circuitGeo, circuitMat);
+  scene.add(circuits);
+
   /* ─── PROCEDURAL NOISE (Variant A) ──────────────────────── */
   function updateNoise(time) {
     for (let y = 0; y < noiseSize; y++) {
@@ -813,11 +999,29 @@ body{-webkit-font-smoothing:antialiased}
 
     // Blue core pulse
     const pulse = 0.7 + 0.3 * Math.sin(t * 0.6);
-    blueCore.intensity = 2.0 * pulse;
-    blueUnder.intensity = 1.2 * pulse;
-    glowSphere.material.opacity = 0.1 + 0.08 * pulse;
+    blueCore.intensity = 2.5 * pulse;
+    blueUnder.intensity = 1.8 * pulse;
+    glowSphere.material.opacity = 0.12 + 0.1 * pulse;
     halo.material.opacity = 0.03 + 0.02 * pulse;
     halo.scale.setScalar(1.0 + Math.sin(t * 0.5) * 0.03);
+
+    // Drip stream animation
+    pillarMat.uniforms.uTime.value = t;
+    for (const ds of dripStreams) ds.material.uniforms.uTime.value = t;
+
+    // Blue beam pulse
+    beamMat.opacity = 0.4 + 0.3 * pulse;
+    flareMat.opacity = 0.3 + 0.4 * pulse;
+    beamFlare.scale.set(1 + Math.sin(t * 1.5) * 0.15, 0.3, 1 + Math.sin(t * 1.5) * 0.15);
+
+    // Circuit particles subtle drift
+    circuits.rotation.y = t * 0.005;
+    const cArr = circuits.geometry.attributes.position.array;
+    for (let i = 0; i < circuitCount; i++) {
+      cArr[i * 3 + 1] += 0.0003;
+      if (cArr[i * 3 + 1] > 0.5) cArr[i * 3 + 1] = -1.5;
+    }
+    circuits.geometry.attributes.position.needsUpdate = true;
 
     renderer.render(scene, camera);
   }
@@ -1518,6 +1722,15 @@ body{-webkit-font-smoothing:antialiased}
      EXPOSE API
      ═══════════════════════════════════════════════════════════ */
 
+  function navTo(module) {
+    // Update active state
+    document.querySelectorAll('.nav-module').forEach((el, i) => {
+      const labels = ['system','render','tae','iot','syncori'];
+      el.classList.toggle('active', labels[i] === module);
+    });
+    showToast(module.charAt(0).toUpperCase() + module.slice(1) + ' module');
+  }
+
   window.SIOS = {
     authState, balanceState, platformState,
     register, login, logout,
@@ -1526,7 +1739,7 @@ body{-webkit-font-smoothing:antialiased}
     openPlansPanel, closePlans, openBillingPortal,
     startCheckout, showAllocation, closeAlloc,
     closePanel, toggleAcctMenu, toggleVariant,
-    dismissAlert, addConvMsg, TAE_CONFIG,
+    dismissAlert, addConvMsg, TAE_CONFIG, navTo,
   };
 
 })();
