@@ -2,9 +2,9 @@
   publish = "."
   command = ""
 
-[build.environment]
-  SIOS_BACKEND_URL = "https://sioslive.onrender.com"
-  TAE_BACKEND_URL = "https://sioslive.onrender.com"
+# ─── Proxy all API calls to Render backend ─────────────────
+# Netlify rewrites /api/* → https://api.sios.live/api/:splat
+# If api.sios.live is not yet configured, use the Render URL directly.
 
 [[redirects]]
   from = "/api/*"
@@ -25,36 +25,13 @@
   force = true
 
 [[redirects]]
-  from = "/billing/*"
-  to = "https://sioslive.onrender.com/billing/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/admin/*"
-  to = "https://sioslive.onrender.com/admin/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/webhook/stripe"
-  to = "https://sioslive.onrender.com/webhook/stripe"
-  status = 200
-  force = true
-
-[[redirects]]
   from = "/health"
   to = "https://sioslive.onrender.com/health"
   status = 200
   force = true
 
+# SPA fallback — all other routes serve index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-SIOS-Backend = "https://sioslive.onrender.com"
-    X-SIOS-Frontend = "https://sios-runtime.netlify.app"
