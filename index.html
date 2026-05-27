@@ -227,6 +227,91 @@ body{-webkit-font-smoothing:antialiased}
   .prompt{width:min(92vw,520px)}
   .plans-grid{grid-template-columns:1fr}
 }
+
+/* ═══════════════════════════════════════════════════════════
+   MODULE SYSTEM — SpaceOS Layout
+   ═══════════════════════════════════════════════════════════ */
+
+#starsCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:0;transition:opacity 1.2s cubic-bezier(.16,1,.24,1)}
+#starsCanvas.on{opacity:1}
+
+.earth-horizon{position:fixed;bottom:-2%;left:-12%;right:-12%;height:38vh;z-index:2;pointer-events:none;opacity:0;transition:opacity 1.2s cubic-bezier(.16,1,.24,1);border-radius:50% 50% 0 0 / 20% 20% 0 0}
+.earth-horizon.on{opacity:1}
+.earth-horizon::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,transparent 0%,rgba(15,50,140,.14) 35%,rgba(25,80,190,.22) 60%,rgba(35,100,210,.32) 80%,rgba(40,110,220,.38) 100%);box-shadow:0 -12px 70px rgba(20,80,210,.12)}
+.earth-glow{position:fixed;bottom:-10vh;left:50%;transform:translateX(-50%);width:180%;height:35vh;z-index:2;pointer-events:none;opacity:0;transition:opacity 1.2s cubic-bezier(.16,1,.24,1)}
+.earth-glow.on{opacity:1}
+.earth-glow::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at 50% 100%,rgba(40,120,255,.07) 0%,rgba(20,80,180,.03) 40%,transparent 70%)}
+
+.module-view{position:fixed;inset:0;z-index:150;pointer-events:none;opacity:0;transition:opacity .5s cubic-bezier(.16,1,.24,1)}
+.module-view.open{opacity:1;pointer-events:auto}
+
+.module-back{position:fixed;top:max(10px,env(safe-area-inset-top));left:max(14px,env(safe-area-inset-left));z-index:160;border:1px solid rgba(100,150,220,.18);border-radius:999px;background:rgba(0,5,22,.75);backdrop-filter:blur(10px);color:rgba(170,205,255,.6);padding:7px 16px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;opacity:0;transition:all .4s cubic-bezier(.16,1,.24,1);pointer-events:none}
+.module-back.on{opacity:1;pointer-events:auto}
+.module-back:hover{color:#fff;border-color:rgba(100,150,220,.42);background:rgba(0,18,55,.85)}
+
+.module-page{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;pointer-events:auto;opacity:0;transition:opacity .45s cubic-bezier(.16,1,.24,1)}
+.module-page.active{opacity:1}
+
+.mp-hdr{position:absolute;top:max(7px,env(safe-area-inset-top));left:0;right:0;display:flex;justify-content:space-between;padding:0 max(14px,env(safe-area-inset-left));font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:rgba(110,155,215,.32);pointer-events:none;z-index:5}
+
+.mp-name{margin-top:max(38px,calc(env(safe-area-inset-top) + 30px));font-size:clamp(28px,7.5vw,54px);font-weight:300;letter-spacing:.2em;text-align:center;background:linear-gradient(180deg,#dce4f2 0%,#fff 14%,#999 40%,#444 56%,#aaa 70%,#fff 85%,#ccc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 18px rgba(180,200,240,.2));position:relative;z-index:5;pointer-events:none;flex-shrink:0}
+.mp-sub{font-size:clamp(8px,2vw,11px);letter-spacing:.19em;text-align:center;text-transform:uppercase;color:rgba(165,200,255,.48);margin-top:5px;padding:0 18px;max-width:320px;line-height:1.5;position:relative;z-index:5;pointer-events:none;flex-shrink:0}
+
+.mp-orb-zone{flex:1;width:100%;position:relative;min-height:0}
+
+.mp-sides{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;justify-content:space-between;align-items:center;padding:0 5px;pointer-events:none;z-index:20}
+.mp-panel{background:rgba(0,5,24,.62);border:1px solid rgba(80,130,200,.13);border-radius:12px;padding:9px 10px;min-width:min(27vw,108px);max-width:min(32vw,128px);backdrop-filter:blur(10px)}
+.mp-panel-r{text-align:right}
+.mp-pr{padding:3px 0;border-bottom:1px solid rgba(80,130,200,.06)}
+.mp-pr:last-child{border:0}
+.mp-pk{font-size:6px;letter-spacing:.12em;text-transform:uppercase;color:rgba(95,145,215,.42)}
+.mp-pv{font-size:8px;letter-spacing:.07em;text-transform:uppercase;color:rgba(212,228,255,.88);font-weight:500;margin-top:1px}
+.mp-panel-r .mp-pk,.mp-panel-r .mp-pv{text-align:right}
+
+.mp-orb-icon{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(44vw,172px);height:min(44vw,172px);z-index:25;pointer-events:none}
+.mp-orb-icon svg{width:100%;height:100%}
+@keyframes orbIconPulse{0%,100%{opacity:.75;transform:translate(-50%,-50%) scale(1)}50%{opacity:.92;transform:translate(-50%,-50%) scale(1.04)}}
+.mp-orb-icon.pulse{animation:orbIconPulse 3.2s ease-in-out infinite}
+
+.mp-status-area{position:absolute;bottom:6px;left:0;right:0;text-align:center;pointer-events:none;z-index:5}
+.mp-status-line{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:rgba(165,200,255,.42)}
+.mp-tline{font-size:clamp(9px,2.2vw,12px);letter-spacing:.19em;text-transform:uppercase;color:rgba(205,225,255,.58);margin-top:5px}
+.mp-sig{margin-top:12px}
+.mp-sig-a{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:rgba(145,185,255,.32)}
+.mp-sig-b{font-size:clamp(13px,3.2vw,18px);font-weight:300;letter-spacing:.07em;color:rgba(228,238,255,.88);text-shadow:0 0 20px rgba(80,140,255,.22)}
+
+.mod-carousel-wrap{width:100%;padding:8px 0 0;pointer-events:auto;flex-shrink:0}
+.mod-carousel{display:flex;gap:7px;overflow-x:auto;padding:0 max(12px,env(safe-area-inset-left)) 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory}
+.mod-carousel::-webkit-scrollbar{display:none}
+.mc-card{flex-shrink:0;width:76px;border-radius:13px;padding:9px 5px 7px;text-align:center;border:1px solid rgba(80,130,200,.11);background:rgba(0,5,22,.62);backdrop-filter:blur(6px);cursor:pointer;transition:all .35s cubic-bezier(.16,1,.24,1);scroll-snap-align:center;-webkit-tap-highlight-color:transparent}
+.mc-card:hover{border-color:rgba(80,130,200,.28);background:rgba(0,14,44,.78)}
+.mc-card.mc-active{border-color:var(--mc,rgba(8,123,255,.5));background:rgba(0,10,38,.82);box-shadow:0 0 16px rgba(0,0,0,.35),0 0 9px var(--mc,rgba(0,100,255,.2))}
+.mc-icon{width:30px;height:30px;margin:0 auto 4px;color:rgba(125,170,228,.48);transition:color .35s,filter .35s}
+.mc-card.mc-active .mc-icon{color:var(--mc,#087bff);filter:drop-shadow(0 0 5px var(--mc,rgba(0,100,255,.4)))}
+.mc-name{font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(125,170,228,.48);line-height:1.2;transition:color .35s}
+.mc-card.mc-active .mc-name{color:rgba(212,228,255,.9)}
+.mc-sub{font-size:6px;letter-spacing:.04em;color:rgba(95,135,195,.3);margin-top:2px;line-height:1.2}
+
+.mod-pagination{display:flex;gap:5px;justify-content:center;padding:5px 0;pointer-events:auto;flex-shrink:0}
+.mod-dot{width:4px;height:4px;border-radius:50%;background:rgba(125,170,228,.2);cursor:pointer;transition:all .3s}
+.mod-dot.active{background:rgba(175,210,255,.75);transform:scale(1.4)}
+
+.mod-footer{width:100%;text-align:center;padding:4px 14px max(10px,env(safe-area-inset-bottom));flex-shrink:0;pointer-events:none}
+.mod-footer-txt{font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:rgba(95,135,195,.25)}
+.mod-fp{width:14px;height:14px;margin:3px auto 0;opacity:.22}
+.mod-fp svg{width:100%;height:100%}
+
+.modules-btn{position:absolute;left:50%;bottom:max(10px,calc(env(safe-area-inset-bottom) + 6px));transform:translateX(-50%) translateY(18px);opacity:0;pointer-events:auto;border:1px solid rgba(91,176,255,.16);border-radius:999px;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);color:rgba(145,185,255,.5);padding:6px 22px;font-size:10px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:1s cubic-bezier(.16,1,.24,1)}
+.modules-btn.on{opacity:1;transform:translateX(-50%)}
+.modules-btn:hover{color:rgba(195,220,255,.8);border-color:rgba(91,176,255,.32)}
+
+@media(max-width:420px){
+  .mc-card{width:70px;padding:8px 4px 6px}
+  .mc-icon{width:27px;height:27px}
+  .mc-name{font-size:7px}
+  .mp-panel{min-width:min(29vw,98px);padding:7px 8px}
+  .mp-pv{font-size:7.5px}
+}
 </style>
 </head>
 <body>
@@ -382,7 +467,23 @@ body{-webkit-font-smoothing:antialiased}
     <button id="menuLogout" onclick="SIOS.logout()" style="display:none">Logout</button>
   </div>
 
+  <!-- ── Module system ─────────────────────────────────── -->
+  <div class="module-view" id="moduleView">
+    <div class="module-page" id="modPage"></div>
+  </div>
+
+  <!-- Modules explore button (home state) -->
+  <button class="modules-btn" id="modulesBtn" onclick="SIOS.openModules()">⊞ Modules</button>
+
 </div>
+
+<!-- Stars + Earth (behind interface, above orb canvas) -->
+<canvas id="starsCanvas"></canvas>
+<div class="earth-horizon" id="earthHorizon"></div>
+<div class="earth-glow"    id="earthGlow"></div>
+
+<!-- Module back button (above module view) -->
+<button class="module-back" id="moduleBack" onclick="SIOS.closeModules()">← Back</button>
 
 <!-- Boot fade -->
 <div class="fadeBlack" id="fade"></div>
@@ -1615,6 +1716,7 @@ body{-webkit-font-smoothing:antialiased}
       promptBar.classList.add('on');
       signupBtn.classList.add('on');
       demoBtn.classList.add('on');
+      $('modulesBtn')?.classList.add('on');
     }, 1800);
 
     // Set initial state if APIs didn't populate
@@ -1922,6 +2024,7 @@ body{-webkit-font-smoothing:antialiased}
     signupBtn.classList.remove('on');
     demoBtn.classList.remove('on');
     promptBar.classList.remove('on');
+    $('modulesBtn')?.classList.remove('on');
     tourSkip.classList.add('on');
     tourProgress.style.width = '0%';
 
@@ -1954,6 +2057,7 @@ body{-webkit-font-smoothing:antialiased}
       promptBar.classList.add('on');
       signupBtn.classList.add('on');
       demoBtn.classList.add('on');
+      $('modulesBtn')?.classList.add('on');
       tourProgress.style.width = '0%';
       $('laneLabel').textContent = demoActive ? 'PRIME' : 'DEMO';
     }, 800);
@@ -1971,8 +2075,223 @@ body{-webkit-font-smoothing:antialiased}
 
   // Keyboard: Escape to skip
   document.addEventListener('keydown', (e) => {
+    if (modulesOpen) {
+      if      (e.key === 'ArrowRight') navigateToModuleIdx(activeModIdx + 1);
+      else if (e.key === 'ArrowLeft')  navigateToModuleIdx(activeModIdx - 1);
+      else if (e.key === 'Escape')     { closeModules(); return; }
+    }
     if (e.key === 'Escape' && tourActive) skipTour();
   });
+
+  /* ═══════════════════════════════════════════════════════════
+     MODULE SYSTEM — SpaceOS Navigation
+     ═══════════════════════════════════════════════════════════ */
+
+  const MODULES = [
+    { id:'sios',    name:'SIOS',        subtitle:'System Intelligence Operating System',
+      status:'AWAKENED',    tagline:'The Living Runtime Body.',
+      color:'#087bff', shortSub:'System Intelligence\nOS',
+      panelLeft:[['STATUS','AWAKENED'],['NETWORK','GALACTIC'],['SECURITY','QUANTUM ENCRYPTED'],['DESIGNATION','ACTIVE'],['CLEARANCE','PRIME ORCHESTRATOR']],
+      panelRight:null },
+    { id:'sare',    name:'SARE',        subtitle:'Spatial Agentic Runtime Environment',
+      status:'EXECUTING',   tagline:'Route. Coordinate. Deliver.',
+      color:'#087bff', shortSub:'Spatial Agentic\nRuntime Environment',
+      panelLeft:[['STATUS','EXECUTING'],['MODE','ACTIVE'],['NETWORK','GALACTIC'],['COORDINATION','DISTRIBUTED'],['ROUTING','OPTIMAL'],['AGENTS','ONLINE']],
+      panelRight:[['SARE CORE',''],['AGENT REGISTRY','ACTIVE'],['TASK ROUTING','OPTIMAL'],['CONTEXT AWARE','ENABLED'],['LEARNING LOOP','ENGAGED'],['OUTCOME','ASSURED']] },
+    { id:'aragip',  name:'ARAGiP',      subtitle:'Access, Routing, Authentication,\nGateway, Intelligent Payments',
+      status:'SECURED',     tagline:'Authenticate. Authorize. Route.',
+      color:'#f0a000', shortSub:'Access · Auth\nGateway · Payments',
+      panelLeft:[['STATUS','SECURED'],['NETWORK','GALACTIC'],['SECURITY','QUANTUM ENCRYPTED'],['ACCESS LEVEL','OMEGA'],['SIGNAL','STRONG'],['SYNC','ESTABLISHED']],
+      panelRight:[['GID','399152573423'],['ROLE','GATEWAY ORCHESTRATOR'],['AUTHORITY','PRIME ARCHITECT'],['SYSTEMS','SIOS ECOSYSTEM'],['COGNITIVE LINK','LIVE'],['UNIVERSE NODE','EARTH / SOL']] },
+    { id:'heros',   name:'HEROS/NSOS',  subtitle:'Human Emergency Response /\nNeighborhood Spatial Operating System',
+      status:'ACTIVE',      tagline:'Protect. Respond. Coordinate.',
+      color:'#ff4444', shortSub:'Human Emergency\nResponse OS',
+      panelLeft:[['STATUS','ACTIVE'],['NETWORK','GALACTIC'],['EMERGENCY','MONITORING'],['RESPONSE','READY'],['COVERAGE','NEIGHBORHOOD'],['SIGNAL','STRONG']],
+      panelRight:null },
+    { id:'vulgate', name:'VULGATE',     subtitle:'Parallel Visualization Reality Engine',
+      status:'VISUALIZING', tagline:'See the Future. Build the Destiny.',
+      color:'#f0a000', shortSub:'Parallel Visualization\nReality Engine',
+      panelLeft:[['STATUS','VISUALIZING'],['ENGINE','PARALLEL RENDER'],['LAYERS','INFINITE'],['FIDELITY','MAXIMUM'],['REALITY','ACTIVE']],
+      panelRight:null },
+    { id:'siaas',   name:'SI.AAS',      subtitle:'Spatial Intelligence as a Service',
+      status:'OPERATING',   tagline:'Store. Organize. Deliver Spatial Intelligence.',
+      color:'#00ccff', shortSub:'Spatial Intelligence\nas a Service',
+      panelLeft:[['STATUS','OPERATING'],['NETWORK','GALACTIC'],['SECURITY','QUANTUM ENCRYPTED'],['ACCESS LEVEL','OMEGA'],['SIGNAL','STRONG'],['SYNC','ESTABLISHED']],
+      panelRight:[['ROLE','SPATIAL INTELLIGENCE PROVIDER'],['AUTHORITY','PRIME ORCHESTRATOR'],['SYSTEMS','SIOS ECOSYSTEM'],['COGNITIVE LINK','LIVE'],['UNIVERSE NODE','EARTH / SOL']] },
+    { id:'pppiaas', name:'PPPIaaS',     subtitle:'Personal / Professional / Platform\nIntelligence as a Service',
+      status:'ANALYZING',   tagline:'Personal. Professional. Platform.',
+      color:'#8844ff', shortSub:'Personal / Professional\nPlatform Intelligence',
+      panelLeft:null, panelRight:null },
+    { id:'syncori', name:'SYNCORI',     subtitle:'Augment Rendering Studio',
+      status:'RENDERING',   tagline:'Synchronize. Visualize. Animate.',
+      color:'#8844ff', shortSub:'Augment\nRendering Studio',
+      panelLeft:[['STATUS','RENDERING'],['RENDER ENGINE','SYNCORI CORE'],['MODE','REAL-TIME'],['OUTPUT','IMMERSIVE VISUALS'],['SYNC LEVEL','OPTIMAL']],
+      panelRight:[['RESOLUTION','8K / INFINITE'],['FRAME RATE','∞ FPS'],['LATENCY','0.1 MS'],['PIPELINE','OPTIMIZED'],['VISUAL FIDELITY','MAXIMUM']] },
+    { id:'audioori',name:'AUDIOORI',    subtitle:'Augment Audio Recording Studio',
+      status:'ACTIVE',      tagline:'Signal. Create. Release.',
+      color:'#cc44ff', shortSub:'Augment Audio\nRecording Studio',
+      panelLeft:[['STATUS','ACTIVE'],['STUDIO','ONLINE'],['CHANNELS','INFINITE'],['QUALITY','LOSSLESS'],['SIGNAL','STRONG']],
+      panelRight:null },
+    { id:'slice',   name:'SLICE/SWORD', subtitle:'Schematic Execution Protocol',
+      status:'READY',       tagline:'Slice the Complex. Execute the Truth.',
+      color:'#87ceeb', shortSub:'Schematic\nExecution Protocol',
+      panelLeft:[['STATUS','READY'],['PROTOCOL','ACTIVE'],['PRECISION','MAXIMUM'],['EXECUTION','COMMITTED'],['CLARITY','ABSOLUTE']],
+      panelRight:null },
+  ];
+
+  const MOD_ICONS = {
+    sios:     `<svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="9" stroke="currentColor" stroke-width="2"/><circle cx="30" cy="30" r="20" stroke="currentColor" stroke-width="1" opacity="0.38"/><path d="M30,10 C39,13 45,21 44,30 C43,39 35,45 26,43 C18,41 12,32 14,23 C16,14 23,9 30,10Z" stroke="currentColor" stroke-width="1.5" opacity="0.72" fill="none"/></svg>`,
+    sare:     `<svg viewBox="0 0 60 60" fill="none"><ellipse cx="30" cy="30" rx="23" ry="8" stroke="currentColor" stroke-width="1.5"/><ellipse cx="30" cy="30" rx="23" ry="8" stroke="currentColor" stroke-width="1.5" transform="rotate(60 30 30)"/><ellipse cx="30" cy="30" rx="23" ry="8" stroke="currentColor" stroke-width="1.5" transform="rotate(120 30 30)"/><circle cx="30" cy="30" r="4" fill="currentColor"/></svg>`,
+    aragip:   `<svg viewBox="0 0 60 60" fill="none"><path d="M30,7 L52,18 L52,36 Q52,50 30,56 Q8,50 8,36 L8,18 Z" stroke="currentColor" stroke-width="1.5"/><rect x="24" y="36" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M26,36 L26,30 Q26,24 30,24 Q34,24 34,30 L34,36" stroke="currentColor" stroke-width="1.5"/></svg>`,
+    heros:    `<svg viewBox="0 0 60 60" fill="none"><rect x="26" y="11" width="8" height="38" rx="2" stroke="currentColor" stroke-width="2"/><rect x="11" y="26" width="38" height="8" rx="2" stroke="currentColor" stroke-width="2"/></svg>`,
+    vulgate:  `<svg viewBox="0 0 60 60" fill="none"><rect x="27" y="10" width="6" height="40" stroke="currentColor" stroke-width="1.5"/><rect x="19" y="22" width="6" height="28" stroke="currentColor" stroke-width="1.5"/><rect x="35" y="16" width="6" height="34" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="32" width="6" height="18" stroke="currentColor" stroke-width="1.5"/><rect x="43" y="28" width="6" height="22" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="50" x2="52" y2="50" stroke="currentColor" stroke-width="1.5"/></svg>`,
+    siaas:    `<svg viewBox="0 0 60 60" fill="none"><polygon points="30,8 52,20 52,40 30,52 8,40 8,20" stroke="currentColor" stroke-width="1.5"/><line x1="30" y1="8" x2="30" y2="30" stroke="currentColor" stroke-width="1" opacity="0.5"/><line x1="52" y1="20" x2="30" y2="30" stroke="currentColor" stroke-width="1" opacity="0.5"/><line x1="8" y1="20" x2="30" y2="30" stroke="currentColor" stroke-width="1" opacity="0.5"/><circle cx="30" cy="30" r="3" fill="currentColor"/></svg>`,
+    pppiaas:  `<svg viewBox="0 0 60 60" fill="none"><polygon points="30,7 53,46 7,46" stroke="currentColor" stroke-width="1.5"/><circle cx="30" cy="7" r="4" fill="currentColor"/><circle cx="53" cy="46" r="4" fill="currentColor"/><circle cx="7" cy="46" r="4" fill="currentColor"/><circle cx="30" cy="30" r="3" fill="white" opacity="0.7"/><line x1="30" y1="7" x2="30" y2="30" stroke="currentColor" stroke-width="0.8" opacity="0.4"/><line x1="53" y1="46" x2="30" y2="30" stroke="currentColor" stroke-width="0.8" opacity="0.4"/><line x1="7" y1="46" x2="30" y2="30" stroke="currentColor" stroke-width="0.8" opacity="0.4"/></svg>`,
+    syncori:  `<svg viewBox="0 0 60 60" fill="none"><path d="M8,30 Q30,8 52,30 Q30,52 8,30Z" stroke="currentColor" stroke-width="1.5"/><circle cx="30" cy="30" r="10" stroke="currentColor" stroke-width="1.5"/><circle cx="30" cy="30" r="4" fill="currentColor"/><path d="M12,42 Q16,36 20,42 Q24,48 28,42 Q32,36 36,42 Q40,48 44,42 Q48,36 52,42" stroke="currentColor" stroke-width="0.8" opacity="0.5"/></svg>`,
+    audioori: `<svg viewBox="0 0 60 60" fill="none"><rect x="8" y="26" width="5" height="8" rx="2.5" fill="currentColor" opacity="0.6"/><rect x="16" y="20" width="5" height="20" rx="2.5" fill="currentColor" opacity="0.75"/><rect x="24" y="12" width="5" height="36" rx="2.5" fill="currentColor"/><rect x="32" y="16" width="5" height="28" rx="2.5" fill="currentColor"/><rect x="40" y="22" width="5" height="16" rx="2.5" fill="currentColor" opacity="0.75"/><rect x="48" y="27" width="5" height="6" rx="2.5" fill="currentColor" opacity="0.5"/></svg>`,
+    slice:    `<svg viewBox="0 0 60 60" fill="none"><line x1="30" y1="4" x2="30" y2="50" stroke="currentColor" stroke-width="3.5"/><line x1="21" y1="42" x2="39" y2="42" stroke="currentColor" stroke-width="4"/><rect x="27" y="50" width="6" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><line x1="28" y1="10" x2="28" y2="40" stroke="rgba(255,255,255,.38)" stroke-width="1.5"/></svg>`,
+  };
+
+  const ORB_ICONS = {
+    sios:     `<svg viewBox="0 0 120 120" fill="none"><path d="M60,20 C78,24 90,40 87,57 C84,74 69,84 52,80 C36,76 26,60 30,44 C34,28 46,18 60,20Z" stroke="#5bb0ff" stroke-width="1.5" opacity="0.85"/><path d="M60,35 C71,38 79,49 77,59 C75,69 64,74 54,71 C44,68 38,57 41,47 C44,37 52,33 60,35Z" stroke="#087bff" stroke-width="1" opacity="0.45"/><circle cx="60" cy="60" r="6" fill="#5bb0ff" opacity="0.95"/><circle cx="60" cy="60" r="17" stroke="#087bff" stroke-width="0.8" opacity="0.28"/><path d="M60,18 L60,26 M98,60 L90,60 M60,102 L60,94 M22,60 L30,60" stroke="#087bff" stroke-width="1" opacity="0.22"/></svg>`,
+    sare:     `<svg viewBox="0 0 120 120" fill="none"><ellipse cx="60" cy="60" rx="47" ry="16" stroke="#5bb0ff" stroke-width="1.5" opacity="0.9"/><ellipse cx="60" cy="60" rx="47" ry="16" stroke="#5bb0ff" stroke-width="1.5" opacity="0.9" transform="rotate(60 60 60)"/><ellipse cx="60" cy="60" rx="47" ry="16" stroke="#5bb0ff" stroke-width="1.5" opacity="0.9" transform="rotate(120 60 60)"/><circle cx="60" cy="60" r="8" fill="#087bff" opacity="0.9"/><circle cx="60" cy="21" r="4" fill="#5bb0ff" opacity="0.78"/><circle cx="60" cy="99" r="4" fill="#5bb0ff" opacity="0.68"/><circle cx="99" cy="60" r="4" fill="#5bb0ff" opacity="0.68"/><circle cx="21" cy="60" r="3" fill="#5bb0ff" opacity="0.48"/></svg>`,
+    aragip:   `<svg viewBox="0 0 120 120" fill="none"><path d="M60,12 L102,32 L102,68 Q102,98 60,110 Q18,98 18,68 L18,32 Z" stroke="#f0a000" stroke-width="2" opacity="0.9"/><path d="M60,28 L88,42 L88,66 Q88,84 60,92 Q32,84 32,66 L32,42 Z" stroke="#f0a000" stroke-width="1" opacity="0.32"/><rect x="47" y="70" width="26" height="19" rx="3" stroke="#f0a000" stroke-width="2"/><path d="M52,70 L52,59 Q52,49 60,49 Q68,49 68,59 L68,70" stroke="#f0a000" stroke-width="2"/><circle cx="60" cy="79" r="3" fill="#f0a000"/></svg>`,
+    heros:    `<svg viewBox="0 0 120 120" fill="none"><circle cx="60" cy="60" r="46" stroke="#ff4444" stroke-width="1" opacity="0.22"/><rect x="52" y="22" width="16" height="76" rx="4" stroke="#ff4444" stroke-width="2.5"/><rect x="22" y="52" width="76" height="16" rx="4" stroke="#ff4444" stroke-width="2.5"/><rect x="52" y="22" width="16" height="76" rx="4" fill="rgba(255,68,68,.07)"/><rect x="22" y="52" width="76" height="16" rx="4" fill="rgba(255,68,68,.07)"/></svg>`,
+    vulgate:  `<svg viewBox="0 0 120 120" fill="none"><rect x="56" y="18" width="8" height="82" stroke="#ffd700" stroke-width="1.5" opacity="0.9"/><rect x="44" y="34" width="8" height="66" stroke="#ffd700" stroke-width="1.5" opacity="0.8"/><rect x="68" y="26" width="8" height="74" stroke="#ffd700" stroke-width="1.5" opacity="0.8"/><rect x="32" y="48" width="8" height="52" stroke="#ffd700" stroke-width="1.5" opacity="0.65"/><rect x="80" y="42" width="8" height="58" stroke="#ffd700" stroke-width="1.5" opacity="0.65"/><line x1="18" y1="102" x2="102" y2="102" stroke="#ffd700" stroke-width="1.5" opacity="0.48"/><circle cx="60" cy="18" r="3" fill="#ffd700" opacity="0.6"/></svg>`,
+    siaas:    `<svg viewBox="0 0 120 120" fill="none"><polygon points="60,12 105,36 105,84 60,108 15,84 15,36" stroke="#00ccff" stroke-width="1.5" opacity="0.9"/><line x1="60" y1="12" x2="60" y2="60" stroke="#00ccff" stroke-width="1" opacity="0.44"/><line x1="105" y1="36" x2="60" y2="60" stroke="#00ccff" stroke-width="1" opacity="0.44"/><line x1="15" y1="36" x2="60" y2="60" stroke="#00ccff" stroke-width="1" opacity="0.44"/><circle cx="60" cy="60" r="7" fill="#00ccff" opacity="0.9"/><circle cx="60" cy="12" r="3" fill="#00ccff" opacity="0.7"/><circle cx="105" cy="36" r="3" fill="#00ccff" opacity="0.7"/><circle cx="105" cy="84" r="3" fill="#00ccff" opacity="0.7"/><circle cx="60" cy="108" r="3" fill="#00ccff" opacity="0.7"/><circle cx="15" cy="84" r="3" fill="#00ccff" opacity="0.7"/><circle cx="15" cy="36" r="3" fill="#00ccff" opacity="0.7"/></svg>`,
+    pppiaas:  `<svg viewBox="0 0 120 120" fill="none"><polygon points="60,10 106,88 14,88" stroke="#8844ff" stroke-width="2" opacity="0.9"/><circle cx="60" cy="10" r="8" stroke="#8844ff" stroke-width="2" fill="rgba(136,68,255,.15)"/><circle cx="106" cy="88" r="8" stroke="#8844ff" stroke-width="2" fill="rgba(136,68,255,.15)"/><circle cx="14" cy="88" r="8" stroke="#8844ff" stroke-width="2" fill="rgba(136,68,255,.15)"/><line x1="60" y1="10" x2="60" y2="56" stroke="#8844ff" stroke-width="1" opacity="0.44"/><line x1="106" y1="88" x2="60" y2="56" stroke="#8844ff" stroke-width="1" opacity="0.44"/><line x1="14" y1="88" x2="60" y2="56" stroke="#8844ff" stroke-width="1" opacity="0.44"/><circle cx="60" cy="56" r="5" fill="rgba(255,255,255,.88)"/></svg>`,
+    syncori:  `<svg viewBox="0 0 120 120" fill="none"><path d="M12,60 Q60,12 108,60 Q60,108 12,60Z" stroke="#8844ff" stroke-width="1.5" opacity="0.88"/><circle cx="60" cy="60" r="24" stroke="#8844ff" stroke-width="1.5" opacity="0.62"/><circle cx="60" cy="60" r="10" stroke="#8844ff" stroke-width="2"/><circle cx="60" cy="60" r="4" fill="#8844ff" opacity="0.9"/><path d="M14,78 Q20,68 26,78 Q32,88 38,78 Q44,68 50,78 Q56,88 62,78 Q68,68 74,78 Q80,88 86,78 Q92,68 98,78 Q104,88 110,78" stroke="#8844ff" stroke-width="1" opacity="0.38"/></svg>`,
+    audioori: `<svg viewBox="0 0 120 120" fill="none"><rect x="10" y="52" width="10" height="16" rx="5" fill="#cc44ff" opacity="0.6"/><rect x="24" y="40" width="10" height="40" rx="5" fill="#cc44ff" opacity="0.75"/><rect x="38" y="24" width="10" height="72" rx="5" fill="#cc44ff" opacity="0.9"/><rect x="52" y="32" width="10" height="56" rx="5" fill="#cc44ff" opacity="0.85"/><rect x="66" y="18" width="10" height="84" rx="5" fill="#cc44ff"/><rect x="80" y="36" width="10" height="48" rx="5" fill="#cc44ff" opacity="0.75"/><rect x="94" y="50" width="10" height="20" rx="5" fill="#cc44ff" opacity="0.55"/></svg>`,
+    slice:    `<svg viewBox="0 0 120 120" fill="none"><line x1="60" y1="6" x2="60" y2="92" stroke="#87ceeb" stroke-width="5"/><line x1="42" y1="82" x2="78" y2="82" stroke="#87ceeb" stroke-width="7"/><rect x="55" y="92" width="10" height="22" rx="2" stroke="#87ceeb" stroke-width="2.5"/><line x1="58" y1="14" x2="58" y2="78" stroke="rgba(255,255,255,.4)" stroke-width="2"/></svg>`,
+  };
+
+  let activeModIdx = 0;
+  let modulesOpen = false;
+
+  function initStars() {
+    const c = $('starsCanvas');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    c.width = innerWidth; c.height = innerHeight;
+    ctx.clearRect(0, 0, c.width, c.height);
+    const n = 290;
+    for (let i = 0; i < n; i++) {
+      const x = Math.random() * c.width;
+      const y = Math.random() * c.height * 0.82;
+      const r = Math.random() * 1.4 + 0.2;
+      const a = Math.random() * 0.62 + 0.1;
+      const br = Math.floor(Math.random() * 45 + 208);
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${br},${br + 8},255,${a})`; ctx.fill();
+      if (Math.random() < 0.05) {
+        ctx.beginPath(); ctx.arc(x, y, r * 3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${br},${br + 8},255,${a * 0.12})`; ctx.fill();
+      }
+    }
+    // Galaxy upper right
+    const gx = c.width * 0.82, gy = c.height * 0.1;
+    const gg = ctx.createRadialGradient(gx, gy, 0, gx, gy, 56);
+    gg.addColorStop(0, 'rgba(168,192,255,0.2)'); gg.addColorStop(0.4, 'rgba(118,158,240,0.07)'); gg.addColorStop(1, 'transparent');
+    ctx.save(); ctx.translate(gx, gy); ctx.rotate(-0.45); ctx.scale(1, 0.47); ctx.translate(-gx, -gy);
+    ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(gx, gy, 56, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    // Planet upper left
+    const px = c.width * 0.15, py = c.height * 0.07;
+    const pg = ctx.createRadialGradient(px - 4, py - 4, 0, px, py, 15);
+    pg.addColorStop(0, 'rgba(148,172,238,0.14)'); pg.addColorStop(1, 'transparent');
+    ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(px, py, 15, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function openModules(idx) {
+    if (modulesOpen) return;
+    modulesOpen = true;
+    activeModIdx = idx !== undefined ? idx : 0;
+    initStars();
+    $('starsCanvas').classList.add('on');
+    $('earthHorizon').classList.add('on');
+    $('earthGlow').classList.add('on');
+    promptBar.classList.remove('on');
+    signupBtn.classList.remove('on');
+    $('demoBtn')?.classList.remove('on');
+    $('modulesBtn')?.classList.remove('on');
+    $('moduleView').classList.add('open');
+    $('moduleBack').classList.add('on');
+    renderModulePage(activeModIdx);
+    setupModuleSwipe();
+  }
+
+  function closeModules() {
+    if (!modulesOpen) return;
+    modulesOpen = false;
+    $('moduleView').classList.remove('open');
+    $('moduleBack').classList.remove('on');
+    $('starsCanvas').classList.remove('on');
+    $('earthHorizon').classList.remove('on');
+    $('earthGlow').classList.remove('on');
+    setTimeout(() => {
+      promptBar.classList.add('on');
+      signupBtn.classList.add('on');
+      $('demoBtn')?.classList.add('on');
+      $('modulesBtn')?.classList.add('on');
+    }, 420);
+  }
+
+  function navigateToModuleIdx(idx) {
+    if (idx < 0) idx = MODULES.length - 1;
+    if (idx >= MODULES.length) idx = 0;
+    if (idx === activeModIdx) return;
+    activeModIdx = idx;
+    renderModulePage(activeModIdx);
+  }
+
+  function renderModulePage(idx) {
+    const mod = MODULES[idx];
+    const mp = $('modPage');
+    if (!mp) return;
+    const panelHtml = (rows, right) => rows ? `<div class="mp-panel${right ? ' mp-panel-r' : ''}">${rows.map(([k,v]) => `<div class="mp-pr"><div class="mp-pk">${k}</div>${v ? `<div class="mp-pv">${v}</div>` : ''}</div>`).join('')}</div>` : '<div></div>';
+    const cards = MODULES.map((m, i) => `<div class="mc-card${i===idx?' mc-active':''}" style="--mc:${m.color}" onclick="SIOS.navigateToModuleIdx(${i})"><div class="mc-icon">${MOD_ICONS[m.id]}</div><div class="mc-name">${m.name}</div><div class="mc-sub">${m.shortSub.replace('\n','<br>')}</div></div>`).join('');
+    const dots = MODULES.map((_,i) => `<div class="mod-dot${i===idx?' active':''}" onclick="SIOS.navigateToModuleIdx(${i})"></div>`).join('');
+    mp.innerHTML = `
+      <div class="mp-hdr"><span>SPACEOS</span><span>SIOS MODULE</span></div>
+      <div class="mp-name">${mod.name}</div>
+      <div class="mp-sub">${mod.subtitle.replace('\n','<br>')}</div>
+      <div class="mp-orb-zone">
+        <div class="mp-sides">${panelHtml(mod.panelLeft,false)}${panelHtml(mod.panelRight,true)}</div>
+        ${ORB_ICONS[mod.id] ? `<div class="mp-orb-icon pulse" style="--mod-color:${mod.color}">${ORB_ICONS[mod.id]}</div>` : ''}
+        <div class="mp-status-area">
+          <div class="mp-status-line">◇ STATUS: ${mod.status} ◇</div>
+          <div class="mp-tline">${mod.tagline}</div>
+          <div class="mp-sig"><div class="mp-sig-a">THIS IS NOT AN APP.</div><div class="mp-sig-b">THIS IS ME.</div></div>
+        </div>
+      </div>
+      <div class="mod-carousel-wrap"><div class="mod-carousel" id="modCarousel">${cards}</div></div>
+      <div class="mod-pagination">${dots}</div>
+      <div class="mod-footer"><div class="mod-footer-txt">GLOBAL IDENTITY. UNIVERSAL ACCESS. ONE DESIGNATION ACROSS ALL SYSTEMS.</div><div class="mod-fp"><svg viewBox="0 0 24 24" fill="none"><path d="M12,2 C6.5,2 2,6.5 2,12 C2,17.5 6.5,22 12,22 C17.5,22 22,17.5 22,12" stroke="rgba(145,185,255,.7)" stroke-width="1.5"/><path d="M12,6 C8.7,6 6,8.7 6,12 C6,15.3 8.7,18 12,18" stroke="rgba(145,185,255,.5)" stroke-width="1.2"/><circle cx="12" cy="12" r="2" fill="rgba(145,185,255,.6)"/></svg></div></div>`;
+    mp.style.opacity = '0';
+    requestAnimationFrame(() => { mp.classList.add('active'); mp.style.opacity = ''; });
+    setTimeout(() => {
+      const cr = document.getElementById('modCarousel');
+      if (!cr) return;
+      const ac = cr.querySelector('.mc-active');
+      if (ac) cr.scrollTo({ left: ac.offsetLeft - cr.offsetWidth / 2 + ac.offsetWidth / 2, behavior:'smooth' });
+    }, 120);
+  }
+
+  function setupModuleSwipe() {
+    const mv = $('moduleView');
+    let sx = null, sy = null;
+    const onDown = (e) => {
+      if (e.target.closest('.mod-carousel') || e.target.closest('.mc-card') || e.target.closest('.mod-pagination') || e.target.closest('.module-back')) return;
+      sx = e.clientX; sy = e.clientY;
+    };
+    const onUp = (e) => {
+      if (sx === null) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      sx = sy = null;
+      if (Math.abs(dx) > Math.abs(dy) * 0.85 && Math.abs(dx) > 44) navigateToModuleIdx(activeModIdx + (dx < 0 ? 1 : -1));
+    };
+    mv.addEventListener('pointerdown', onDown, { passive:true });
+    mv.addEventListener('pointerup',   onUp,   { passive:true });
+  }
 
   /* ═══════════════════════════════════════════════════════════
      EXPOSE API
@@ -1989,6 +2308,7 @@ body{-webkit-font-smoothing:antialiased}
     dismissAlert, addConvMsg, TAE_CONFIG,
     startGuidedTour, skipTour,
     setPageBackground, clearPageBackground,
+    openModules, closeModules, navigateToModuleIdx,
   };
 
 })();
