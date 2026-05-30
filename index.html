@@ -377,6 +377,43 @@ body{-webkit-font-smoothing:antialiased}
 /* HUD build toggle */
 .hud-build{font-size:14px;cursor:pointer;color:rgba(180,215,255,.45);background:none;border:0;padding:0 2px;transition:color .3s;line-height:1}
 .hud-build:hover{color:rgba(220,235,255,.8)}
+
+/* ── GID DESIGNATION STATION ─────────────────────────────── */
+.gid-station{position:fixed;inset:0;z-index:190;background:#000;overflow:hidden;opacity:0;pointer-events:none;transition:opacity .5s cubic-bezier(.16,1,.24,1)}
+.gid-station.open{opacity:1;pointer-events:auto}
+.gid-station::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 28%,rgba(8,80,200,.24),transparent 70%);pointer-events:none}
+.gs-scanline{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(8,123,255,.35),transparent);animation:gsScan 8s linear infinite;pointer-events:none;z-index:2}
+@keyframes gsScan{0%{top:-2px}100%{top:100%}}
+.gs-nav{position:relative;z-index:10;display:flex;align-items:flex-end;justify-content:space-between;height:calc(env(safe-area-inset-top) + 50px);padding-top:env(safe-area-inset-top);padding-bottom:10px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));border-bottom:.5px solid rgba(8,123,255,.2)}
+.gs-nav-back{display:flex;align-items:center;gap:4px;font-size:15px;color:#5bb0ff;cursor:pointer;background:none;border:0;padding:0;letter-spacing:.02em;-webkit-tap-highlight-color:transparent}
+.gs-nav-back svg{width:9px;height:15px;flex-shrink:0}
+.gs-nav-title{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:rgba(91,176,255,.55);text-align:center;flex:1}
+.gs-nav-spacer{min-width:56px}
+.gs-body{position:relative;z-index:5;overflow-y:auto;-webkit-overflow-scrolling:touch;height:calc(100% - calc(env(safe-area-inset-top) + 50px));padding-bottom:max(36px,env(safe-area-inset-bottom))}
+.gs-body::-webkit-scrollbar{display:none}
+.gs-top-label{padding:28px max(20px,env(safe-area-inset-left)) 18px;text-align:center;font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:rgba(91,176,255,.45)}
+.gs-card{border:1px solid rgba(8,123,255,.32);border-radius:20px;background:linear-gradient(180deg,rgba(8,40,120,.32),rgba(0,0,0,.72));box-shadow:inset 0 0 40px rgba(8,80,255,.07),0 0 60px rgba(8,80,255,.1);padding:28px 22px;margin:0 max(16px,env(safe-area-inset-left));position:relative;overflow:hidden}
+.gs-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(91,176,255,.55),transparent)}
+.gs-gid{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(20px,5vw,28px);letter-spacing:.16em;color:#fff;text-align:center;margin-bottom:7px;animation:gsGlow 3.5s ease-in-out infinite;word-break:break-all}
+@keyframes gsGlow{0%,100%{text-shadow:0 0 18px rgba(8,123,255,.6)}50%{text-shadow:0 0 30px rgba(8,123,255,.9),0 0 55px rgba(8,123,255,.28)}}
+.gs-role{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#5bb0ff;text-align:center;margin-bottom:22px}
+.gs-divider{height:.5px;background:linear-gradient(90deg,transparent,rgba(8,123,255,.28),transparent);margin:0 -22px 18px}
+.gs-rows{display:flex;flex-direction:column}
+.gs-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:.5px solid rgba(8,123,255,.1);font-size:13px}
+.gs-row:last-child{border:0}
+.gs-rk{color:rgba(91,176,255,.5);letter-spacing:.08em;font-size:11px;text-transform:uppercase}
+.gs-rv{color:#ddeeff;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;font-size:12px}
+.gs-rv.live{color:#00e87a}
+.gs-rv.live::before{content:'● ';font-size:8px;vertical-align:middle}
+.gs-systems-section{padding:26px max(16px,env(safe-area-inset-left)) 0}
+.gs-sys-label{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:rgba(91,176,255,.42);margin-bottom:12px}
+.gs-sys-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.gs-sys-item{border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:8px 3px 7px;text-align:center;background:rgba(255,255,255,.025);cursor:pointer;transition:border-color .2s,background .2s;-webkit-tap-highlight-color:transparent}
+.gs-sys-item:active{background:rgba(8,123,255,.14);border-color:rgba(8,123,255,.35)}
+.gs-sys-dot{width:6px;height:6px;border-radius:50%;margin:0 auto 5px}
+.gs-sys-name{font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(180,210,255,.6);line-height:1.2}
+.gs-accept{display:block;margin:24px max(16px,env(safe-area-inset-left)) 0;width:calc(100% - max(32px,calc(env(safe-area-inset-left) * 2)));padding:16px;border:1px solid rgba(8,123,255,.38);border-radius:14px;background:linear-gradient(180deg,rgba(8,80,200,.28),rgba(0,0,0,.72));color:#fff;font-size:15px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;box-shadow:0 0 28px rgba(8,80,255,.15),inset 0 0 24px rgba(8,80,255,.05);transition:opacity .2s;-webkit-tap-highlight-color:transparent}
+.gs-accept:active{opacity:.65}
 </style>
 </head>
 <body>
@@ -397,7 +434,7 @@ body{-webkit-font-smoothing:antialiased}
   <div class="hud" id="hud">
     <span class="brand">SIOS</span>
     <div class="meta">
-      <span>GID <b id="gidLabel">—</b></span>
+      <span onclick="SIOS.openGidStation()" style="cursor:pointer">GID <b id="gidLabel">—</b></span>
       <span>Mode <b id="laneLabel">DEMO</b></span>
       <span class="status" id="statusLabel">●</span>
     </div>
@@ -550,6 +587,33 @@ body{-webkit-font-smoothing:antialiased}
 
 <!-- Module back button (above module view) -->
 <button class="module-back" id="moduleBack" onclick="SIOS.closeModules()">← Back</button>
+
+<!-- GID Designation Station -->
+<div class="gid-station" id="gidStation">
+  <div class="gs-scanline"></div>
+  <nav class="gs-nav">
+    <button class="gs-nav-back" onclick="SIOS.closeGidStation()">
+      <svg viewBox="0 0 9 15" fill="none" stroke="#5bb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,1 1,7.5 8,14"/></svg>
+      Back
+    </button>
+    <div class="gs-nav-title">GID Station</div>
+    <div class="gs-nav-spacer"></div>
+  </nav>
+  <div class="gs-body">
+    <div class="gs-top-label">Galactic Identity Designation</div>
+    <div class="gs-card">
+      <div class="gs-gid" id="gsGid">399152573423</div>
+      <div class="gs-role" id="gsRole">Prime Orchestrator</div>
+      <div class="gs-divider"></div>
+      <div class="gs-rows" id="gsRows"></div>
+    </div>
+    <div class="gs-systems-section">
+      <div class="gs-sys-label">Linked Systems &nbsp;<span id="gsSysCount">10</span></div>
+      <div class="gs-sys-grid" id="gsSysGrid"></div>
+    </div>
+    <button class="gs-accept" onclick="SIOS.closeGidStation()">Accept Identity</button>
+  </div>
+</div>
 
 <!-- Light mode / paper-chrome runtime surface -->
 <div class="light-view" id="lightView">
@@ -2492,9 +2556,65 @@ body{-webkit-font-smoothing:antialiased}
     } else if (selectedBuildOpt === 'spacebg') {
       showToast('Space background is active — open any module to see it.');
     } else if (selectedBuildOpt === 'gid') {
-      openAuth?.();
+      openGidStation();
     } else {
       showToast('Describe your request in the prompt below.');
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     GID DESIGNATION STATION
+     ═══════════════════════════════════════════════════════════ */
+
+  const GID_METADATA = [
+    ['AUTHORITY', 'GALACTIC'],
+    ['CLEARANCE',  'TIER 0'],
+    ['ACCESS',     'UNRESTRICTED'],
+    ['NODE',       'SIOS-PRIME'],
+    ['STATUS',     'OPTIMAL'],
+    ['RUNTIME',    'LIVE'],
+  ];
+
+  let gidStationOpen = false;
+
+  function openGidStation() {
+    const gid  = authState.user?.gid  || TAE_CONFIG.gid;
+    const role = authState.user?.role || TAE_CONFIG.mode;
+    renderGidStation(gid, role);
+    $('gidStation').classList.add('open');
+    gidStationOpen = true;
+  }
+
+  function closeGidStation() {
+    $('gidStation').classList.remove('open');
+    gidStationOpen = false;
+  }
+
+  function renderGidStation(gid, role) {
+    $('gsGid').textContent  = gid  || '—';
+    $('gsRole').textContent = (role || 'Unknown').toUpperCase();
+
+    const rows = $('gsRows');
+    if (rows) {
+      rows.innerHTML = GID_METADATA.map(([k, v]) => {
+        const live = k === 'STATUS' || k === 'RUNTIME';
+        return `<div class="gs-row">
+          <span class="gs-rk">${k}</span>
+          <span class="gs-rv${live ? ' live' : ''}">${v}</span>
+        </div>`;
+      }).join('');
+    }
+
+    const grid = $('gsSysGrid');
+    if (grid) {
+      grid.innerHTML = MODULES.map((m, i) => {
+        const color = MODULE_COLORS[m.id] || '#087bff';
+        return `<div class="gs-sys-item" onclick="SIOS.closeGidStation();setTimeout(()=>SIOS.openModules(${i}),340)">
+          <div class="gs-sys-dot" style="background:${color};box-shadow:0 0 5px ${color}"></div>
+          <div class="gs-sys-name">${m.name}</div>
+        </div>`;
+      }).join('');
+      $('gsSysCount').textContent = MODULES.length;
     }
   }
 
@@ -2516,6 +2636,7 @@ body{-webkit-font-smoothing:antialiased}
     openModules, closeModules, navigateToModuleIdx,
     openLightMode, closeLightMode, lightSelectModule,
     openBuildModal, closeBuildModal, selectBuildOption, submitBuild,
+    openGidStation, closeGidStation,
   };
 
 })();
