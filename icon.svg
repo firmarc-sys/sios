@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="120" fill="#000000"/>
+  <defs>
+    <radialGradient id="g" cx="36%" cy="26%" r="70%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.18" stop-color="#d8f6ff"/>
+      <stop offset="0.42" stop-color="#65758a"/>
+      <stop offset="0.58" stop-color="#03060b"/>
+      <stop offset="0.78" stop-color="#8df4ff"/>
+      <stop offset="1" stop-color="#05080d"/>
+    </radialGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="256" cy="260" r="142" fill="url(#g)" filter="url(#glow)"/>
+  <circle cx="206" cy="198" r="28" fill="#ffffff" opacity="0.86"/>
+  <path d="M116 354c72 42 205 42 280 0" fill="none" stroke="#69efff" stroke-width="6" opacity="0.58"/>
+  <text x="256" y="462" text-anchor="middle" fill="#dffbff" font-family="monospace" font-size="34" letter-spacing="6">STARE</text>
+</svg>
