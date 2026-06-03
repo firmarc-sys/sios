@@ -1,0 +1,1 @@
+{"scripts":{"build":"node scripts/prepare-vercel.mjs"},"engines":{"node":">=18"}}
