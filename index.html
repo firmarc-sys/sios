@@ -820,6 +820,7 @@ body{-webkit-font-smoothing:antialiased}
     uniform float uIntensity;
     uniform float uChrome;
     uniform float uBlueGlow;
+    uniform vec3  uGlowColor;
     uniform sampler2D uTexture;
     varying vec2 vUv;
     varying vec3 vNormal;
@@ -881,7 +882,7 @@ body{-webkit-font-smoothing:antialiased}
       float coreGlow = pow(NdV, 2.5) * uBlueGlow; // NdV = 1 at center facing camera
       // Add subsurface scattering feel
       float sss = pow(max(dot(N, normalize(vec3(0, 0, 1))), 0.0), 3.0) * 0.4 * uBlueGlow;
-      vec3 blueLight = vec3(0.02, 0.35, 1.0) * (coreGlow * 0.8 + sss);
+      vec3 blueLight = uGlowColor * (coreGlow * 0.8 + sss);
       // Pulsing blue glow
       blueLight *= 0.7 + 0.3 * sin(uTime * 0.6);
 
@@ -891,7 +892,7 @@ body{-webkit-font-smoothing:antialiased}
       // Combine
       vec3 finalColor = surface * ao + specTotal + rim + blueLight;
       // Slight blue rim at edges
-      finalColor += vec3(0.0, 0.15, 0.5) * fresnel * 0.2 * uBlueGlow;
+      finalColor += uGlowColor * 0.5 * fresnel * 0.2 * uBlueGlow;
 
       // Tonemap
       finalColor = pow(finalColor, vec3(1.08));
@@ -1009,6 +1010,7 @@ body{-webkit-font-smoothing:antialiased}
       uIntensity: { value: 0.7 },
       uChrome: { value: 1.0 },
       uBlueGlow: { value: 1.0 },
+      uGlowColor: { value: new THREE.Color(0x0055ff) },
     },
     vertexShader: orbVertexShader,
     fragmentShader: orbFragmentShader,
@@ -1112,7 +1114,8 @@ body{-webkit-font-smoothing:antialiased}
     orb.scale.setScalar(breathScale);
 
     // Blue core pulse
-    const pulse = 0.7 + 0.3 * Math.sin(t * 0.6);
+    const pulseFreq = orbVariant ? orbVariant.pulseFreq : 0.6;
+    const pulse = 0.7 + 0.3 * Math.sin(t * pulseFreq);
     blueCore.intensity = 2.0 * pulse;
     blueUnder.intensity = 1.2 * pulse;
     glowSphere.material.opacity = 0.1 + 0.08 * pulse;
@@ -2322,6 +2325,48 @@ body{-webkit-font-smoothing:antialiased}
     slice:    `<svg viewBox="0 0 120 120" fill="none"><line x1="60" y1="6" x2="60" y2="92" stroke="#87ceeb" stroke-width="5"/><line x1="42" y1="82" x2="78" y2="82" stroke="#87ceeb" stroke-width="7"/><rect x="55" y="92" width="10" height="22" rx="2" stroke="#87ceeb" stroke-width="2.5"/><line x1="58" y1="14" x2="58" y2="78" stroke="rgba(255,255,255,.4)" stroke-width="2"/></svg>`,
   };
 
+  /* ── Per-module orb color + dynamics ─────────────────────── */
+  // r/g/b → uGlowColor (vec3, 0-1), core/under → light hex,
+  // glow → inner sphere hex, halo → outer halo hex
+  const ORB_VARIANTS = {
+    sios:     { r:0.02, g:0.35, b:1.00, core:0x0055ff, under:0x0044cc, glow:0x0066ff, halo:0x0044cc, blueGlow:1.00, displace:0.060, pulseFreq:0.60 },
+    sare:     { r:0.04, g:0.42, b:1.00, core:0x0077ff, under:0x0055cc, glow:0x0088ff, halo:0x0055cc, blueGlow:1.10, displace:0.070, pulseFreq:0.72 },
+    aragip:   { r:0.95, g:0.45, b:0.00, core:0xff6600, under:0xcc4400, glow:0xff8800, halo:0xcc5500, blueGlow:1.00, displace:0.080, pulseFreq:0.50 },
+    heros:    { r:1.00, g:0.08, b:0.04, core:0xff1100, under:0xcc0000, glow:0xff2200, halo:0xcc1100, blueGlow:1.30, displace:0.100, pulseFreq:1.20 },
+    vulgate:  { r:0.95, g:0.72, b:0.00, core:0xffbb00, under:0xcc8800, glow:0xffcc00, halo:0xccaa00, blueGlow:0.90, displace:0.070, pulseFreq:0.40 },
+    siaas:    { r:0.00, g:0.72, b:0.92, core:0x00aacc, under:0x007799, glow:0x00ccff, halo:0x0088bb, blueGlow:1.10, displace:0.060, pulseFreq:0.65 },
+    pppiaas:  { r:0.50, g:0.18, b:0.95, core:0x6633ee, under:0x4422bb, glow:0x8844ff, halo:0x5533cc, blueGlow:0.80, displace:0.050, pulseFreq:0.30 },
+    syncori:  { r:0.40, g:0.22, b:0.90, core:0x5533dd, under:0x3322aa, glow:0x6644ee, halo:0x4433bb, blueGlow:0.85, displace:0.055, pulseFreq:0.55 },
+    audioori: { r:0.72, g:0.18, b:0.92, core:0xaa22ee, under:0x881199, glow:0xcc44ff, halo:0xaa33dd, blueGlow:1.10, displace:0.090, pulseFreq:0.90 },
+    slice:    { r:0.60, g:0.80, b:0.95, core:0x88aacc, under:0x6688aa, glow:0xaaddff, halo:0x8899bb, blueGlow:0.75, displace:0.040, pulseFreq:0.40 },
+  };
+
+  let orbVariant = null;
+
+  function setOrbVariant(id) {
+    const v = ORB_VARIANTS[id];
+    if (!v) return;
+    orbVariant = v;
+    orbMat.uniforms.uGlowColor.value.setRGB(v.r, v.g, v.b);
+    orbMat.uniforms.uBlueGlow.value = v.blueGlow;
+    orbMat.uniforms.uDisplace.value = v.displace;
+    blueCore.color.setHex(v.core);
+    blueUnder.color.setHex(v.under);
+    glowSphere.material.color.setHex(v.glow);
+    halo.material.color.setHex(v.halo);
+  }
+
+  function resetOrbVariant() {
+    orbVariant = null;
+    orbMat.uniforms.uGlowColor.value.setHex(0x0055ff);
+    orbMat.uniforms.uBlueGlow.value = 1.0;
+    orbMat.uniforms.uDisplace.value = 0.06;
+    blueCore.color.setHex(0x0055ff);
+    blueUnder.color.setHex(0x0044cc);
+    glowSphere.material.color.setHex(0x0066ff);
+    halo.material.color.setHex(0x0044cc);
+  }
+
   let activeModIdx = 0;
   let modulesOpen = false;
 
@@ -2379,6 +2424,7 @@ body{-webkit-font-smoothing:antialiased}
   function closeModules() {
     if (!modulesOpen) return;
     modulesOpen = false;
+    resetOrbVariant();
     $('moduleView').classList.remove('open');
     $('moduleBack').classList.remove('on');
     $('starsCanvas').classList.remove('on');
@@ -2402,6 +2448,7 @@ body{-webkit-font-smoothing:antialiased}
 
   function renderModulePage(idx) {
     const mod = MODULES[idx];
+    setOrbVariant(mod.id);
     const mp = $('modPage');
     if (!mp) return;
     const panelHtml = (rows, right) => rows ? `<div class="mp-panel${right ? ' mp-panel-r' : ''}">${rows.map(([k,v]) => `<div class="mp-pr"><div class="mp-pk">${k}</div>${v ? `<div class="mp-pv">${v}</div>` : ''}</div>`).join('')}</div>` : '<div></div>';
