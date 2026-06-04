@@ -16,9 +16,9 @@
 :root{--void:#000;--deep:#010205;--blue:#6bb7ff;--blue2:#087bff;--white:#f6fbff;--state:0;--energy:.55;--mx:50%;--my:70%}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Segoe UI",system-ui,sans-serif;touch-action:manipulation;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
-body{position:fixed;inset:0;background:radial-gradient(circle at 50% 120%,#031026 0%,#000 48%,#000 100%)}
+body{position:fixed;inset:0;background:#000 url('/assets/landing.webp') center/cover no-repeat}
 canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block}
-#field{z-index:1;background:#000}
+#field{z-index:1;background:transparent}
 .runtime{position:fixed;inset:0;z-index:5;pointer-events:none;isolation:isolate}
 .void-vignette{position:absolute;inset:-10%;background:radial-gradient(ellipse at 50% 73%,transparent 0 22%,rgba(0,28,70,.19) 32%,transparent 56%),radial-gradient(ellipse at 50% 50%,transparent 0 44%,rgba(0,0,0,.78) 82%,#000 100%);mix-blend-mode:screen;opacity:.85;animation:voidBreath 7s ease-in-out infinite}
 @keyframes voidBreath{0%,100%{transform:scale(1);opacity:.72}50%{transform:scale(1.025);opacity:.96}}
@@ -96,16 +96,18 @@ body[data-phase="prime"] .brand{opacity:.42}body[data-phase="prime"] .orb-shell{
 'use strict';
 const IDENTITY={gid:'399152573423',displayName:'Jorge Delgado',mode:'Prime Orchestrator',tier:'PRIME',permissions:['owner','admin','orchestrator','demo'],runtime:'SIOS / STARE Gateway',backend:'Vercel PM Backend',status:'AWAKE'};
 const COMMAND='TAE, enter Demo Mode';
-const body=document.body,canvas=document.getElementById('field'),ctx=canvas.getContext('2d',{alpha:false});
+const body=document.body,canvas=document.getElementById('field'),ctx=canvas.getContext('2d',{alpha:true});
 const prompt=document.getElementById('prompt'),input=document.getElementById('command'),toast=document.getElementById('toast'),statusLine=document.getElementById('statusLine'),orbShell=document.getElementById('orbShell'),mic=document.getElementById('mic'),installBtn=document.getElementById('installBtn');
 let W=0,H=0,DPR=1,t0=performance.now(),phase='idle',energy=.48,activated=false,deferredInstall=null,audioCtx=null,particles=[];
 function setPhase(next){phase=next;body.dataset.phase=next;statusLine.textContent=`STATE: ${next.toUpperCase()} · BACKEND: VERCEL PM · GID: ${IDENTITY.gid}`;}
 function showToast(text,ms=1800){toast.textContent=text;toast.classList.add('on');clearTimeout(showToast._t);showToast._t=setTimeout(()=>toast.classList.remove('on'),ms)}
 function resize(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;canvas.width=Math.floor(W*DPR);canvas.height=Math.floor(H*DPR);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);seedParticles()}
 function seedParticles(){const count=Math.min(760,Math.floor(W*H/1150));particles=Array.from({length:count},(_,i)=>({x:Math.random()*W,y:Math.random()*H,z:Math.random(),r:Math.random()*1.7+.35,v:(Math.random()*0.35+.08)*(Math.random()<.5?-1:1),a:Math.random()*6.283,i}))}
-function draw(now){const t=(now-t0)/1000;ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
- const cx=W*.5,cy=H*.70,orbR=Math.min(W*.245,132)*(phase==='prime'?.68:1);let g=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*.74);g.addColorStop(0,`rgba(0,60,150,${.13+energy*.07})`);g.addColorStop(.33,'rgba(0,8,24,.22)');g.addColorStop(1,'rgba(0,0,0,1)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
- particles.forEach(p=>{let pull=(phase==='idle'?0:phase==='active'?.2:phase==='generate'?.5:.75);let targetY=cy-(Math.sin(p.i)*.5+.5)*H*.55;let dx=cx+(Math.sin(p.i*17.13+t*.22)*W*.34)-p.x;let dy=targetY-p.y;p.x+=dx*.0015*pull+Math.sin(t*.7+p.a)*.05;p.y+=p.v-(pull*dy*.001);if(p.y<-40)p.y=H+20;if(p.y>H+40)p.y=-20;if(p.x<-30)p.x=W+20;if(p.x>W+30)p.x=-20;let dist=Math.hypot(p.x-cx,p.y-cy),glow=Math.max(0,1-dist/(H*.75));let alpha=(.12+p.z*.45+glow*.28)*(phase==='prime'?1.15:1);ctx.fillStyle=`rgba(${155+p.z*90},${205+p.z*45},255,${alpha})`;ctx.fillRect(Math.round(p.x),Math.round(p.y),Math.max(1,p.r),Math.max(1,p.r));});
+function draw(now){const t=(now-t0)/1000;ctx.clearRect(0,0,W,H);
+ const cx=W*.5,cy=H*.70,orbR=Math.min(W*.245,132)*(phase==='prime'?.68:1);let g=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*.74);g.addColorStop(0,`rgba(0,20,60,${.18+energy*.10})`);g.addColorStop(.38,'rgba(0,5,18,.28)');g.addColorStop(1,'rgba(0,0,0,.62)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ ctx.save();ctx.globalCompositeOperation='screen';
+ particles.forEach(p=>{let pull=(phase==='idle'?0:phase==='active'?.2:phase==='generate'?.5:.75);let targetY=cy-(Math.sin(p.i)*.5+.5)*H*.55;let dx=cx+(Math.sin(p.i*17.13+t*.22)*W*.34)-p.x;let dy=targetY-p.y;p.x+=dx*.0015*pull+Math.sin(t*.7+p.a)*.05;p.y+=p.v-(pull*dy*.001);if(p.y<-40)p.y=H+20;if(p.y>H+40)p.y=-20;if(p.x<-30)p.x=W+20;if(p.x>W+30)p.x=-20;let dist=Math.hypot(p.x-cx,p.y-cy),glow=Math.max(0,1-dist/(H*.75));let alpha=(.18+p.z*.55+glow*.38)*(phase==='prime'?1.2:1);ctx.fillStyle=`rgba(${155+p.z*90},${205+p.z*45},255,${alpha})`;ctx.fillRect(Math.round(p.x),Math.round(p.y),Math.max(1,p.r),Math.max(1,p.r));});
+ ctx.restore();
  if(phase!=='idle'){ctx.save();ctx.globalCompositeOperation='screen';for(let i=0;i<20;i++){let a=(i/20)*Math.PI*2+t*.08;let x=cx+Math.cos(a)*orbR*(1.2+i*.032);let y=cy+Math.sin(a)*orbR*.36+Math.sin(t+i)*5;ctx.strokeStyle=`rgba(130,210,255,${.018+i*.002})`;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(cx+Math.cos(a+Math.PI)*W*.48,cy-H*.62);ctx.stroke()}ctx.restore()}
  ctx.save();ctx.translate(cx,cy+orbR*.64);ctx.scale(1,.23);for(let r=1;r<7;r++){ctx.strokeStyle=`rgba(130,210,255,${.11/r})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,orbR*(1.1+r*.32+Math.sin(t*1.3+r)*.04),0,Math.PI*2);ctx.stroke()}ctx.restore();
  requestAnimationFrame(draw)}
