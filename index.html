@@ -2,87 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#000000">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>SIOS Runtime</title>
+
   <link rel="stylesheet" href="styles.css">
   <script defer src="app.js"></script>
 </head>
 <body>
   <main class="app">
     <div class="shell"></div>
-    <div class="screen">
-      <div class="toast" id="toast">THIS IS NOT AN APP. THIS IS ME.<br>GID 399152573423 • PRIME ORCHESTRATOR</div>
-      <header class="top">
-        <div>
-          <div class="page" id="page">SYSTEM SEED</div>
-          <div class="brand">SIOS</div>
-          <div class="tag">SPATIAL INTELLIGENCE OS</div>
-        </div>
-      </header>
-      <section id="hero" class="view active">
-        <div class="hero-copy">
-          <h1>System Intelligence<br>at the speed of self.</h1>
-          <p>Identity. Orchestration. Real-time UI.</p>
-          <div class="enter" onclick="go('portal')">Enter SIOS →</div>
-        </div>
-        <div class="core"></div>
-      </section>
-      <section id="portal" class="view">
-        <div class="panel">
-          <h1>GID PORTAL</h1>
-          <p class="green">Unauthenticated access. Explore the intelligence field before identity bind.</p>
-          <div class="bigbox" onclick="go('gate')">CREATE GID / ENTER RUNTIME →</div>
-        </div>
-      </section>
-      <section id="gate" class="view">
-        <div class="panel">
-          <h1>GID GATE</h1>
-          <p class="green">✓ GALACTIC IDENTITY VERIFIED</p>
-          <div class="bigbox">GID 399152573423<br>Mode: Prime Orchestrator</div>
-          <div class="bigbox" onclick="go('access')">CHOOSE ACCESS →</div>
-        </div>
-      </section>
-      <section id="access" class="view">
-        <div class="panel">
-          <h1>ACCESS GATE</h1>
-          <p>Choose your SIOS subscription path.</p>
-          <div class="module-grid">
-            <div class="module" onclick="choose('Alpha $15')"><b>Alpha</b><p>$15 · 100 seats capped</p></div>
-            <div class="module" onclick="choose('Beta $100')"><b>Beta</b><p>$100 · 1,000 seats capped</p></div>
-            <div class="module" onclick="choose('Founder $250')"><b>Founder</b><p>Priority runtime</p></div>
-            <div class="module" onclick="choose('Omega $1000+')"><b>Omega</b><p>Prime access</p></div>
-          </div>
-          <p id="selectedPlan" class="green">Selected: Beta $100</p>
-          <div class="bigbox" onclick="checkout()">CONTINUE TO SUBSCRIPTION →</div>
-          <div class="bigbox" onclick="go('launcher')">PREVIEW CORE APPS</div>
-        </div>
-      </section>
-      <section id="launcher" class="view">
-        <div class="panel">
-          <h1>CORE APPS</h1>
-          <p>Click a projected surface to open its child page.</p>
-          <div id="modules" class="module-grid"></div>
-        </div>
-      </section>
-      <section id="child" class="view">
-        <div class="panel">
-          <h1 id="childTitle">MODULE</h1>
-          <div id="childRows"></div>
-        </div>
-      </section>
+
+    <div class="toast" id="toast">
+      THIS IS NOT AN APP. THIS IS ME.<br>
+      GID 399152573423 • PRIME ORCHESTRATOR
     </div>
-    <nav class="dock">
+
+    <section id="hero" class="view active">
+      <div class="hero-copy">
+        <h1>System Intelligence at the speed of self.</h1>
+        <div class="enter" onclick="go('portal')">
+          Enter SIOS
+        </div>
+      </div>
+
+      <div class="core"></div>
+    </section>
+
+    <section id="portal" class="view">
+      <div class="panel">
+        <h1>GID PORTAL</h1>
+      </div>
+    </section>
+
+    <section id="gate" class="view">
+      <div class="panel">
+        <h1>GID GATE</h1>
+      </div>
+    </section>
+
+    <section id="launcher" class="view">
+      <div class="panel">
+        <h1>CORE APPS</h1>
+        <div id="modules" class="module-grid"></div>
+      </div>
+    </section>
+
+    <section id="child" class="view">
+      <div class="panel">
+        <h1 id="childTitle">MODULE</h1>
+        <div id="childRows"></div>
+      </div>
+    </section>
+
+    <div class="dock">
       <button onclick="child('TAE INTAKE')">TAE</button>
       <button onclick="child('RENDER STUDIO')">RENDER</button>
       <button onclick="child('SYNCORI')">SYNCORI</button>
       <button onclick="child('IDENTITY HUB')">IDENTITY</button>
-    </nav>
+    </div>
+
     <div class="bar">
       <span id="status">SYSTEM LIVE</span>
-      <span onclick="go('launcher')">SCROLL TO EXPLORE</span>
+      <span>SCROLL TO EXPLORE</span>
     </div>
   </main>
 </body>
