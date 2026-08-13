@@ -1,40 +1,16 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "version": 2,
-  "name": "jahorin-mercury",
-  "buildCommand": "npm run build",
-  "outputDirectory": ".",
-  "cleanUrls": false,
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://mercury-timerunner-689058655022.us-west1.run.app/api/:path*"
-    },
-    {
-      "source": "/assets2/:path*",
-      "destination": "https://mercury-timerunner-689058655022.us-west1.run.app/assets2/:path*"
-    }
+  "$schema":"https://openapi.vercel.sh/vercel.json",
+  "version":2,
+  "name":"jahorin-mercury",
+  "buildCommand":"npm run build",
+  "outputDirectory":".",
+  "rewrites":[
+    {"source":"/api/:path*","destination":"https://ari-689058655022.us-west1.run.app/api/:path*"},
+    {"source":"/assets2/:path*","destination":"https://agentic-mercury-runtime-689058655022.us-west1.run.app/assets2/:path*"}
   ],
-  "headers": [
-    {
-      "source": "/api/:path*",
-      "headers": [
-        { "key": "x-vercel-enable-rewrite-caching", "value": "0" },
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache" }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
-      ]
-    }
+  "headers":[
+    {"source":"/api/:path*","headers":[{"key":"x-vercel-enable-rewrite-caching","value":"0"},{"key":"Cache-Control","value":"no-store"}]},
+    {"source":"/sw.js","headers":[{"key":"Cache-Control","value":"no-cache"}]},
+    {"source":"/(.*)","headers":[{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"strict-origin-when-cross-origin"}]}
   ]
 }
